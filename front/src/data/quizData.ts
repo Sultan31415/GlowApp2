@@ -1,168 +1,177 @@
-import { QuizSection } from '../types';
-
-export const quizSections: QuizSection[] = [
+export const quizSections = [
   {
-    id: 'vision',
-    title: 'Your Glow-Up Vision',
+    id: 'daily-vitality',
+    title: 'Your Daily Vitality & Habits',
     questions: [
       {
         id: 'q1',
-        text: "What's the ONE thing you dream of transforming about yourself in the next 30-90 days?",
+        text: 'How often do you wake up feeling truly refreshed and energized, ready to start your day?',
         type: 'single-choice',
         options: [
-          { value: 'clearer-skin', label: 'Clearer, glowing skin' },
-          { value: 'boosted-energy', label: 'Boosted energy levels' },
-          { value: 'better-sleep', label: 'Better, deeper sleep' },
-          { value: 'less-stress', label: 'Less stress and anxiety' },
-          { value: 'youthful-appearance', label: 'More youthful appearance' },
-          { value: 'emotional-resilience', label: 'Stronger emotional resilience' },
-          { value: 'confidence', label: 'Increased confidence' },
-          { value: 'gut-health', label: 'Better gut health' },
-          { value: 'fitness', label: 'Improved fitness level' },
-          { value: 'social-connections', label: 'Stronger social connections' }
+          { value: 5, label: 'Almost every day (5-7 days/week)' },
+          { value: 4, label: 'Most days (3-4 days/week)' },
+          { value: 3, label: 'Sometimes (1-2 days/week)' },
+          { value: 2, label: 'Rarely (Less than once a week)' },
+          { value: 1, label: 'Never (Always feel tired upon waking)' }
         ]
-      }
-    ]
-  },
-  {
-    id: 'energy-vitality',
-    title: 'Your Daily Energy & Vitality',
-    questions: [
+      },
       {
         id: 'q2',
-        text: 'How often do you wake up feeling truly refreshed and energized?',
+        text: 'On average, how many hours of quality sleep do you get per night?',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Almost every day', description: 'I consistently wake up feeling great' },
-          { value: 4, label: 'Most days', description: '4-5 days per week' },
-          { value: 3, label: 'Sometimes', description: '2-3 days per week' },
-          { value: 2, label: 'Rarely', description: 'Once a week or less' },
-          { value: 1, label: 'Never', description: 'I always feel tired upon waking' }
+          { value: 5, label: '8+ hours' },
+          { value: 4, label: '7-8 hours' },
+          { value: 3, label: '6-7 hours ' },
+          { value: 2, label: '5-6 hours ' },
+          { value: 1, label: 'Less than 5 hours' }
         ]
       },
       {
         id: 'q3',
-        text: 'How would you describe your energy levels from morning to evening?',
+        text: 'How many glasses (8oz/250ml) of plain water do you typically drink per day?',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Consistently high all day' },
-          { value: 4, label: 'Good morning energy, slight afternoon dip' },
-          { value: 3, label: 'Up and down throughout the day' },
-          { value: 2, label: 'Low energy most of the day' },
-          { value: 1, label: 'Exhausted from morning to night' }
+          { value: 5, label: '8+ glasses' },
+          { value: 4, label: '6-7 glasses ' },
+          { value: 3, label: '4-5 glasses ' },
+          { value: 2, label: '2-3 glasses ' },
+          { value: 1, label: '1 glass or less ' }
         ]
       },
       {
         id: 'q4',
-        text: 'How many glasses of plain water do you typically drink per day?',
+        text: 'How often do you engage in moderate to vigorous physical activity (e.g., brisk walking, jogging, sports)?',
         type: 'single-choice',
         options: [
-          { value: 5, label: '8+ glasses', description: 'I stay well hydrated' },
-          { value: 4, label: '6-7 glasses', description: 'Pretty good hydration' },
-          { value: 3, label: '4-5 glasses', description: 'Moderate hydration' },
-          { value: 2, label: '2-3 glasses', description: 'Below recommended' },
-          { value: 1, label: '1 glass or less', description: 'I rarely drink plain water' }
+          { value: 5, label: '5 or more times a week' },
+          { value: 4, label: '3-4 times a week' },
+          { value: 3, label: '1-2 times a week' },
+          { value: 2, label: 'Rarely or never' }
         ]
       },
       {
         id: 'q5',
-        text: 'How often do you engage in moderate to intense physical activity?',
+        text: 'How would you describe your typical daily diet?',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Daily or almost daily' },
-          { value: 4, label: '4-5 times per week' },
-          { value: 3, label: '2-3 times per week' },
-          { value: 2, label: 'Once a week' },
-          { value: 1, label: 'Rarely or never' }
+          { value: 5, label: 'Whole foods' },
+          { value: 4, label: 'Mostly healthy' },
+          { value: 3, label: 'Mixed' },
+          { value: 2, label: 'Processed' },
+          { value: 1, label: 'Fast food' }          
         ]
       },
       {
         id: 'q6',
-        text: 'How would you describe your typical daily diet?',
+        text: 'What is your current experience with smoking (tobacco products, e-cigarettes, etc.)?',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Mostly whole foods, balanced nutrition' },
-          { value: 4, label: 'Generally healthy with occasional treats' },
-          { value: 3, label: 'Mixed - some healthy, some processed foods' },
-          { value: 2, label: 'Mostly processed foods, limited vegetables' },
-          { value: 1, label: 'Fast food and processed foods dominate' }
+          { value: 'never', label: 'Never smoked' },
+          { value: 'quit-10+', label: 'Quit 10+ years ago' },
+          { value: 'quit-5-10', label: 'Quit 5-10 years ago' },
+          { value: 'quit-1-5', label: 'Quit 1-5 years ago' },
+          { value: 'occasionally', label: 'Occasionally (less than daily)' },
+          { value: 'daily', label: 'Daily' }
+        ]
+      },
+      {
+        id: 'q7',
+        text: 'How much alcohol do you typically consume?',
+        type: 'single-choice',
+        options: [
+          { value: 'rarely-never', label: 'Rarely or never' },
+          { value: 'couple-per-month', label: 'A couple of drinks per month' },
+          { value: 'couple-per-week', label: 'A couple of drinks per week' },
+          { value: '1-2-per-day', label: '1-2 drinks per day' },
+          { value: '3+-per-day', label: '3 or more drinks per day' }
         ]
       }
     ]
   },
   {
-    id: 'inner-radiance',
-    title: 'Your Inner Radiance & Calm',
+    id: 'inner-balance',
+    title: 'Your Inner Balance & Connection',
     questions: [
       {
-        id: 'q7',
-        text: 'How often do you feel overwhelmed or highly stressed?',
-        type: 'single-choice',
-        options: [
-          { value: 5, label: 'Rarely', description: 'I manage stress very well' },
-          { value: 4, label: 'Occasionally', description: 'A few times per month' },
-          { value: 3, label: 'Sometimes', description: 'A few times per week' },
-          { value: 2, label: 'Often', description: 'Most days of the week' },
-          { value: 1, label: 'Almost constantly', description: 'Stress dominates my daily life' }
-        ]
-      },
-      {
         id: 'q8',
-        text: 'How would you describe your general mood over the past month?',
+        text: 'On a scale of 1-5, how stressed do you feel overall on an average week? (1=Not stressed at all, 5=Very stressed)',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Consistently positive and upbeat' },
-          { value: 4, label: 'Generally good with minor fluctuations' },
-          { value: 3, label: 'Mixed - some good days, some difficult ones' },
-          { value: 2, label: 'Often down or irritable' },
-          { value: 1, label: 'Frequently sad, anxious, or overwhelmed' }
+          { value: 1, label: '1 - Not stressed at all' },
+          { value: 2, label: '2' },
+          { value: 3, label: '3' },
+          { value: 4, label: '4' },
+          { value: 5, label: '5 - Very stressed' }
         ]
       },
       {
         id: 'q9',
-        text: 'How often do you feel genuinely connected to friends, family, or your community?',
+        text: 'On a scale of 1-5, how happy do you feel overall on an average week? (1=Very unhappy, 5=Super happy)',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Very often', description: 'I have strong, meaningful relationships' },
-          { value: 4, label: 'Often', description: 'Good connections most of the time' },
-          { value: 3, label: 'Sometimes', description: 'Occasional meaningful connections' },
-          { value: 2, label: 'Rarely', description: 'I often feel isolated' },
-          { value: 1, label: 'Almost never', description: 'I feel very disconnected' }
+          { value: 1, label: '1 - Very unhappy' },
+          { value: 2, label: '2' },
+          { value: 3, label: '3' },
+          { value: 4, label: '4' },
+          { value: 5, label: '5 - Super happy' }
         ]
       },
       {
         id: 'q10',
-        text: 'How many hours of screen time do you average per day outside of work/school?',
+        text: 'How many hours do you spend socializing with friends, family, or community per month?',
         type: 'single-choice',
         options: [
-          { value: 5, label: '1-2 hours', description: 'Minimal recreational screen time' },
-          { value: 4, label: '2-3 hours', description: 'Moderate usage' },
-          { value: 3, label: '3-4 hours', description: 'Average usage' },
-          { value: 2, label: '4-6 hours', description: 'High usage' },
-          { value: 1, label: '6+ hours', description: 'Very high screen time' }
+          { value: 'less-2', label: 'Less than 2 hours' },
+          { value: '2-15', label: '2-15 hours' },
+          { value: '15+', label: '15+ hours' }
+        ]
+      },
+      {
+        id: 'q11',
+        text: 'How satisfied are you with your closest relationships (romantic, family, friendships)?',
+        type: 'single-choice',
+        options: [
+          { value: 5, label: 'Very satisfied - strong, supportive connections' },
+          { value: 4, label: 'Mostly satisfied - good connections' },
+          { value: 3, label: 'Neutral - some ups and downs' },
+          { value: 2, label: 'Somewhat dissatisfied - room for improvement' },
+          { value: 1, label: 'Very dissatisfied - feel isolated or unsupported' }
+        ]
+      },
+      {
+        id: 'q12',
+        text: 'How many hours of recreational screen time (outside work/school) do you average per day?',
+        type: 'single-choice',
+        options: [
+          { value: 5, label: '1-2 hours (Minimal)' },
+          { value: 4, label: '2-3 hours (Moderate)' },
+          { value: 3, label: '3-4 hours (Average)' },
+          { value: 2, label: '4-6 hours (High)' },
+          { value: 1, label: '6+ hours (Very high)' }
         ]
       }
     ]
   },
   {
-    id: 'reflection-perception',
-    title: 'Your Reflection & Perception',
+    id: 'self-perception',
+    title: 'Your Reflection & Self-Perception',
     questions: [
       {
-        id: 'q11',
+        id: 'q13',
         text: 'When you look in the mirror, how often do you feel satisfied and confident with your appearance?',
         type: 'single-choice',
         options: [
-          { value: 5, label: 'Almost always', description: 'I feel confident about how I look' },
-          { value: 4, label: 'Most of the time', description: 'Generally satisfied with my appearance' },
-          { value: 3, label: 'Sometimes', description: 'Mixed feelings about my appearance' },
-          { value: 2, label: 'Rarely', description: 'Often dissatisfied with how I look' },
-          { value: 1, label: 'Almost never', description: 'I avoid looking in mirrors' }
+          { value: 5, label: 'Almost always (Confident & happy)' },
+          { value: 4, label: 'Most of the time (Generally satisfied)' },
+          { value: 3, label: 'Sometimes (Mixed feelings)' },
+          { value: 2, label: 'Rarely (Often dissatisfied)' },
+          { value: 1, label: 'Almost never (Avoid looking in mirrors)' }
         ]
       },
       {
-        id: 'q12',
-        text: 'How would you describe the current state of your skin?',
+        id: 'q14',
+        text: 'How would you describe the current state of your skin (e.g., clarity, glow, texture)?',
         type: 'single-choice',
         options: [
           { value: 5, label: 'Clear, glowing, and healthy' },
@@ -175,44 +184,108 @@ export const quizSections: QuizSection[] = [
     ]
   },
   {
+    id: 'health-metrics',
+    title: 'Your Health Metrics (Optional)',
+    description: 'These questions help us provide the most accurate assessment. If you don\'t know, you can select \'I don\'t know\'.',
+    questions: [
+      {
+        id: 'q15',
+        text: 'What is your Body Mass Index (BMI)?',
+        type: 'single-choice',
+        options: [
+          { value: 'underweight', label: 'Underweight (under 18.5)' },
+          { value: 'normal', label: 'Normal weight (18.5-24.9)' },
+          { value: 'overweight', label: 'Overweight (25-29.9)' },
+          { value: 'obese', label: 'Obese (over 30)' },
+          { value: 'dont-know', label: 'I don\'t know' }
+        ]
+      },
+      {
+        id: 'q16',
+        text: 'What is your typical Blood Pressure reading (Systolic/Diastolic)?',
+        type: 'single-choice',
+        options: [
+          { value: 'less-110-70', label: 'Less than 110/70' },
+          { value: '110-119-70-79', label: '110-119/70-79' },
+          { value: '120-139-80-89', label: '120-139/80-89' },
+          { value: '140-90-plus', label: '140/90 or higher' },
+          { value: 'dont-know', label: 'I don\'t know' }
+        ]
+      },
+      {
+        id: 'q17',
+        text: 'What is your Resting Heart Rate (RHR) in beats per minute (bpm)?',
+        type: 'single-choice',
+        options: [
+          { value: 'below-60', label: 'Below 60 bpm' },
+          { value: '60-70', label: '60-70 bpm' },
+          { value: '70-80', label: '70-80 bpm' },
+          { value: 'over-80', label: 'Over 80 bpm' },
+          { value: 'dont-know', label: 'I don\'t know' }
+        ]
+      },
+      {
+        id: 'q18',
+        text: 'Do you have a history of cardiovascular disease (CVD)?',
+        type: 'single-choice',
+        options: [
+          { value: 'no', label: 'No, I don\'t' },
+          { value: 'yes-single', label: 'Yes, single event' },
+          { value: 'yes-multiple', label: 'Yes, with multiple events' },
+          { value: 'dont-know', label: 'I don\'t know' }
+        ]
+      },
+      // Note: LDL, HbA1c, Vitamin B9/B12 are highly specific and might be too much for a quick onboarding.
+      // Consider these for a 'Deep Dive' assessment later, or if user explicitly opts in.
+      // For now, focusing on more common, easily known metrics.
+    ]
+  },
+  {
     id: 'about-you',
     title: 'A Little About You',
     questions: [
       {
-        id: 'q13',
-        text: 'What is your current age?',
-        type: 'single-choice',
-        options: [
-          { value: '18-24', label: '18-24 years old' },
-          { value: '25-34', label: '25-34 years old' },
-          { value: '35-44', label: '35-44 years old' },
-          { value: '45-54', label: '45-54 years old' },
-          { value: '55-64', label: '55-64 years old' },
-          { value: '65+', label: '65+ years old' }
-        ]
+        id: 'q19',
+        text: 'What is your current age in years?',
+        type: 'number-input', // Use number input for precision
+        min: 18,
+        max: 90,
+        placeholder: 'e.g., 30'
       },
       {
-        id: 'q14',
-        text: 'What is your gender?',
+        id: 'q20',
+        text: 'What is your biological sex?',
         type: 'single-choice',
         options: [
           { value: 'female', label: 'Female' },
           { value: 'male', label: 'Male' },
-          { value: 'non-binary', label: 'Non-binary' },
           { value: 'prefer-not-to-say', label: 'Prefer not to say' }
         ]
       },
       {
-        id: 'q15',
-        text: 'What is your primary motivation for seeking a "Glow-Up" today?',
-        type: 'single-choice',
-        options: [
-          { value: 'feel-better', label: 'To feel better about myself overall' },
-          { value: 'improve-appearance', label: 'To improve my physical appearance' },
-          { value: 'specific-goal', label: 'I have a specific health or wellness goal' },
-          { value: 'special-event', label: 'Preparing for a special event or milestone' },
-          { value: 'curious', label: 'Just curious about my current state' }
-        ]
+        id: 'q21',
+        text: 'In which country have you primarily lived for the past 10 years?',
+        type: 'text-input', // Could be a dropdown with autocomplete for a full implementation
+        placeholder: 'e.g., United States'
+      },
+      {
+        id: 'q22',
+        text: 'In which country do you plan to live for the majority of the next 10 years?',
+        type: 'text-input', // Could be a dropdown with autocomplete for a full implementation
+        placeholder: 'e.g., United States'
+      },
+    ]
+  },
+  {
+    id: 'personal-growth-passion',
+    title: 'Your Personal Growth Journey',
+    questions: [
+      {
+        id: 'q23',
+        text: 'Is there a specific skill, hobby, or area of personal growth you\'re passionate about improving daily? (e.g., learning a new language, playing an instrument, coding, writing, painting, meditation, public speaking, a sport, etc.)',
+        type: 'text-input', // Free text input
+        placeholder: 'e.g., Learning Spanish, playing guitar, daily meditation',
+        optional: true // Make this optional if user doesn't have one in mind
       }
     ]
   }
