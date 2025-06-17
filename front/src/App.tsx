@@ -10,6 +10,7 @@ import { TestModal } from './components/TestModal';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
 import { ErrorScreen } from './components/ErrorScreen';
+import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('main');
@@ -105,7 +106,7 @@ function App() {
       const assessmentResults = await submitAssessment(answers, uploadedPhoto);
       setResults(assessmentResults);
       setIsTestModalOpen(false);
-      setCurrentScreen('results');
+      setCurrentScreen('dashboard');
     } catch (error) {
       console.error('Assessment submission failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to submit assessment');
@@ -134,6 +135,14 @@ function App() {
   };
 
   const handleGoToDashboard = () => {
+    setCurrentScreen('dashboard');
+  };
+
+  const handleGoToMicroHabits = () => {
+    setCurrentScreen('microHabits');
+  };
+
+  const handleBackToDashboard = () => {
     setCurrentScreen('dashboard');
   };
 
@@ -186,7 +195,14 @@ function App() {
 
       case 'dashboard':
         return results ? (
-          <DashboardScreen results={results} />
+          <DashboardScreen results={results} onGoToMicroHabits={handleGoToMicroHabits} />
+        ) : (
+          <MainScreen onStartTest={handleStartTest} />
+        );
+        
+      case 'microHabits':
+        return results ? (
+          <MicroHabitsScreen microHabits={results.microHabits} onBack={handleBackToDashboard} />
         ) : (
           <MainScreen onStartTest={handleStartTest} />
         );

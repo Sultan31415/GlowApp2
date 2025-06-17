@@ -13,17 +13,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigat
     <header className="py-6 bg-white/50 backdrop-blur-sm border-b border-white/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              GlowApp
-            </h1>
-          </div>
-
-          {/* Navigation Links */}
+          {/* Navigation Links (now on the left) */}
           <nav className="flex items-center space-x-8">
             <button
               onClick={() => onNavigate('main')}
@@ -64,6 +54,16 @@ export const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigat
               <span>Dashboard</span>
             </button>
           </nav>
+
+          {/* Logo (now on the right) */}
+          <div className="flex items-center space-x-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              GlowApp
+            </h1>
+          </div>
         </div>
       </div>
     </header>

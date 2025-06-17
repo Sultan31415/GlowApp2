@@ -96,6 +96,84 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onStartTest }) => {
             </div>
           </div>
 
+          {/* Your Tools Section */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-12 mb-16 shadow-lg border border-white/20">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">Your Transformation Tools</h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Everything you need to start and track your glow-up journey
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+              {/* Track Your Progress */}
+              <div className="group">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 h-full transition-all duration-300 hover:shadow-xl hover:scale-105">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mb-4 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-300">
+                      <TrendingUp className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Track Progress</h3>
+                    <p className="text-gray-600">Monitor your daily achievements and growth</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Start Your Journey */}
+              <div className="group">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 h-full transition-all duration-300 hover:shadow-xl hover:scale-105">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mb-4 flex items-center justify-center transform group-hover:rotate-6 transition-transform duration-300">
+                      <Target className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Start Journey</h3>
+                    <p className="text-gray-600">Begin your transformation today</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Coach (future) */}
+              <div className="group opacity-75">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 h-full transition-all duration-300">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl mb-4 flex items-center justify-center">
+                      <User className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">AI Coach</h3>
+                    <p className="text-gray-600">Personalized coaching with AI</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Talk to Yourself (future) */}
+              <div className="group opacity-75">
+                <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-6 h-full transition-all duration-300">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl mb-4 flex items-center justify-center">
+                      <Heart className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">Self Reflection</h3>
+                    <p className="text-gray-600">Reflect and grow with journaling</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Single Get Started Button */}
+            <div className="text-center">
+              <button
+                onClick={onStartTest}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-12 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center text-lg"
+              >
+                <Sparkles className="w-6 h-6 mr-2" />
+                Get Started
+              </button>
+            </div>
+          </div>
+
           {/* Trust/Credibility Section */}
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">We are Transformation-Seekers</h3>

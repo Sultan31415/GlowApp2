@@ -49,4 +49,4 @@ export interface AssessmentResults {
   };
 }
 
-export type ScreenType = 'main' | 'welcome' | 'quiz' | 'photo-upload' | 'loading' | 'results' | 'error' | 'dashboard';
+export type ScreenType = 'main' | 'welcome' | 'quiz' | 'photo-upload' | 'loading' | 'results' | 'error' | 'dashboard' | 'microHabits';
