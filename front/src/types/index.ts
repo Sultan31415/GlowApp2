@@ -7,14 +7,19 @@ export interface QuizAnswer {
 export interface QuizSection {
   id: string;
   title: string;
+  description?: string;
   questions: Question[];
 }
 
 export interface Question {
   id: string;
   text: string;
-  options: Option[];
-  type: 'single-choice';
+  type: 'single-choice' | 'number-input' | 'text-input';
+  options?: Option[];
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  optional?: boolean;
 }
 
 export interface Option {

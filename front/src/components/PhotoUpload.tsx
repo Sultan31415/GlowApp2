@@ -6,13 +6,17 @@ interface PhotoUploadProps {
   onBack: () => void;
   onSubmit: () => void;
   uploadedPhoto: File | null;
+  isSubmitting: boolean;
+  error: string | null;
 }
 
 export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   onPhotoUpload,
   onBack,
   onSubmit,
-  uploadedPhoto
+  uploadedPhoto,
+  isSubmitting,
+  error
 }) => {
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -167,6 +171,12 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               onChange={handleFileSelect}
               className="hidden"
             />
+            
+            {error && (
+              <p className="text-red-500 text-center mt-4 text-sm">
+                {error}
+              </p>
+            )}
           </div>
 
           {/* Navigation */}
@@ -181,14 +191,14 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
 
             <button
               onClick={onSubmit}
-              disabled={!uploadedPhoto}
+              disabled={!uploadedPhoto || isSubmitting}
               className={`px-8 py-3 rounded-full font-semibold transition-all duration-300 ${
-                uploadedPhoto
+                uploadedPhoto && !isSubmitting
                   ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              Generate My Results
+              {isSubmitting ? 'Generating...' : 'Generate My Results'}
             </button>
           </div>
         </div>

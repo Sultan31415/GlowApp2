@@ -1,4 +1,6 @@
-export const quizSections = [
+import { QuizSection } from '../types';
+
+export const quizSections: QuizSection[] = [
   {
     id: 'daily-vitality',
     title: 'Your Daily Vitality & Habits',
@@ -168,18 +170,6 @@ export const quizSections = [
           { value: 2, label: 'Rarely (Often dissatisfied)' },
           { value: 1, label: 'Almost never (Avoid looking in mirrors)' }
         ]
-      },
-      {
-        id: 'q14',
-        text: 'How would you describe the current state of your skin (e.g., clarity, glow, texture)?',
-        type: 'single-choice',
-        options: [
-          { value: 5, label: 'Clear, glowing, and healthy' },
-          { value: 4, label: 'Generally good with minor concerns' },
-          { value: 3, label: 'Average - some good and bad days' },
-          { value: 2, label: 'Problematic with frequent breakouts or issues' },
-          { value: 1, label: 'Poor - significant skin concerns' }
-        ]
       }
     ]
   },
@@ -290,3 +280,4 @@ export const quizSections = [
     ]
   }
 ];
+

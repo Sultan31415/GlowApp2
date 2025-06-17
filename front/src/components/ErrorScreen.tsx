@@ -3,9 +3,10 @@ import { AlertCircle, RotateCcw } from 'lucide-react';
 
 interface ErrorScreenProps {
   onRetry: () => void;
+  error?: string | null;
 }
 
-export const ErrorScreen: React.FC<ErrorScreenProps> = ({ onRetry }) => {
+export const ErrorScreen: React.FC<ErrorScreenProps> = ({ onRetry, error }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
       <div className="text-center max-w-lg mx-auto px-4">
@@ -19,8 +20,7 @@ export const ErrorScreen: React.FC<ErrorScreenProps> = ({ onRetry }) => {
           Something went wrong
         </h2>
         <p className="text-lg text-gray-600 mb-8">
-          We encountered an issue processing your assessment. Please try again, and if the problem persists, 
-          check your internet connection.
+          {error || "We encountered an issue processing your assessment. Please try again, and if the problem persists, check your internet connection."}
         </p>
 
         {/* Retry Button */}

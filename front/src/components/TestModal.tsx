@@ -22,6 +22,8 @@ interface TestModalProps {
   canGoBack: () => boolean;
   canGoNext: () => boolean;
   getCurrentAnswer: () => string | number | undefined;
+  isSubmitting: boolean;
+  error: string | null;
 }
 
 export const TestModal: React.FC<TestModalProps> = ({
@@ -40,7 +42,9 @@ export const TestModal: React.FC<TestModalProps> = ({
   onSubmitAssessment,
   canGoBack,
   canGoNext,
-  getCurrentAnswer
+  getCurrentAnswer,
+  isSubmitting,
+  error
 }) => {
   if (!isOpen) return null;
 
@@ -70,6 +74,8 @@ export const TestModal: React.FC<TestModalProps> = ({
             onBack={onBackToQuiz}
             onSubmit={onSubmitAssessment}
             uploadedPhoto={uploadedPhoto}
+            isSubmitting={isSubmitting}
+            error={error}
           />
         );
         

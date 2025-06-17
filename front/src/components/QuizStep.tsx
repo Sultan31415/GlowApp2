@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Question, Option } from '../types';
 import { ProgressBar } from './ProgressBar';
@@ -28,6 +28,101 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   canGoBack,
   canGoNext
 }) => {
+  const [textInput, setTextInput] = useState<string>('');
+  const [numberInput, setNumberInput] = useState<string>('');
+
+  const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTextInput(value);
+    onAnswerSelect(value, value);
+  };
+
+  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNumberInput(value);
+    if (value) {
+      onAnswerSelect(Number(value), value);
+    }
+  };
+
+  const renderQuestionInput = () => {
+    switch (question.type) {
+      case 'single-choice':
+        return (
+          <div className="space-y-4 mb-12">
+            {question.options?.map((option: Option, index: number) => (
+              <button
+                key={index}
+                onClick={() => onAnswerSelect(option.value, option.label)}
+                className={`w-full p-6 rounded-2xl text-left transition-all duration-300 border-2 ${
+                  selectedAnswer === option.value
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-500 shadow-lg transform scale-[1.02]'
+                    : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow-md'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className={`font-semibold text-lg mb-1 ${
+                      selectedAnswer === option.value ? 'text-white' : 'text-gray-800'
+                    }`}>
+                      {option.label}
+                    </div>
+                    {option.description && (
+                      <div className={`text-sm ${
+                        selectedAnswer === option.value ? 'text-purple-100' : 'text-gray-600'
+                      }`}>
+                        {option.description}
+                      </div>
+                    )}
+                  </div>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 ${
+                    selectedAnswer === option.value
+                      ? 'border-white'
+                      : 'border-gray-300'
+                  }`}>
+                    {selectedAnswer === option.value && (
+                      <div className="w-3 h-3 rounded-full bg-white" />
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        );
+
+      case 'text-input':
+        return (
+          <div className="mb-12">
+            <input
+              type="text"
+              value={textInput}
+              onChange={handleTextInputChange}
+              placeholder={question.placeholder}
+              className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-lg"
+            />
+          </div>
+        );
+
+      case 'number-input':
+        return (
+          <div className="mb-12">
+            <input
+              type="number"
+              value={numberInput}
+              onChange={handleNumberInputChange}
+              min={question.min}
+              max={question.max}
+              placeholder={question.placeholder}
+              className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-lg"
+            />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -53,46 +148,8 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               {question.text}
             </h2>
 
-            {/* Answer Options */}
-            <div className="space-y-4 mb-12">
-              {question.options.map((option: Option, index: number) => (
-                <button
-                  key={index}
-                  onClick={() => onAnswerSelect(option.value, option.label)}
-                  className={`w-full p-6 rounded-2xl text-left transition-all duration-300 border-2 ${
-                    selectedAnswer === option.value
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-500 shadow-lg transform scale-[1.02]'
-                      : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow-md'
-                  }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className={`font-semibold text-lg mb-1 ${
-                        selectedAnswer === option.value ? 'text-white' : 'text-gray-800'
-                      }`}>
-                        {option.label}
-                      </div>
-                      {option.description && (
-                        <div className={`text-sm ${
-                          selectedAnswer === option.value ? 'text-purple-100' : 'text-gray-600'
-                        }`}>
-                          {option.description}
-                        </div>
-                      )}
-                    </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 ${
-                      selectedAnswer === option.value
-                        ? 'border-white'
-                        : 'border-gray-300'
-                    }`}>
-                      {selectedAnswer === option.value && (
-                        <div className="w-3 h-3 rounded-full bg-white" />
-                      )}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            {/* Answer Input */}
+            {renderQuestionInput()}
 
             {/* Navigation */}
             <div className="flex justify-between items-center">

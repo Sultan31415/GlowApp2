@@ -1,14 +1,48 @@
 import { AssessmentResults, QuizAnswer } from '../types';
 
+const API_BASE_URL = 'http://localhost:8000';
+
 export const submitAssessment = async (
   answers: QuizAnswer[],
   photo: File
 ): Promise<AssessmentResults> => {
-  // Simulate network delay for realistic UX
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // Return mock results directly (no API call needed for demo)
-  return getMockResults();
+  try {
+    // Re-enable sending photo_url
+    const photoBase64 = await fileToBase64(photo);
+    
+    // Extract chronological age from answers
+    let chronologicalAge: number | undefined;
+    const ageAnswer = answers.find(answer => answer.questionId === 'q19');
+    if (ageAnswer && typeof ageAnswer.value === 'number') {
+      chronologicalAge = ageAnswer.value;
+    }
+
+    // Prepare the request payload
+    const payload = {
+      answers,
+      chronological_age: chronologicalAge,
+      photo_url: photoBase64 // Re-enabled
+    };
+
+    // Make the API request
+    const response = await fetch(`${API_BASE_URL}/api/assess`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const results = await response.json();
+    return results;
+  } catch (error) {
+    console.error('Error submitting assessment:', error);
+    throw error;
+  }
 };
 
 const fileToBase64 = (file: File): Promise<string> => {

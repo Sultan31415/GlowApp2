@@ -19,6 +19,8 @@ function App() {
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [uploadedPhoto, setUploadedPhoto] = useState<File | null>(null);
   const [results, setResults] = useState<AssessmentResults | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Get all questions in order
   const allQuestions = quizSections.flatMap(section => 
@@ -34,12 +36,14 @@ function App() {
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setUploadedPhoto(null);
+    setError(null);
   };
 
   const handleCloseTestModal = () => {
     setIsTestModalOpen(false);
     setCurrentTestStep('quiz');
     setCurrentQuestionIndex(0);
+    setError(null);
   };
 
   const handleNavigate = (screen: 'main' | 'dashboard') => {
@@ -88,9 +92,14 @@ function App() {
   };
 
   const handleSubmitAssessment = async () => {
-    if (!uploadedPhoto) return;
+    if (!uploadedPhoto) {
+      setError('Please upload a photo before submitting');
+      return;
+    }
 
     setCurrentTestStep('loading');
+    setIsSubmitting(true);
+    setError(null);
     
     try {
       const assessmentResults = await submitAssessment(answers, uploadedPhoto);
@@ -99,8 +108,11 @@ function App() {
       setCurrentScreen('results');
     } catch (error) {
       console.error('Assessment submission failed:', error);
+      setError(error instanceof Error ? error.message : 'Failed to submit assessment');
       setCurrentScreen('error');
       setIsTestModalOpen(false);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -109,6 +121,7 @@ function App() {
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setUploadedPhoto(null);
+    setError(null);
     // Keep results for dashboard access
   };
 
@@ -120,6 +133,10 @@ function App() {
     }
   };
 
+  const handleGoToDashboard = () => {
+    setCurrentScreen('dashboard');
+  };
+
   // Get current answer for the current question
   const getCurrentAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
@@ -129,7 +146,21 @@ function App() {
 
   // Check if user can proceed to next question
   const canGoNext = () => {
-    return getCurrentAnswer() !== undefined;
+    const currentQuestion = allQuestions[currentQuestionIndex];
+    const answer = answers.find(a => a.questionId === currentQuestion.id);
+    
+    if (currentQuestion.type === 'single-choice') {
+      return answer?.value !== undefined;
+    } else if (currentQuestion.type === 'number-input') {
+      const value = answer?.value as number;
+      return value !== undefined && 
+             (!currentQuestion.min || value >= currentQuestion.min) && 
+             (!currentQuestion.max || value <= currentQuestion.max);
+    } else if (currentQuestion.type === 'text-input') {
+      return answer?.value !== undefined && (answer.value as string).trim().length > 0;
+    }
+    
+    return false;
   };
 
   const canGoBack = () => {
@@ -144,9 +175,13 @@ function App() {
         
       case 'results':
         return results ? (
-          <ResultsScreen results={results} onRestart={handleRestart} />
+          <ResultsScreen 
+            results={results} 
+            onRestart={handleRestart} 
+            onGoToDashboard={handleGoToDashboard}
+          />
         ) : (
-          <ErrorScreen onRetry={handleRetry} />
+          <ErrorScreen onRetry={handleRetry} error={error} />
         );
 
       case 'dashboard':
@@ -157,7 +192,7 @@ function App() {
         );
         
       case 'error':
-        return <ErrorScreen onRetry={handleRetry} />;
+        return <ErrorScreen onRetry={handleRetry} error={error} />;
         
       default:
         return <MainScreen onStartTest={handleStartTest} />;
@@ -193,6 +228,8 @@ function App() {
         canGoBack={canGoBack}
         canGoNext={canGoNext}
         getCurrentAnswer={getCurrentAnswer}
+        isSubmitting={isSubmitting}
+        error={error}
       />
     </div>
   );

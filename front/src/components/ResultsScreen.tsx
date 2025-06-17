@@ -1,13 +1,14 @@
 import React from 'react';
-import { Sparkles, Heart, Zap, Eye, RotateCcw } from 'lucide-react';
+import { Sparkles, Heart, Zap, Eye, RotateCcw, LayoutDashboard } from 'lucide-react';
 import { AssessmentResults } from '../types';
 
 interface ResultsScreenProps {
   results: AssessmentResults;
   onRestart: () => void;
+  onGoToDashboard: () => void;
 }
 
-export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart }) => {
+export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart, onGoToDashboard }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -95,6 +96,16 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart
                 <p className="text-sm text-gray-600 mb-1">Chronological Age</p>
                 <p className="text-3xl font-bold text-blue-600">{results.chronologicalAge}</p>
               </div>
+            </div>
+            {/* Dashboard Button */}
+            <div className="text-center mt-8">
+              <button
+                onClick={onGoToDashboard}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-full text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 inline-flex items-center"
+              >
+                <LayoutDashboard className="w-5 h-5 mr-2" />
+                View Detailed Dashboard
+              </button>
             </div>
           </div>
 
