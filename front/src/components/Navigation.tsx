@@ -10,43 +10,43 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigate, onStartTest, hasResults }) => {
   return (
-    <header className="py-6 bg-white/50 backdrop-blur-sm border-b border-white/20">
-      <div className="container mx-auto px-4">
+    <header className="sticky top-0 z-50 py-4 bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
+      <div className="container mx-auto px-6">
         <div className="flex items-center justify-between">
-          {/* Navigation Links (now on the left) */}
-          <nav className="flex items-center space-x-8">
+          {/* Navigation Links */}
+          <nav className="flex items-center space-x-2">
             <button
               onClick={() => onNavigate('main')}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-300 ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 ${
                 currentScreen === 'main'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50/50'
               }`}
             >
               <Home className="w-4 h-4" />
-              <span>Main</span>
+              <span>Home</span>
             </button>
 
             <button
               onClick={onStartTest}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-300 ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 ${
                 currentScreen === 'quiz' || currentScreen === 'photo-upload' || currentScreen === 'loading'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
+                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50/50'
               }`}
             >
               <TestTube className="w-4 h-4" />
-              <span>Test</span>
+              <span>Assessment</span>
             </button>
 
             <button
               onClick={() => hasResults ? onNavigate('dashboard') : null}
               disabled={!hasResults}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium transition-all duration-300 ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-medium transition-all duration-300 ${
                 currentScreen === 'dashboard' || currentScreen === 'results'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/25'
                   : hasResults
-                  ? 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                  ? 'text-gray-600 hover:text-purple-600 hover:bg-purple-50/50'
                   : 'text-gray-300 cursor-not-allowed'
               }`}
             >
@@ -55,12 +55,12 @@ export const Navigation: React.FC<NavigationProps> = ({ currentScreen, onNavigat
             </button>
           </nav>
 
-          {/* Logo (now on the right) */}
+          {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               GlowApp
             </h1>
           </div>

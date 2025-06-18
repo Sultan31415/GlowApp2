@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle } from 'lucide-react';
 import { Question, Option } from '../types';
 import { ProgressBar } from './ProgressBar';
 
@@ -49,21 +49,21 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     switch (question.type) {
       case 'single-choice':
         return (
-          <div className="space-y-4 mb-12">
+          <div className="space-y-4 mb-16">
             {question.options?.map((option: Option, index: number) => (
               <button
                 key={index}
                 onClick={() => onAnswerSelect(option.value, option.label)}
-                className={`w-full p-6 rounded-2xl text-left transition-all duration-300 border-2 ${
+                className={`group w-full p-8 rounded-3xl text-left transition-all duration-300 border-2 ${
                   selectedAnswer === option.value
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-500 shadow-lg transform scale-[1.02]'
-                    : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-purple-300 hover:shadow-md'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-500 shadow-xl shadow-purple-500/25 transform scale-[1.02]'
+                    : 'bg-white/70 backdrop-blur-sm hover:bg-white border-gray-200 hover:border-purple-300 hover:shadow-lg shadow-gray-500/5'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className={`font-semibold text-lg mb-1 ${
-                      selectedAnswer === option.value ? 'text-white' : 'text-gray-800'
+                    <div className={`font-semibold text-xl mb-2 ${
+                      selectedAnswer === option.value ? 'text-white' : 'text-gray-900'
                     }`}>
                       {option.label}
                     </div>
@@ -75,13 +75,13 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ml-4 ${
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ml-6 transition-all duration-300 ${
                     selectedAnswer === option.value
-                      ? 'border-white'
-                      : 'border-gray-300'
+                      ? 'border-white bg-white/20'
+                      : 'border-gray-300 group-hover:border-purple-400'
                   }`}>
                     {selectedAnswer === option.value && (
-                      <div className="w-3 h-3 rounded-full bg-white" />
+                      <CheckCircle className="w-5 h-5 text-white" fill="currentColor" />
                     )}
                   </div>
                 </div>
@@ -92,20 +92,20 @@ export const QuizStep: React.FC<QuizStepProps> = ({
 
       case 'text-input':
         return (
-          <div className="mb-12">
+          <div className="mb-16">
             <input
               type="text"
               value={textInput}
               onChange={handleTextInputChange}
               placeholder={question.placeholder}
-              className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-lg"
+              className="w-full p-6 rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 text-lg bg-white/70 backdrop-blur-sm shadow-lg shadow-gray-500/5"
             />
           </div>
         );
 
       case 'number-input':
         return (
-          <div className="mb-12">
+          <div className="mb-16">
             <input
               type="number"
               value={numberInput}
@@ -113,7 +113,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               min={question.min}
               max={question.max}
               placeholder={question.placeholder}
-              className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 text-lg"
+              className="w-full p-6 rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all duration-300 text-lg bg-white/70 backdrop-blur-sm shadow-lg shadow-gray-500/5"
             />
           </div>
         );
@@ -124,27 +124,27 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+      <div className="container mx-auto px-6 py-12">
+        <div className="max-w-4xl mx-auto">
           {/* Progress Bar */}
           <ProgressBar 
             current={currentQuestionIndex + 1} 
             total={totalQuestions} 
-            className="mb-8"
+            className="mb-12"
           />
 
           {/* Question Card */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-white/20">
+          <div className="bg-white/70 backdrop-blur-sm rounded-4xl p-12 shadow-xl shadow-gray-500/5 border border-gray-100">
             {/* Section Title */}
-            <div className="text-center mb-6">
-              <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+            <div className="text-center mb-8">
+              <span className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-2xl text-sm font-semibold shadow-lg shadow-purple-500/25">
                 {sectionTitle}
               </span>
             </div>
 
             {/* Question */}
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 text-center mb-8 leading-tight">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12 leading-tight">
               {question.text}
             </h2>
 
@@ -156,9 +156,9 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               <button
                 onClick={onPrevious}
                 disabled={!canGoBack}
-                className={`flex items-center px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                className={`flex items-center px-8 py-4 rounded-2xl font-medium transition-all duration-300 ${
                   canGoBack
-                    ? 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                    ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     : 'text-gray-300 cursor-not-allowed'
                 }`}
               >
@@ -169,9 +169,9 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               <button
                 onClick={onNext}
                 disabled={!canGoNext}
-                className={`flex items-center px-8 py-3 rounded-full font-semibold transition-all duration-300 ${
+                className={`flex items-center px-10 py-4 rounded-2xl font-semibold transition-all duration-300 ${
                   canGoNext
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/30 transform hover:scale-105'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
