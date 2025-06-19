@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  backend:
+    build: ./back
+    container_name: glowapp-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./back/.env
+    restart: unless-stopped
+    networks:
+      - glowapp-net
+
+  frontend:
+    build: ./front
+    container_name: glowapp-frontend
+    ports:
+      - "4173:4173"
+    depends_on:
+      - backend
+    networks:
+      - glowapp-net
+
+networks:
+  glowapp-net:
+    driver: bridge 

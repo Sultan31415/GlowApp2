@@ -12,7 +12,7 @@ class Settings:
     PROJECT_NAME: str = "GlowApp API"
     
     # CORS Configuration
-    BACKEND_CORS_ORIGINS: list = ["http://localhost:5173"]  # Frontend URL
+    BACKEND_CORS_ORIGINS: list = ["http://localhost:5173","http://localhost:4173"]  # Frontend URL
     
     # Gemini AI Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
