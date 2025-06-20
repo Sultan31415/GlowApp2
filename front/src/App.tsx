@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ScreenType, QuizAnswer, AssessmentResults } from './types';
+import { QuizAnswer, AssessmentResults } from './types';
 import { quizSections } from './data/quizData';
 import { submitAssessment } from './utils/api';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 // Components
 import { Navigation } from './components/Navigation';
@@ -13,7 +14,7 @@ import { ErrorScreen } from './components/ErrorScreen';
 import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<ScreenType>('main');
+  const navigate = useNavigate();
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [currentTestStep, setCurrentTestStep] = useState<'quiz' | 'photo-upload' | 'loading'>('quiz');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -38,6 +39,7 @@ function App() {
     setAnswers([]);
     setUploadedPhoto(null);
     setError(null);
+    navigate('/test');
   };
 
   const handleCloseTestModal = () => {
@@ -45,14 +47,7 @@ function App() {
     setCurrentTestStep('quiz');
     setCurrentQuestionIndex(0);
     setError(null);
-  };
-
-  const handleNavigate = (screen: 'main' | 'dashboard') => {
-    if (screen === 'dashboard' && results) {
-      setCurrentScreen('dashboard');
-    } else if (screen === 'main') {
-      setCurrentScreen('main');
-    }
+    navigate('/');
   };
 
   const handleAnswerSelect = (value: string | number, label: string) => {
@@ -106,11 +101,11 @@ function App() {
       const assessmentResults = await submitAssessment(answers, uploadedPhoto);
       setResults(assessmentResults);
       setIsTestModalOpen(false);
-      setCurrentScreen('dashboard');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Assessment submission failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to submit assessment');
-      setCurrentScreen('error');
+      navigate('/error');
       setIsTestModalOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -118,7 +113,7 @@ function App() {
   };
 
   const handleRestart = () => {
-    setCurrentScreen('main');
+    navigate('/');
     setCurrentQuestionIndex(0);
     setAnswers([]);
     setUploadedPhoto(null);
@@ -130,30 +125,14 @@ function App() {
     if (uploadedPhoto && answers.length > 0) {
       handleSubmitAssessment();
     } else {
-      setCurrentScreen('main');
+      navigate('/');
     }
   };
 
-  const handleGoToDashboard = () => {
-    setCurrentScreen('dashboard');
+  const canGoBack = () => {
+    return currentQuestionIndex > 0;
   };
 
-  const handleGoToMicroHabits = () => {
-    setCurrentScreen('microHabits');
-  };
-
-  const handleBackToDashboard = () => {
-    setCurrentScreen('dashboard');
-  };
-
-  // Get current answer for the current question
-  const getCurrentAnswer = () => {
-    const currentQuestion = allQuestions[currentQuestionIndex];
-    const answer = answers.find(a => a.questionId === currentQuestion.id);
-    return answer?.value;
-  };
-
-  // Check if user can proceed to next question
   const canGoNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
     const answer = answers.find(a => a.questionId === currentQuestion.id);
@@ -172,81 +151,86 @@ function App() {
     return false;
   };
 
-  const canGoBack = () => {
-    return currentQuestionIndex > 0;
-  };
-
-  // Render current screen
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'main':
-        return <MainScreen onStartTest={handleStartTest} />;
-        
-      case 'results':
-        return results ? (
-          <ResultsScreen 
-            results={results} 
-            onRestart={handleRestart} 
-            onGoToDashboard={handleGoToDashboard}
-          />
-        ) : (
-          <ErrorScreen onRetry={handleRetry} error={error} />
-        );
-
-      case 'dashboard':
-        return results ? (
-          <DashboardScreen results={results} onGoToMicroHabits={handleGoToMicroHabits} />
-        ) : (
-          <MainScreen onStartTest={handleStartTest} />
-        );
-        
-      case 'microHabits':
-        return results ? (
-          <MicroHabitsScreen microHabits={results.microHabits} onBack={handleBackToDashboard} />
-        ) : (
-          <MainScreen onStartTest={handleStartTest} />
-        );
-        
-      case 'error':
-        return <ErrorScreen onRetry={handleRetry} error={error} />;
-        
-      default:
-        return <MainScreen onStartTest={handleStartTest} />;
-    }
+  const getCurrentAnswer = () => {
+    const currentQuestion = allQuestions[currentQuestionIndex];
+    const answer = answers.find(a => a.questionId === currentQuestion.id);
+    return answer?.value;
   };
 
   return (
     <div className="min-h-screen pl-20">
       <Navigation 
-        currentScreen={currentScreen}
-        onNavigate={handleNavigate}
         onStartTest={handleStartTest}
         hasResults={!!results}
       />
       
-      {renderScreen()}
-
-      {/* Test Modal */}
-      <TestModal
-        isOpen={isTestModalOpen}
-        onClose={handleCloseTestModal}
-        currentStep={currentTestStep}
-        currentQuestionIndex={currentQuestionIndex}
-        allQuestions={allQuestions}
-        answers={answers}
-        uploadedPhoto={uploadedPhoto}
-        onAnswerSelect={handleAnswerSelect}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        onPhotoUpload={handlePhotoUpload}
-        onBackToQuiz={handleBackToQuiz}
-        onSubmitAssessment={handleSubmitAssessment}
-        canGoBack={canGoBack}
-        canGoNext={canGoNext}
-        getCurrentAnswer={getCurrentAnswer}
-        isSubmitting={isSubmitting}
-        error={error}
-      />
+      <Routes>
+        <Route path="/" element={<MainScreen onStartTest={handleStartTest} />} />
+        <Route path="/test" element={
+          <TestModal
+            isOpen={isTestModalOpen}
+            onClose={handleCloseTestModal}
+            currentStep={currentTestStep}
+            currentQuestionIndex={currentQuestionIndex}
+            allQuestions={allQuestions}
+            answers={answers}
+            uploadedPhoto={uploadedPhoto}
+            onAnswerSelect={handleAnswerSelect}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onPhotoUpload={handlePhotoUpload}
+            onBackToQuiz={handleBackToQuiz}
+            onSubmitAssessment={handleSubmitAssessment}
+            canGoBack={canGoBack}
+            canGoNext={canGoNext}
+            getCurrentAnswer={getCurrentAnswer}
+            isSubmitting={isSubmitting}
+            error={error}
+          />
+        } />
+        <Route
+          path="/results"
+          element={
+            results ? (
+              <ResultsScreen
+                results={results}
+                onRestart={handleRestart}
+                onGoToDashboard={() => navigate('/dashboard')}
+              />
+            ) : (
+              <Navigate to="/error" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            results ? (
+              <DashboardScreen
+                results={results}
+                onGoToMicroHabits={() => navigate('/micro-habits')}
+              />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/micro-habits"
+          element={
+            results ? (
+              <MicroHabitsScreen
+                microHabits={results.microHabits}
+                onBack={() => navigate('/dashboard')}
+              />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={error} />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
