@@ -216,7 +216,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pl-20">
       <Navigation 
         currentScreen={currentScreen}
         onNavigate={handleNavigate}
