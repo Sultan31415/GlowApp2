@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { QuizAnswer, AssessmentResults } from './types';
-import { quizSections } from './data/quizData';
-import { submitAssessment } from './utils/api';
+import React, { useState, useEffect, useMemo } from 'react';
+import { QuizAnswer, AssessmentResults, QuizSection } from './types';
+import { submitAssessment, getQuizData } from './utils/api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 // Components
@@ -23,14 +22,33 @@ function App() {
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quizSections, setQuizSections] = useState<QuizSection[]>([]);
+  const [isQuizLoading, setIsQuizLoading] = useState(true);
+  const [quizError, setQuizError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchQuizData = async () => {
+      try {
+        const data = await getQuizData();
+        setQuizSections(data);
+      } catch (err) {
+        setQuizError('Failed to load quiz. Please try refreshing the page.');
+      } finally {
+        setIsQuizLoading(false);
+      }
+    };
+    fetchQuizData();
+  }, []);
 
   // Get all questions in order
-  const allQuestions = quizSections.flatMap(section => 
-    section.questions.map(question => ({
-      ...question,
-      sectionTitle: section.title
-    }))
-  );
+  const allQuestions = useMemo(() => 
+    quizSections.flatMap(section => 
+      section.questions.map(question => ({
+        ...question,
+        sectionTitle: section.title
+      }))
+    )
+  , [quizSections]);
 
   const handleStartTest = () => {
     setCurrentTestStep('quiz');
@@ -156,7 +174,11 @@ function App() {
       />
       
       <Routes>
-        <Route path="/" element={<div className="p-6 text-gray-700">Welcome to GlowApp. Click "CREATE" to start your assessment.</div>} />
+        <Route path="/" element={
+          isQuizLoading ? <div className="p-6">Loading quiz...</div> :
+          quizError ? <div className="p-6 text-red-500">{quizError}</div> :
+          <div className="p-6 text-gray-700">Welcome to GlowApp. Click "CREATE" to start your assessment.</div>
+        } />
         <Route path="/test" element={
           <TestModal
             isOpen={true}
