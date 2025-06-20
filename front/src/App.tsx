@@ -15,7 +15,7 @@ import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 
 function App() {
   const navigate = useNavigate();
-  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+
   const [currentTestStep, setCurrentTestStep] = useState<'quiz' | 'photo-upload' | 'loading'>('quiz');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
@@ -33,7 +33,6 @@ function App() {
   );
 
   const handleStartTest = () => {
-    setIsTestModalOpen(true);
     setCurrentTestStep('quiz');
     setCurrentQuestionIndex(0);
     setAnswers([]);
@@ -42,13 +41,7 @@ function App() {
     navigate('/test');
   };
 
-  const handleCloseTestModal = () => {
-    setIsTestModalOpen(false);
-    setCurrentTestStep('quiz');
-    setCurrentQuestionIndex(0);
-    setError(null);
-    navigate('/');
-  };
+
 
   const handleAnswerSelect = (value: string | number, label: string) => {
     const currentQuestion = allQuestions[currentQuestionIndex];
@@ -100,13 +93,11 @@ function App() {
     try {
       const assessmentResults = await submitAssessment(answers, uploadedPhoto);
       setResults(assessmentResults);
-      setIsTestModalOpen(false);
       navigate('/dashboard');
     } catch (error) {
       console.error('Assessment submission failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to submit assessment');
       navigate('/error');
-      setIsTestModalOpen(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -168,8 +159,8 @@ function App() {
         <Route path="/" element={<MainScreen onStartTest={handleStartTest} />} />
         <Route path="/test" element={
           <TestModal
-            isOpen={isTestModalOpen}
-            onClose={handleCloseTestModal}
+            isOpen={true}
+            onClose={() => navigate('/')}
             currentStep={currentTestStep}
             currentQuestionIndex={currentQuestionIndex}
             allQuestions={allQuestions}
