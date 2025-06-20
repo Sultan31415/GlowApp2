@@ -6,7 +6,7 @@ import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 
 // Components
 import { Navigation } from './components/Navigation';
-import { MainScreen } from './components/MainScreen';
+
 import { TestModal } from './components/TestModal';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
@@ -156,7 +156,7 @@ function App() {
       />
       
       <Routes>
-        <Route path="/" element={<MainScreen onStartTest={handleStartTest} />} />
+        <Route path="/" element={<div className="p-6 text-gray-700">Welcome to GlowApp. Click "CREATE" to start your assessment.</div>} />
         <Route path="/test" element={
           <TestModal
             isOpen={true}

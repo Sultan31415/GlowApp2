@@ -24,9 +24,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults 
       <nav className="group flex flex-col items-center space-y-4 w-full px-2">
         {/* ME */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => hasResults ? navigate('/dashboard') : navigate('/')}
           className={`group flex flex-col items-center w-full py-3 rounded-lg transition-all duration-300 focus:outline-none ${
-            location.pathname === '/'
+            (location.pathname === '/' && !hasResults) || location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/results') || location.pathname.startsWith('/micro-habits')
               ? 'bg-white/20 text-white'
               : 'hover:bg-white/10 text-white/80'
           }`}
@@ -46,14 +46,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults 
 
         {/* GOALS */}
         <button
-          onClick={() => hasResults ? navigate('/dashboard') : null}
-          disabled={!hasResults}
+          onClick={() => {/* Future feature */}}
+          disabled
           className={`group flex flex-col items-center w-full py-3 rounded-lg transition-all duration-300 focus:outline-none ${
-            location.pathname.startsWith('/dashboard') || location.pathname.startsWith('/results') || location.pathname.startsWith('/micro-habits')
-              ? 'bg-white/20 text-white'
-              : hasResults
-              ? 'hover:bg-white/10 text-white/80'
-              : 'opacity-50 cursor-not-allowed'
+            'opacity-50 cursor-not-allowed'
           }`}
         >
           <Target className="w-6 h-6 mb-1" />
