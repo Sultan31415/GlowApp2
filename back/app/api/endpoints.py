@@ -25,19 +25,19 @@ async def assess_results(request: AssessmentRequest):
         # Calculate base scores
         base_scores = ScoringService.calculate_base_scores(request.answers)
 
-        # Extract chronological age from answers
-        chronological_age = ScoringService.extract_chronological_age(request.answers)
+        # Extract additional data for AI analysis context
+        additional_data = ScoringService.extract_additional_data(request.answers)
         
-        # Use provided chronological age if available
+        # Override chronological age if provided directly in the request
         if request.chronological_age is not None:
-            chronological_age = request.chronological_age
+            additional_data['chronologicalAge'] = request.chronological_age
 
         # Get AI analysis
         assessment = ai_service.get_ai_analysis(
-            request.answers, 
-            base_scores, 
-            chronological_age, 
-            request.photo_url
+            answers=request.answers, 
+            base_scores=base_scores, 
+            additional_data=additional_data, 
+            photo_url=request.photo_url
         )
 
         return assessment
