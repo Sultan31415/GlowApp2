@@ -2,23 +2,37 @@ import google.generativeai as genai
 import json
 import traceback
 import re
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, TypedDict
 from fastapi import HTTPException
+from langgraph.graph import StateGraph, END
 
 from app.models.schemas import QuizAnswer
 from app.config.settings import settings
 from app.data.quiz_data import quiz_data
 from app.services.photo_analyzer import PhotoAnalyzerGPT4o
 from app.services.quiz_analyzer import QuizAnalyzerGemini
+from app.services.langgraph_pipeline import build_analysis_graph
+
+
+class AnalysisState(TypedDict, total=False):
+    """Shared state passed between LangGraph nodes for AI analysis."""
+    answers: List[QuizAnswer]
+    base_scores: Dict[str, float]
+    additional_data: Dict[str, Any]
+    photo_url: Optional[str]
+    photo_insights: Optional[Dict[str, Any]]
+    quiz_insights: Optional[Dict[str, Any]]
+    ai_analysis: Optional[Dict[str, Any]]
 
 class AIService:
-    """Service for orchestrating multi-agent AI analysis using Gemini and GPT-4o."""
+    """Service for orchestrating multi-agent AI analysis using Gemini and GPT-4o via LangGraph."""
 
     def __init__(self):
-        """Initialize AI services and data."""
+        """Initialize AI services and data, and set up LangGraph pipeline."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
         self.orchestrator = genai.GenerativeModel(settings.GEMINI_MODEL)
         self.question_map = self._build_question_map(quiz_data)
+        self._graph = build_analysis_graph(self.orchestrator, self.question_map)
         self.photo_analyzer = PhotoAnalyzerGPT4o()
         self.quiz_analyzer = QuizAnalyzerGemini()
 
@@ -37,31 +51,30 @@ class AIService:
         additional_data: Dict[str, Any],
         photo_url: Optional[str]
     ) -> Dict[str, Any]:
-        """Orchestrate multi-agent analysis: quiz, photo, and holistic synthesis."""
+        """Orchestrate multi-agent analysis: quiz, photo, and holistic synthesis using LangGraph only."""
         try:
-            photo_insights = None
-            if photo_url:
-                photo_insights = self.photo_analyzer.analyze_photo(photo_url)
-                print(f"Photo insights from GPT-4o: {json.dumps(photo_insights, indent=2)}")
-
-            quiz_insights = self.quiz_analyzer.analyze_quiz(answers, base_scores, additional_data, self.question_map)
-            if quiz_insights:
-                print(f"Quiz insights from Gemini: {json.dumps(quiz_insights, indent=2)}")
+            initial_state: AnalysisState = {
+                "answers": answers,
+                "base_scores": base_scores,
+                "additional_data": additional_data,
+                "photo_url": photo_url,
+            }
+            final_state = self._graph.invoke(initial_state)
+            if final_state and final_state.get("ai_analysis") is not None:
+                ai_analysis = final_state["ai_analysis"]
+                # Use the latest state for all required fields
+                return self._format_response(
+                    ai_analysis,
+                    final_state.get("base_scores", base_scores),
+                    final_state.get("additional_data", {}).get("chronologicalAge"),
+                    final_state.get("photo_url", photo_url),
+                    final_state.get("photo_insights"),
+                    final_state.get("quiz_insights")
+                )
             else:
-                print("Warning: Quiz analyzer returned no insights.")
-
-            orchestrator_prompt = self._build_orchestrator_prompt(quiz_insights, photo_insights)
-            
-            generation_config = genai.types.GenerationConfig()
-            response = self.orchestrator.generate_content([orchestrator_prompt], generation_config=generation_config)
-            
-            ai_analysis = self._parse_ai_response(response.text)
-            print(f"Parsed Holistic AI Analysis: {json.dumps(ai_analysis, indent=2)}")
-            
-            return self._format_response(ai_analysis, base_scores, additional_data.get('chronologicalAge'), photo_url, photo_insights, quiz_insights)
-            
+                raise HTTPException(status_code=500, detail="AI analysis failed: No final response from LangGraph.")
         except Exception as e:
-            print(f"Error in get_ai_analysis: {traceback.format_exc()}")
+            print(f"Error in get_ai_analysis (LangGraph): {traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
 
     def _build_orchestrator_prompt(self, quiz_insights: Optional[Dict[str, Any]], photo_insights: Optional[Dict[str, Any]]) -> str:
@@ -165,3 +178,46 @@ class AIService:
             "photoInsights": photo_insights,
             "quizInsights": quiz_insights
         }
+
+    # ------------------------- LangGraph integration -------------------------
+    def _setup_graph(self):
+        """Compile the LangGraph workflow for the AI analysis pipeline."""
+        def photo_node(state: "AnalysisState") -> Dict[str, Any]:
+            photo_url = state.get("photo_url")
+            insights = self.photo_analyzer.analyze_photo(photo_url) if photo_url else None
+            return {"photo_insights": insights}
+
+        def quiz_node(state: "AnalysisState") -> Dict[str, Any]:
+            insights = self.quiz_analyzer.analyze_quiz(
+                state["answers"],
+                state["base_scores"],
+                state["additional_data"],
+                self.question_map,
+            )
+            return {"quiz_insights": insights}
+
+        def orchestrator_node(state: "AnalysisState") -> Dict[str, Any]:
+            prompt = self._build_orchestrator_prompt(state.get("quiz_insights"), state.get("photo_insights"))
+            generation_config = genai.types.GenerationConfig()
+            response = self.orchestrator.generate_content([prompt], generation_config=generation_config)
+            ai_analysis = self._parse_ai_response(response.text)
+
+            final_json = self._format_response(
+                ai_analysis,
+                state["base_scores"],
+                state["additional_data"].get("chronologicalAge"),
+                state.get("photo_url"),
+                state.get("photo_insights"),
+                state.get("quiz_insights"),
+            )
+            return {"ai_analysis": final_json}
+
+        builder = StateGraph(AnalysisState)
+        builder.add_node("photo", photo_node)
+        builder.add_node("quiz", quiz_node)
+        builder.add_node("orchestrator", orchestrator_node)
+        builder.add_edge("photo", "quiz")
+        builder.add_edge("quiz", "orchestrator")
+        builder.set_entry_point("photo")
+        self._graph = builder.compile()
+    # ---------------------------------------------------------------------------
