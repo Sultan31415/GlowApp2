@@ -22,7 +22,7 @@ class QuizAnalyzerGemini:
                 temperature=0.7,
                 top_p=0.9,
                 candidate_count=1,
-                max_output_tokens=1024
+                max_output_tokens=2048
             )
             response = self.model.generate_content([prompt], generation_config=generation_config)
             return self._parse_response(response.text)
@@ -114,7 +114,7 @@ You MUST provide a JSON response with EXACTLY the following structure. Each sect
         "emotionalHealth": "<Insight synthesizing questions q8–q12 and related metrics.>",
         "visualAppearance": "<Insight interpreting q13 and any self-perception indicators.>"
     }},
-    "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone.>"
+    "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone. This field MUST NOT exceed 300 words.>"
 }}
 """
 
@@ -123,7 +123,7 @@ You MUST provide a JSON response with EXACTLY the following structure. Each sect
         Parses the JSON response from Gemini, resilient to markdown code blocks.
         """
         try:
-            # Gemini often wraps JSON in ```json ... ```
+            print(f"Raw Gemini response: {response_text}")
             match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
             if match:
                 json_str = match.group(1)
@@ -134,7 +134,12 @@ You MUST provide a JSON response with EXACTLY the following structure. Each sect
                     print(f"QuizAnalyzer: Could not find JSON in response: {response_text}")
                     return None
                 json_str = match.group(0)
-            
+
+            # Truncation/malformed check: look for unclosed string or abrupt ending
+            if not json_str.strip().endswith('}'):
+                print("QuizAnalyzer: Detected truncated or incomplete JSON from LLM. Returning user-friendly error.")
+                return {"error": "The AI response was incomplete or truncated. Please try again or contact support if this persists."}
+
             parsed = json.loads(json_str)
             # Coerce numeric fields into numbers if they are strings
             for num_key in ["chronologicalAge"]:

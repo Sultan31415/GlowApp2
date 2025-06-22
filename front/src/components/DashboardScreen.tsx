@@ -18,6 +18,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
   const projectedEmotionalHealth = Math.min(100, results.categoryScores.emotionalHealth + 15);
   const projectedVisualAppearance = Math.min(100, results.categoryScores.visualAppearance + 15);
 
+  // For all category score displays, use adjustedCategoryScores if available, otherwise fallback to categoryScores
+  const categoryScores = results.adjustedCategoryScores || results.categoryScores;
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
@@ -135,11 +138,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                     <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
-                        style={{ width: `${results.categoryScores.physicalVitality}%` }}
+                        style={{ width: `${categoryScores.physicalVitality}%` }}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{results.categoryScores.physicalVitality}%</p>
+                      <p className="text-xl font-black text-gray-900">{categoryScores.physicalVitality}%</p>
                       <span className="text-xs text-gray-500 font-medium">Energy & Fitness</span>
                     </div>
                   </div>
@@ -154,11 +157,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                     <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
                       <div
                         className="bg-gradient-to-r from-pink-500 to-pink-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
-                        style={{ width: `${results.categoryScores.emotionalHealth}%` }}
+                        style={{ width: `${categoryScores.emotionalHealth}%` }}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{results.categoryScores.emotionalHealth}%</p>
+                      <p className="text-xl font-black text-gray-900">{categoryScores.emotionalHealth}%</p>
                       <span className="text-xs text-gray-500 font-medium">Mood & Stress</span>
                     </div>
                   </div>
@@ -173,11 +176,11 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                     <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
                       <div
                         className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
-                        style={{ width: `${results.categoryScores.visualAppearance}%` }}
+                        style={{ width: `${categoryScores.visualAppearance}%` }}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{results.categoryScores.visualAppearance}%</p>
+                      <p className="text-xl font-black text-gray-900">{categoryScores.visualAppearance}%</p>
                       <span className="text-xs text-gray-500 font-medium">Skin & Confidence</span>
                     </div>
                   </div>
@@ -276,36 +279,36 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-gray-600">Physical Vitality</span>
-                        <span className="text-xs font-bold text-gray-900">{results.categoryScores.physicalVitality}%</span>
+                        <span className="text-xs font-bold text-gray-900">{categoryScores.physicalVitality}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
-                          style={{ width: `${results.categoryScores.physicalVitality}%` }}
+                          style={{ width: `${categoryScores.physicalVitality}%` }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-gray-600">Emotional Health</span>
-                        <span className="text-xs font-bold text-gray-900">{results.categoryScores.emotionalHealth}%</span>
+                        <span className="text-xs font-bold text-gray-900">{categoryScores.emotionalHealth}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full"
-                          style={{ width: `${results.categoryScores.emotionalHealth}%` }}
+                          style={{ width: `${categoryScores.emotionalHealth}%` }}
                         />
                       </div>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-medium text-gray-600">Visual Appearance</span>
-                        <span className="text-xs font-bold text-gray-900">{results.categoryScores.visualAppearance}%</span>
+                        <span className="text-xs font-bold text-gray-900">{categoryScores.visualAppearance}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
-                          style={{ width: `${results.categoryScores.visualAppearance}%` }}
+                          style={{ width: `${categoryScores.visualAppearance}%` }}
                         />
                       </div>
                     </div>

@@ -35,6 +35,11 @@ export interface AssessmentResults {
     emotionalHealth: number;
     visualAppearance: number;
   };
+  adjustedCategoryScores: {
+    physicalVitality: number;
+    emotionalHealth: number;
+    visualAppearance: number;
+  };
   biologicalAge: number;
   emotionalAge: number;
   chronologicalAge: number;

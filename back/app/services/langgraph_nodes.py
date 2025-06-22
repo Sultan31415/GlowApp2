@@ -106,17 +106,23 @@ You are an extremely knowledgeable and empathetic expert wellness and personal d
 
 --- INSTRUCTIONS FOR YOUR FINAL SYNTHESIS ---
 
+**IMPORTANT:**
+- You are REQUIRED to reference at least one specific finding from the photo analysis when adjusting the overallGlowScore and each category score.
+- If the photo shows any negative indicators (e.g., stress, poor skin, tiredness), you MUST lower the score accordingly, even if quiz scores are high.
+- If the photo shows positive indicators, you may raise the score, but always justify this with explicit reference to the photo findings.
+- In your analysisSummary, you MUST justify the overallGlowScore by referencing BOTH photo and quiz insights. Failure to do so is a critical error.
+
 Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.
 
 Based on ALL the information above, generate a JSON object with the following schema. You must critically evaluate and synthesize, not just copy, the inputs.
 
 {{
-    "overallGlowScore": <number, 0-100. This is the most important metric. Calculate it holistically. The base scores are a starting point, but you MUST adjust based on the severity of risks and significance of strengths from BOTH the quiz and photo analyses. For example, a user with good quiz scores but visible signs of high stress and poor skin in the photo should have a significantly lower score than their quiz answers suggest. Justify your final score in the analysisSummary.>,
+    "overallGlowScore": <number, 0-100. This is the most important metric. Calculate it holistically. The base scores are a starting point, but you MUST adjust based on the severity of risks and significance of strengths from BOTH the quiz and photo analyses. For example, a user with good quiz scores but visible signs of high stress and poor skin in the photo should have a significantly lower score than their quiz answers suggest. Justify your final score in the analysisSummary, referencing at least one photo finding.>,
 
     "adjustedCategoryScores": {{
-        "physicalVitality": <number, 0-100. Start with the base score ({base_scores['physicalVitality']}) and ADJUST it based on photo insights. For example, if the photo shows clear signs of fatigue or poor health not captured in the quiz, lower this score. If the user looks vibrant despite average quiz answers, you might slightly raise it.>,
-        "emotionalHealth": <number, 0-100. Start with the base score ({base_scores['emotionalHealth']}) and ADJUST it based on photo insights. For example, if the photo shows facial tension or stress cues, lower this score. If the user appears calm and composed, you might slightly raise it.>,
-        "visualAppearance": <number, 0-100. Start with the base score ({base_scores['visualAppearance']}) and ADJUST it based on the detailed skinAnalysis and stress indicators from the photo. This score should heavily reflect the objective photo analysis.>
+        "physicalVitality": <number, 0-100. Start with the base score ({base_scores['physicalVitality']}) and ADJUST it based on photo insights. For example, if the photo shows clear signs of fatigue or poor health not captured in the quiz, lower this score. If the user looks vibrant despite average quiz answers, you might slightly raise it. Reference at least one photo finding.>,
+        "emotionalHealth": <number, 0-100. Start with the base score ({base_scores['emotionalHealth']}) and ADJUST it based on photo insights. For example, if the photo shows facial tension or stress cues, lower this score. If the user appears calm and composed, you might slightly raise it. Reference at least one photo finding.>,
+        "visualAppearance": <number, 0-100. Start with the base score ({base_scores['visualAppearance']}) and ADJUST it based on the detailed skinAnalysis and stress indicators from the photo. This score should heavily reflect the objective photo analysis. Reference at least one photo finding.>
     }},
 
     "biologicalAge": <number, estimate based on all available data. Use the photo's 'estimatedAgeRange' as a primary visual cue and the quiz's 'keyRisks' (e.g., smoking, diet) to refine the estimate.>,
@@ -158,7 +164,7 @@ Based on ALL the information above, generate a JSON object with the following sc
         max_output_tokens=2048 # Increased token limit for the detailed response
     )
     response = orchestrator.generate_content([prompt], generation_config=generation_config)
-
+    print(f"Raw LangGraph Orchestrator LLM response: {response.text}")
     # Parse response, resilient to markdown and with numeric coercion
     try:
         json_str = response.text

@@ -1,5 +1,7 @@
 import openai
 import base64
+import requests
+import mimetypes
 import os
 import json
 from typing import Optional, Dict, Any
@@ -25,8 +27,17 @@ class PhotoAnalyzerGPT4o:
         Analyzes a base64-encoded photo and returns structured JSON insights.
         """
         try:
-            header, encoded = photo_url.split(',', 1)
-            mime_type = header.split(';')[0].split(':')[1]
+            # Accept both data URLs ("data:image/...;base64,<data>") and regular http(s) URLs.
+            if photo_url.startswith("data:"):
+                header, encoded = photo_url.split(',', 1)
+                mime_type = header.split(';')[0].split(':')[1]
+            else:
+                # Download remote image and convert to Base-64 so that the Vision model can consume it.
+                response = requests.get(photo_url, timeout=10)
+                response.raise_for_status()
+                img_bytes = response.content
+                mime_type = response.headers.get("Content-Type") or mimetypes.guess_type(photo_url)[0] or "image/jpeg"
+                encoded = base64.b64encode(img_bytes).decode()
 
             prompt = self._get_analysis_prompt()
 
@@ -49,7 +60,7 @@ class PhotoAnalyzerGPT4o:
                 temperature=0.4,
                 response_format={"type": "json_object"},
             )
-
+            print(f"Raw PhotoAnalyzer LLM response: {response.choices[0].message.content}")
             return self._parse_response(response)
 
         except Exception as e:

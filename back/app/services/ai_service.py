@@ -133,6 +133,7 @@ class AIService:
         Parse AI response, expecting a clean JSON string.
         """
         try:
+            print(f"Raw AIService LLM response: {response_text}")
             # Gemini with response_mime_type="application/json" should return clean JSON
             return json.loads(response_text)
         except json.JSONDecodeError:
@@ -163,7 +164,7 @@ class AIService:
 
         return {
             "overallGlowScore": ai_analysis.get("overallGlowScore", 0),
-            "categoryScores": base_scores,
+            "categoryScores": ai_analysis.get("adjustedCategoryScores", ai_analysis.get("categoryScores", base_scores)),
             "biologicalAge": ai_analysis.get("biologicalAge", final_chronological_age),
             "emotionalAge": ai_analysis.get("emotionalAge", final_chronological_age),
             "chronologicalAge": final_chronological_age,
@@ -200,6 +201,7 @@ class AIService:
             prompt = self._build_orchestrator_prompt(state.get("quiz_insights"), state.get("photo_insights"))
             generation_config = genai.types.GenerationConfig()
             response = self.orchestrator.generate_content([prompt], generation_config=generation_config)
+            print(f"Raw Orchestrator LLM response: {response.text}")
             ai_analysis = self._parse_ai_response(response.text)
 
             final_json = self._format_response(

@@ -9,6 +9,8 @@ interface ResultsScreenProps {
 }
 
 export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart, onGoToDashboard }) => {
+  const categoryScores = results.adjustedCategoryScores || results.categoryScores;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       <div className="container mx-auto px-4 py-8">
@@ -45,10 +47,10 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                 <div
                   className="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full"
-                  style={{ width: `${results.categoryScores.physicalVitality}%` }}
+                  style={{ width: `${categoryScores.physicalVitality}%` }}
                 />
               </div>
-              <p className="text-2xl font-bold text-gray-800">{results.categoryScores.physicalVitality}%</p>
+              <p className="text-2xl font-bold text-gray-800">{categoryScores.physicalVitality}%</p>
             </div>
 
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
@@ -59,10 +61,10 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                 <div
                   className="bg-gradient-to-r from-pink-500 to-pink-600 h-3 rounded-full"
-                  style={{ width: `${results.categoryScores.emotionalHealth}%` }}
+                  style={{ width: `${categoryScores.emotionalHealth}%` }}
                 />
               </div>
-              <p className="text-2xl font-bold text-gray-800">{results.categoryScores.emotionalHealth}%</p>
+              <p className="text-2xl font-bold text-gray-800">{categoryScores.emotionalHealth}%</p>
             </div>
 
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20">
@@ -73,10 +75,10 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart
               <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                 <div
                   className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full"
-                  style={{ width: `${results.categoryScores.visualAppearance}%` }}
+                  style={{ width: `${categoryScores.visualAppearance}%` }}
                 />
               </div>
-              <p className="text-2xl font-bold text-gray-800">{results.categoryScores.visualAppearance}%</p>
+              <p className="text-2xl font-bold text-gray-800">{categoryScores.visualAppearance}%</p>
             </div>
           </div>
 
