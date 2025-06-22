@@ -3,7 +3,7 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException
 from app.models.schemas import AssessmentRequest, AssessmentResponse
 from app.services.scoring_service import ScoringService
-from app.services.ai_service import AIService
+from app.services.ai_multi_agent_service import AIMultiAgentService as AIService
 from app.data.quiz_data import quiz_data
 
 # Initialize router
