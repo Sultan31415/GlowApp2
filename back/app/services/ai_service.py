@@ -1,33 +1,29 @@
 import google.generativeai as genai
 import json
-import base64
 import traceback
 import re
-import os
-import tempfile
 from typing import Dict, List, Any, Optional
 from fastapi import HTTPException
 
 from app.models.schemas import QuizAnswer
 from app.config.settings import settings
-# Assuming quiz_data is directly importable or passed into the service
-# For this example, let's assume it's available globally or passed in during initialization.
-from app.data.quiz_data import quiz_data # This is essential now!
+from app.data.quiz_data import quiz_data
 from app.services.photo_analyzer import PhotoAnalyzerGPT4o
+from app.services.quiz_analyzer import QuizAnalyzerGemini
 
 class AIService:
-    """Service for AI analysis using Gemini and GPT-4o for photo analysis."""
-    
+    """Service for orchestrating multi-agent AI analysis using Gemini and GPT-4o."""
+
     def __init__(self):
-        """Initialize Gemini AI service."""
+        """Initialize AI services and data."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
-        # Pre-process quiz_data for easy lookup by question ID
+        self.orchestrator = genai.GenerativeModel(settings.GEMINI_MODEL)
         self.question_map = self._build_question_map(quiz_data)
         self.photo_analyzer = PhotoAnalyzerGPT4o()
-    
+        self.quiz_analyzer = QuizAnalyzerGemini()
+
     def _build_question_map(self, q_data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-        """Builds a map from question ID to its full question details."""
+        """Builds a map from question ID to its full question details for quick lookup."""
         q_map = {}
         for section in q_data:
             for question in section['questions']:
@@ -38,283 +34,134 @@ class AIService:
         self, 
         answers: List[QuizAnswer], 
         base_scores: Dict[str, float], 
-        additional_data: Dict[str, Any], # Contains chronologicalAge, biologicalSex, countryOfResidence, health metrics
+        additional_data: Dict[str, Any],
         photo_url: Optional[str]
     ) -> Dict[str, Any]:
-        """Get AI analysis of the assessment results using Gemini and GPT-4o for photo analysis."""
+        """Orchestrate multi-agent analysis: quiz, photo, and holistic synthesis."""
         try:
-            print(f"Received chronological_age in get_ai_analysis: {additional_data.get('chronologicalAge')}")
-            print(f"Received photo_url in get_ai_analysis: {photo_url[:50]}..." if photo_url else "No photo_url received")
-            
-            # Step 1: Analyze photo with GPT-4o (if provided)
             photo_insights = None
             if photo_url:
                 photo_insights = self.photo_analyzer.analyze_photo(photo_url)
-                print("Photo insights from GPT-4o:", photo_insights)
+                print(f"Photo insights from GPT-4o: {json.dumps(photo_insights, indent=2)}")
 
-            # Step 2: Prepare the prompt for Gemini, including photo insights
-            text_prompt = self._build_prompt(answers, base_scores, additional_data, photo_insights)
-            print("Gemini Prompt (first 1000 chars):", text_prompt[:1000]) # Print truncated prompt for logs
+            quiz_insights = self.quiz_analyzer.analyze_quiz(answers, base_scores, additional_data, self.question_map)
+            if quiz_insights:
+                print(f"Quiz insights from Gemini: {json.dumps(quiz_insights, indent=2)}")
+            else:
+                print("Warning: Quiz analyzer returned no insights.")
+
+            orchestrator_prompt = self._build_orchestrator_prompt(quiz_insights, photo_insights)
             
-            contents = [text_prompt]
+            generation_config = genai.types.GenerationConfig()
+            response = self.orchestrator.generate_content([orchestrator_prompt], generation_config=generation_config)
             
-            # Get AI response
-            response = self.model.generate_content(contents)
-            print("Raw Gemini Response:", response.text)
-            
-            # Parse the AI response
             ai_analysis = self._parse_ai_response(response.text)
-            print("Parsed AI Analysis:", json.dumps(ai_analysis, indent=2))
+            print(f"Parsed Holistic AI Analysis: {json.dumps(ai_analysis, indent=2)}")
             
-            # Combine base scores with AI analysis and additional data
-            return self._format_response(ai_analysis, base_scores, additional_data.get('chronologicalAge'), photo_url, photo_insights)
+            return self._format_response(ai_analysis, base_scores, additional_data.get('chronologicalAge'), photo_url, photo_insights, quiz_insights)
             
         except Exception as e:
-            print("Error in get_ai_analysis:", traceback.format_exc())
+            print(f"Error in get_ai_analysis: {traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
-    
-    def _build_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], photo_insights: Optional[Dict[str, Any]] = None) -> str:
-        """
-        Builds the comprehensive prompt for the Gemini AI based on all available user data.
-        """
-        # --- Data Preparation ---
-        user_profile_lines = [
-            f"Chronological Age: {additional_data.get('chronologicalAge', 'Not provided')} years",
-            f"Biological Sex: {additional_data.get('biologicalSex', 'Not provided').replace('-', ' ').title()}",
-            f"Country of Primary Residence (past 10 years): {additional_data.get('countryOfResidence', 'Not provided')}"
-        ]
-        user_profile_str = "\n".join(user_profile_lines)
 
-        health_metrics_lines = []
-        if additional_data.get('bmi'): health_metrics_lines.append(f"- BMI Status: {additional_data['bmi'].replace('-', ' ').title()}")
-        if additional_data.get('bloodPressure'): health_metrics_lines.append(f"- Blood Pressure: {additional_data['bloodPressure'].replace('-', ' ').title()}")
-        if additional_data.get('restingHeartRate'): health_metrics_lines.append(f"- Resting Heart Rate: {additional_data['restingHeartRate'].replace('-', ' ').title()}")
-        if additional_data.get('cvdHistory'): health_metrics_lines.append(f"- Cardiovascular Disease History: {additional_data['cvdHistory'].replace('-', ' ').title()}")
-        health_metrics_info = "\nAdditional Health Metrics:\n" + "\n".join(health_metrics_lines) if health_metrics_lines else ""
-
-        detailed_answers_context = []
-        for ans in answers:
-            q_detail = self.question_map.get(ans.questionId)
-            selected_option_label = ans.label
-            if q_detail:
-                if not selected_option_label and q_detail.get('type') == 'single-choice' and 'options' in q_detail:
-                    selected_option_label = next((opt['label'] for opt in q_detail['options'] if opt['value'] == ans.value), str(ans.value))
-                
-                detailed_answers_context.append({
-                    "questionId": ans.questionId, "questionText": q_detail['text'],
-                    "questionType": q_detail['type'], "selectedValue": ans.value, "selectedLabel": selected_option_label
-                })
-            else:
-                detailed_answers_context.append({
-                    "questionId": ans.questionId, "questionText": f"Unknown Question: {ans.questionId}",
-                    "selectedValue": ans.value, "selectedLabel": ans.label
-                })
-        detailed_answers_json = json.dumps(detailed_answers_context, indent=2)
-
-        country = additional_data.get('countryOfResidence', 'Not provided')
-        if country and country.lower() != 'not provided':
-            country_specific_guidance = f"""**Crucial Context: The user is from {country}.**
-            When analyzing *every relevant question* and providing recommendations, you must infer and apply considerations based on {country}'s context (cultural, lifestyle, climate, nutrition, health risks, and healthcare norms). Integrate these insights deeply into your analysis."""
-        else:
-            country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends."
-
-        # Add photo insights section
-        photo_insights_str = "No photo was provided or photo analysis failed."
-        if photo_insights:
-            photo_insights_str = json.dumps(photo_insights, indent=2)
-
-        # --- Prompt Template using .format() for Safety and Clarity ---
-        # Note: Literal braces are escaped by doubling them (e.g., {{). Single braces are for placeholders.
-        prompt_template = """You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage *all* provided data points for a nuanced understanding.
-
---- User's General Profile ---
-{user_profile}
-{health_metrics}
-
---- Overall Wellness Scores ---
-- Physical Vitality: {physical_vitality_score}%
-- Emotional Health: {emotional_health_score}%
-- Visual Appearance: {visual_appearance_score}%
-
---- Detailed Assessment Answers ---
-{detailed_answers}
-
---- Photo Insights (from a separate expert agent) ---
-{photo_insights}
-
---- Specific Contextual Guidance ---
-{country_guidance}
-
---- Detailed Instructions for Your Analysis ---
-You MUST provide a JSON response with the following structure. Each section should be richly detailed and directly reflective of the provided data:
-
-{{
-    "overallGlowScore": <number between 0-100, calculated holistically. Explain in summary.>,
-    "biologicalAge": <estimated biological age. Justify based on physical vitality, health metrics, lifestyle factors, and photo insights.>,
-    "emotionalAge": <estimated emotional age. Justify based on emotional health, relationships, stress, happiness, and photo insights.>,
-    "chronologicalAge": {chronological_age},
-    "glowUpArchetype": {{
-        "name": "<Creative, inspiring archetype name capturing user's state and potential.>",
-        "description": "<Detailed, empathetic description (150-250 words) synthesizing all data (scores, answers, metrics, context, photo insights).>"
-    }},
-    "microHabits": [
-        "<**1. Specific, Actionable Habit:** Connect to a specific quiz answer/metric or photo insight. Make it quantifiable. Consider country context: If from {country}, is this habit feasible?>",
-        "<**2. Specific, Actionable Habit:** (as above)>",
-        "<**3. Specific, Actionable Habit:** (as above)>",
-        "<**4. Specific, Actionable Habit:** (as above)>",
-        "<**5. Specific, Actionable Habit:** (as above)>"
-    ],
-    "analysisSummary": "<Comprehensive narrative (200-400 words). Explain scores, integrate detailed answers, health metrics, photo insights, and context ({country}). End with an empowering message.>",
-    "detailedInsightsPerCategory": {{
-        "physicalVitalityInsights": [
-            "<Analyze q1-q7, q17-q20. For each, state question, answer, and interpretation. E.g., 'Your 8+ glasses of water (q3) is excellent.' or 'Occasional smoking (q6) is a key area for improvement.' Compare to norms in {country}. Reference photo insights if relevant.>",
-            "<Insight 2 for Physical Vitality>",
-            "<Insight 3 for Physical Vitality>"
-        ],
-        "emotionalHealthInsights": [
-            "<Analyze q8-q12. For each, state question, answer, and interpretation. E.g., 'High stress (q8) suggests need for management techniques.' Compare to norms in {country}. Reference photo insights if relevant.>",
-            "<Insight 2 for Emotional Health>",
-            "<Insight 3 for Emotional Health>"
-        ],
-        "visualAppearanceInsights": [
-            "<Analyze q13. State question, answer, and interpretation of self-perception. Compare to norms in {country}. Reference photo insights if relevant.>"
-        ]
-    }}
-}}
-
-Ensure all estimations are precise and justified. Micro-habits must be hyper-specific. The analysis must be a personalized, empathetic narrative using all context, especially the country and photo insights.
-"""
+    def _build_orchestrator_prompt(self, quiz_insights: Optional[Dict[str, Any]], photo_insights: Optional[Dict[str, Any]]) -> str:
+        quiz_str = json.dumps(quiz_insights, indent=2) if quiz_insights else "No quiz insights available."
+        photo_str = json.dumps(photo_insights, indent=2) if photo_insights else "No photo insights available."
         
-        # --- Final Assembly ---
-        return prompt_template.format(
-            user_profile=user_profile_str,
-            health_metrics=health_metrics_info,
-            physical_vitality_score=base_scores['physicalVitality'],
-            emotional_health_score=base_scores['emotionalHealth'],
-            visual_appearance_score=base_scores['visualAppearance'],
-            detailed_answers=detailed_answers_json,
-            photo_insights=photo_insights_str,
-            country_guidance=country_specific_guidance,
-            chronological_age=additional_data.get('chronologicalAge', '"Not provided"'),
-            country=country
-        )
+        chronological_age = "null"
+        if quiz_insights and 'chronologicalAge' in quiz_insights:
+            chronological_age = quiz_insights['chronologicalAge']
 
-    def _process_photo(self, photo_url: str):
-        """Process photo for Gemini AI"""
-        try:
-            # photo_url is typically 'data:image/png;base64,...' or 'data:image/jpeg;base64,...'
-            header, encoded = photo_url.split(',', 1)
-            data = base64.b64decode(encoded)
-            mime_type = header.split(':')[1].split(';')[0]
-            
-            print(f"Processing photo with mime type: {mime_type}")
-            
-            # Determine file extension from mime type
-            if 'png' in mime_type:
-                suffix = '.png'
-            elif 'jpeg' in mime_type or 'jpg' in mime_type:
-                suffix = '.jpg'
-            else:
-                suffix = '.jpg'  # default
-            
-            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
-                tmp_file.write(data)
-                tmp_file_path = tmp_file.name
-            
-            try:
-                # Use a specific file name for Gemini, though tempfile already handles uniqueness
-                file_part = genai.upload_file(tmp_file_path, mime_type=mime_type, display_name=f"user_photo_{os.path.basename(tmp_file_path)}")
-                print(f"Photo successfully uploaded to Gemini: {file_part.uri}")
-                return file_part
-            finally:
-                # Clean up temp file
-                try:
-                    os.unlink(tmp_file_path)
-                except Exception as e:
-                    print(f"Error cleaning up temp file {tmp_file_path}: {e}")
-            
-        except Exception as e:
-            print(f"Error processing photo for Gemini: {e}")
-            return None
-    
+        return f"""
+        You are an expert wellness and personal development coach. Your task is to synthesize a holistic analysis from two sources: a structured analysis of a user's photo and a structured analysis of their quiz answers and health data.
+
+        --- Photo Analysis (JSON) ---
+        {photo_str}
+
+        --- Quiz & Health Data Analysis (JSON) ---
+        {quiz_str}
+
+        Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.
+
+        Based on the provided data, generate a JSON object with the following schema:
+        {{
+          "overallGlowScore": <number, 0-100. Holistically assess and combine insights from both photo and quiz. Justify your score in the analysisSummary.>,
+          "biologicalAge": <number, estimate based on all available data. Use photo 'estimatedAgeRange' as a primary visual cue and quiz 'keyRisks' (e.g., smoking, diet) to adjust. Justify in the analysisSummary.>,
+          "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health. Justify in the analysisSummary.>,
+          "chronologicalAge": {chronological_age},
+          "glowUpArchetype": {{
+            "name": "<string, create an inspiring archetype name that reflects the user's integrated profile (e.g., 'The Resilient Artist', 'The Mindful Innovator')>",
+            "description": "<string, 150-250 words. A detailed, empathetic description synthesizing insights from both the photo (e.g., 'a thoughtful expression') and the quiz (e.g., 'a strong sense of community').>"
+          }},
+          "microHabits": [
+            "<1. Specific, Actionable Habit: Connect this directly to a specific finding, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
+            "<2. Specific, Actionable Habit: (as above)>",
+            "<3. Specific, Actionable Habit: (as above)>",
+            "<4. Specific, Actionable Habit: (as above)>",
+            "<5. Specific, Actionable Habit: (as above)>"
+          ],
+          "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing both photo and quiz insights (e.g., 'Your score reflects your strong emotional resilience noted in the quiz, balanced with visual signs of stress around the eyes from the photo.'). End with an empowering message.>",
+          "detailedInsightsPerCategory": {{
+            "physicalVitalityInsights": [
+                "<string, Synthesize findings. Example: 'The quiz indicated a risk related to cardiovascular health, which is not visually apparent in the photo, suggesting a hidden risk to address.'>"
+            ],
+            "emotionalHealthInsights": [
+                "<string, Synthesize findings. Example: 'Your quiz answers show high emotional awareness, and your facial expression in the photo appears calm and composed, suggesting a strong alignment.'>"
+            ],
+            "visualAppearanceInsights": [
+                "<string, Synthesize findings. Example: 'The photo analysis noted some skin redness, and your quiz answers about diet might suggest a link to inflammatory foods.'>"
+            ]
+          }}
+        }}
+        """
+
     def _parse_ai_response(self, response_text: str) -> Dict[str, Any]:
         """
-        Parse AI response, extract JSON, and ensure a valid structure is always returned.
-        This function is designed to be resilient to malformed AI responses.
+        Parse AI response, expecting a clean JSON string.
         """
-        
-        def _validate_and_default(parsed: Dict[str, Any]) -> Dict[str, Any]:
-            """Ensures all required keys exist in the parsed dictionary, providing defaults if not."""
-            required_toplevel_keys = ["overallGlowScore", "biologicalAge", "emotionalAge", "chronologicalAge", "glowUpArchetype", "microHabits", "analysisSummary", "detailedInsightsPerCategory"]
-            for key in required_toplevel_keys:
-                if key not in parsed:
-                    print(f"Warning: Missing critical top-level key '{key}' in AI response. Providing default.")
-                    if key == "glowUpArchetype":
-                        parsed[key] = {"name": "Undefined Archetype", "description": "No description provided."}
-                    elif key == "microHabits":
-                        parsed[key] = []
-                    elif key == "overallGlowScore":
-                        parsed[key] = 0
-                    elif key == "detailedInsightsPerCategory":
-                        parsed[key] = {"physicalVitalityInsights": [], "emotionalHealthInsights": [], "visualAppearanceInsights": []}
-                    else:
-                        parsed[key] = None
-            
-            if "glowUpArchetype" in parsed and (
-                "name" not in parsed["glowUpArchetype"] or "description" not in parsed["glowUpArchetype"]
-            ):
-                print("Warning: Missing name or description in glowUpArchetype. Providing defaults.")
-                parsed["glowUpArchetype"]["name"] = parsed["glowUpArchetype"].get("name", "Undefined Archetype")
-                parsed["glowUpArchetype"]["description"] = parsed["glowUpArchetype"].get("description", "No description provided.")
-            return parsed
-
         try:
-            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
-            if not json_match:
-                print(f"Warning: Could not find any JSON-like structure in AI response. Raw text was: {response_text}")
-                return _validate_and_default({})
-
-            json_str = json_match.group()
-            parsed_data = json.loads(json_str)
-            return _validate_and_default(parsed_data)
-
+            # Gemini with response_mime_type="application/json" should return clean JSON
+            return json.loads(response_text)
         except json.JSONDecodeError:
-            print(f"Error: Failed to parse JSON from AI response. Raw text was: {response_text}")
-            return _validate_and_default({})
-        except Exception as e:
-            print(f"An unexpected error occurred during AI response parsing: {e}")
-            return _validate_and_default({})
-    
+            print(f"Warning: Failed to parse clean JSON, attempting to extract from markdown. Raw text: {response_text}")
+            # Fallback for cases where JSON is still wrapped in markdown
+            match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+            if match:
+                json_str = match.group(1)
+                return json.loads(json_str)
+            raise ValueError("AI response was not valid JSON.")
+
     def _format_response(
         self, 
         ai_analysis: Dict[str, Any], 
         base_scores: Dict[str, float], 
-        chronological_age: Optional[int], # This is the original chronological age from additional_data
+        chronological_age: Optional[int],
         photo_url: Optional[str],
-        photo_insights: Optional[Dict[str, Any]] = None
+        photo_insights: Optional[Dict[str, Any]] = None,
+        quiz_insights: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Format the final response, including all new AI analysis fields."""
-        
-        # Use the chronologicalAge from the input if provided, otherwise fall back to AI's guess or default
-        final_chronological_age = chronological_age if chronological_age is not None else ai_analysis.get("chronologicalAge", settings.DEFAULT_AGE)
+        final_chronological_age = chronological_age if chronological_age is not None else ai_analysis.get("chronologicalAge")
+
+        # Ensure archetype is a dictionary
+        archetype = ai_analysis.get("glowUpArchetype", {})
+        if not isinstance(archetype, dict):
+            archetype = {"name": "Unknown", "description": "No archetype provided."}
 
         return {
-            "overallGlowScore": ai_analysis.get("overallGlowScore", 0), # Provide default for safety
+            "overallGlowScore": ai_analysis.get("overallGlowScore", 0),
             "categoryScores": base_scores,
-            "biologicalAge": ai_analysis.get("biologicalAge", final_chronological_age), # Default to chronological if AI fails
-            "emotionalAge": ai_analysis.get("emotionalAge", final_chronological_age),   # Default to chronological if AI fails
+            "biologicalAge": ai_analysis.get("biologicalAge", final_chronological_age),
+            "emotionalAge": ai_analysis.get("emotionalAge", final_chronological_age),
             "chronologicalAge": final_chronological_age,
-            "glowUpArchetype": ai_analysis.get("glowUpArchetype", {"name": "Unknown", "description": "No archetype provided."}),
+            "glowUpArchetype": archetype,
             "microHabits": ai_analysis.get("microHabits", []),
-            "analysisSummary": ai_analysis.get("analysisSummary", "A comprehensive summary of your wellness journey will be provided here based on a detailed AI analysis."),
-            "detailedInsightsPerCategory": ai_analysis.get("detailedInsightsPerCategory", {
-                "physicalVitalityInsights": [],
-                "emotionalHealthInsights": [],
-                "visualAppearanceInsights": []
-            }), # New field for granular insights
+            "analysisSummary": ai_analysis.get("analysisSummary", "A comprehensive summary will be provided after AI analysis."),
+            "detailedInsightsPerCategory": ai_analysis.get("detailedInsightsPerCategory", {}),
             "avatarUrls": {
                 "before": photo_url if photo_url else settings.DEFAULT_AVATAR_BEFORE,
                 "after": settings.DEFAULT_AVATAR_AFTER
             },
-            "photoInsights": photo_insights
+            "photoInsights": photo_insights,
+            "quizInsights": quiz_insights
         }

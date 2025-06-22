@@ -1,8 +1,17 @@
 import openai
 import base64
 import os
+import json
 from typing import Optional, Dict, Any
-from app.config.settings import settings
+# Assuming app.config.settings exists and is correctly configured
+# from app.config.settings import settings
+
+# Placeholder for settings for standalone testing
+class MockSettings:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
+
+settings = MockSettings()
+
 
 class PhotoAnalyzerGPT4o:
     """Agent for analyzing photos using OpenAI GPT-4o Vision API."""
@@ -13,72 +22,91 @@ class PhotoAnalyzerGPT4o:
 
     def analyze_photo(self, photo_url: str) -> Optional[Dict[str, Any]]:
         """
-        Analyzes a base64-encoded photo and returns structured insights.
-        photo_url: 'data:image/png;base64,...' or 'data:image/jpeg;base64,...'
-        Returns: dict with keys like 'apparent_age', 'emotion', 'health_markers', etc.
+        Analyzes a base64-encoded photo and returns structured JSON insights.
         """
         try:
             header, encoded = photo_url.split(',', 1)
-            image_data = base64.b64decode(encoded)
-            mime_type = header.split(':')[1].split(';')[0]
+            mime_type = header.split(';')[0].split(':')[1]
 
-            # Prepare the prompt for GPT-4o
-            prompt = (
-                "Your task is to analyze the skin condition based solely on visual cues from the photo. "
-                "Please provide an objective, structured output covering the following aspects:\n\n"
-                "I. Skin Condition (Objective Visual Assessment):\n"
-                "- Redness/Erythema: Describe distribution, intensity, and nature.\n"
-                "- Shine/Oiliness: Describe distribution and degree.\n"
-                "- Texture: Describe overall texture, presence of flaking, scaling, or prominent pores.\n"
-                "- Blemishes/Irregularities: Note any specific blemishes, uneven texture, or other irregularities.\n"
-                "- Capillaries/Vascularity: Comment on any visible blood vessels or signs of increased vascularity.\n\n"
-                "II. Indicators of Stress/Tiredness (Objective Visual Cues):\n"
-                "- Eyes: Comment on puffiness, dark circles, redness/irritation of the eyes themselves.\n"
-                "- Skin Tone/Luster: Describe overall skin tone, sallow appearance, or dullness.\n"
-                "- Facial Expression: Note any tension, lines, or expressions indicative of stress/fatigue.\n"
-                "- Other Potential Cues: (e.g., hair condition if relevant, but emphasize visual and objective connection to stress/tiredness).\n\n"
-                "III. Summary of Objective Visual Feedback:\n"
-                "- Provide a concise summary highlighting the most prominent visual observations.\n\n"
-                "Important Instructions:\n"
-                "- Focus ONLY on objective visual information from the photo.\n"
-                "- Do not make medical diagnoses, speculate on causes, or infer subjective feelings (like \"stressed\" or \"tired\") unless there are clear and universally recognized visual cues for them.\n"
-                "- Use neutral and descriptive language. Avoid judgmental terms.\n"
-                "- Maintain the structured format (Roman numerals and bullet points) as outlined above.\n"
-                "- Exclude any personal advice, treatment recommendations, or disclaimers about consulting doctors. Your output should be purely observational analysis."
+            prompt = self._get_analysis_prompt()
+
+            response = openai.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a highly precise visual analysis expert. Your sole purpose is to observe and describe visual attributes objectively and return structured JSON. Adhere strictly to the provided schema and instructions."},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{encoded}"},
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=1024,
+                response_format={"type": "json_object"},
             )
 
+            return self._parse_response(response)
 
-            # OpenAI API expects files, so save to temp file
-            import tempfile
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-                tmp_file.write(image_data)
-                tmp_file_path = tmp_file.name
-
-            try:
-                with open(tmp_file_path, "rb") as image_file:
-                    response = openai.chat.completions.create(
-                        model=self.model,
-                        messages=[
-                            {"role": "system", "content": prompt},
-                            {"role": "user", "content": [
-                                {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{encoded}"}}
-                            ]}
-                        ],
-                        max_tokens=512,
-                    )
-                # Parse the response (expecting JSON in the reply)
-                import json, re
-                text = response.choices[0].message.content
-                match = re.search(r'\{.*\}', text, re.DOTALL)
-                if match:
-                    return json.loads(match.group())
-                else:
-                    return {"raw_response": text}
-            finally:
-                try:
-                    os.unlink(tmp_file_path)
-                except Exception:
-                    pass
         except Exception as e:
             print(f"PhotoAnalyzerGPT4o error: {e}")
-            return None 
+            return None
+
+    def _get_analysis_prompt(self) -> str:
+        return """
+        Critically analyze the provided photo of a person's face. Your output MUST be a JSON object, strictly adhering to the specified schema. Focus exclusively on directly observable visual characteristics. If a specific characteristic is not clearly visible or discernible, state "not discernible" or "no clear indicators" for that field, rather than omitting the field or speculating.
+
+        Schema and Desired Output Details:
+        {
+            "estimatedAgeRange": {
+                "lower": <integer, estimated minimum age, e.g., 20>,
+                "upper": <integer, estimated maximum age, e.g., 30>,
+                "justification": "<string, concise visual cues supporting the age estimate, e.g., 'Absence of deep wrinkles, youthful skin texture, clear jawline.'>"
+            },
+            "skinAnalysis": {
+                "overallComplexion": "<string, e.g., 'fair', 'medium', 'dark', 'pale', 'flushed'>",
+                "rednessOrErythema": "<string, precise description of any redness, including distribution (e.g., 'diffuse across cheeks', 'localized around nose'), intensity (e.g., 'mild', 'moderate', 'pronounced'), and nature (e.g., 'blotchy', 'uniform blush'). If none, state 'none discernible'.>",
+                "shineOrOiliness": "<string, detailed description of any shine or oiliness, including location (e.g., 'T-zone', 'forehead'), and degree (e.g., 'slight sheen', 'moderate oiliness', 'greasy appearance'). If none, state 'none discernible'.>",
+                "texture": "<string, describe the predominant skin texture (e.g., 'smooth', 'fine lines present', 'some roughness', 'uneven'). Comment on pore visibility (e.g., 'pores appear small', 'pores visibly enlarged'). Note any flaking or dryness (e.g., 'slight flaking on chin', 'dry patches').>",
+                "blemishesOrIrregularities": "<string, itemize specific blemishes or irregularities such as 'small pimple on chin', 'freckles', 'hyperpigmentation spots on forehead', 'uneven skin tone'. If none, state 'none discernible'.>",
+                "visibleCapillariesOrVascularity": "<string, describe any visible broken capillaries or prominent blood vessels, including location and extent. If none, state 'none discernible'.>"
+            },
+            "stressAndTirednessIndicators": {
+                "eyes": "<string, specific observations regarding the eyes: 'slight puffiness under eyes', 'pronounced dark circles', 'redness in sclera', 'visible fine lines around eyes'. If none, state 'none discernible'.>",
+                "skinToneAndLuster": "<string, describe any sallow appearance, dullness, or lack of luminosity. Be specific (e.g., 'skin appears slightly sallow', 'dullness primarily on cheeks', 'lack of natural glow'). If none, state 'none discernible'.>",
+                "facialExpressionCues": "<string, note any lines or muscle tension indicative of fatigue or stress (e.g., 'furrowed brow', 'tension around mouth', 'subtle lines between eyebrows'). If none, state 'none discernible'.>"
+            },
+            "overallVisualSummary": "<string, a highly concise, objective summary of the most striking and prominent visual observations related to the person's facial appearance, synthesizing key points from the above sections. Max 2-3 sentences.>"
+        }
+
+        Strict Rules:
+        1. Respond ONLY with the JSON object. No preambles, explanations, or conversational text.
+        2. Ensure all keys in the schema are present in the output JSON.
+        3. For fields where nothing is observed, use specific phrases like "none discernible", "no clear indicators", or "not applicable" as appropriate for the context, but do NOT omit the key.
+        4. Do NOT interpret or make subjective judgments (e.g., "looks healthy", "appears sad"). Stick to objective visual descriptions.
+        5. Do NOT make medical diagnoses or speculate on health conditions.
+        6. Provide specific, detailed visual observations for each field, avoiding vague terms. Quantify or qualify where possible (e.g., "slight", "moderate", "pronounced", "diffuse", "localized").
+        7. Ensure age range justification is based purely on visible features, not assumptions.
+        8. The 'overallVisualSummary' should be a true summary, not a re-listing of details.
+        """
+
+    def _parse_response(self, response) -> Optional[Dict[str, Any]]:
+        """Parses the JSON response from the OpenAI API."""
+        try:
+            content = response.choices[0].message.content
+            # It's good practice to add a validation step here
+            parsed_json = json.loads(content)
+            # You might want to add schema validation using a library like Pydantic or jsonschema
+            # For now, a basic check:
+            expected_top_keys = ["estimatedAgeRange", "skinAnalysis", "stressAndTirednessIndicators", "overallVisualSummary"]
+            if not all(key in parsed_json for key in expected_top_keys):
+                print(f"Parsed JSON missing expected top-level keys: {parsed_json.keys()}")
+                return None
+            return parsed_json
+        except (json.JSONDecodeError, IndexError, KeyError) as e:
+            print(f"Error parsing photo analysis response: {e}")
+            print(f"Problematic content: {response.choices[0].message.content if response.choices else 'No content'}")
+            return None
