@@ -13,9 +13,10 @@ from app.config.settings import settings
 # Assuming quiz_data is directly importable or passed into the service
 # For this example, let's assume it's available globally or passed in during initialization.
 from app.data.quiz_data import quiz_data # This is essential now!
+from app.services.photo_analyzer import PhotoAnalyzerGPT4o
 
 class AIService:
-    """Service for AI analysis using Gemini."""
+    """Service for AI analysis using Gemini and GPT-4o for photo analysis."""
     
     def __init__(self):
         """Initialize Gemini AI service."""
@@ -23,6 +24,7 @@ class AIService:
         self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
         # Pre-process quiz_data for easy lookup by question ID
         self.question_map = self._build_question_map(quiz_data)
+        self.photo_analyzer = PhotoAnalyzerGPT4o()
     
     def _build_question_map(self, q_data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """Builds a map from question ID to its full question details."""
@@ -39,29 +41,23 @@ class AIService:
         additional_data: Dict[str, Any], # Contains chronologicalAge, biologicalSex, countryOfResidence, health metrics
         photo_url: Optional[str]
     ) -> Dict[str, Any]:
-        """Get AI analysis of the assessment results using Gemini."""
+        """Get AI analysis of the assessment results using Gemini and GPT-4o for photo analysis."""
         try:
             print(f"Received chronological_age in get_ai_analysis: {additional_data.get('chronologicalAge')}")
             print(f"Received photo_url in get_ai_analysis: {photo_url[:50]}..." if photo_url else "No photo_url received")
             
-            # Prepare the prompt for Gemini
-            text_prompt = self._build_prompt(answers, base_scores, additional_data)
+            # Step 1: Analyze photo with GPT-4o (if provided)
+            photo_insights = None
+            if photo_url:
+                photo_insights = self.photo_analyzer.analyze_photo(photo_url)
+                print("Photo insights from GPT-4o:", photo_insights)
+
+            # Step 2: Prepare the prompt for Gemini, including photo insights
+            text_prompt = self._build_prompt(answers, base_scores, additional_data, photo_insights)
             print("Gemini Prompt (first 1000 chars):", text_prompt[:1000]) # Print truncated prompt for logs
             
             contents = [text_prompt]
             
-            # Process photo if provided
-            if photo_url:
-                photo_part = self._process_photo(photo_url)
-                if photo_part is not None:
-                    contents.append(photo_part)
-                    print("Photo successfully added to Gemini request")
-                else:
-                    print("Photo processing failed, continuing without image")
-                    # Add note to prompt about photo processing failure
-                    photo_note = "\n\nNote: A photo was provided but could not be processed for analysis. Please provide insights based on the quiz answers and provided data only."
-                    contents[0] = contents[0] + photo_note
-
             # Get AI response
             response = self.model.generate_content(contents)
             print("Raw Gemini Response:", response.text)
@@ -71,13 +67,13 @@ class AIService:
             print("Parsed AI Analysis:", json.dumps(ai_analysis, indent=2))
             
             # Combine base scores with AI analysis and additional data
-            return self._format_response(ai_analysis, base_scores, additional_data.get('chronologicalAge'), photo_url)
+            return self._format_response(ai_analysis, base_scores, additional_data.get('chronologicalAge'), photo_url, photo_insights)
             
         except Exception as e:
             print("Error in get_ai_analysis:", traceback.format_exc())
             raise HTTPException(status_code=500, detail=f"AI analysis failed: {str(e)}")
     
-    def _build_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any]) -> str:
+    def _build_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], photo_insights: Optional[Dict[str, Any]] = None) -> str:
         """
         Builds the comprehensive prompt for the Gemini AI based on all available user data.
         """
@@ -122,6 +118,11 @@ class AIService:
         else:
             country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends."
 
+        # Add photo insights section
+        photo_insights_str = "No photo was provided or photo analysis failed."
+        if photo_insights:
+            photo_insights_str = json.dumps(photo_insights, indent=2)
+
         # --- Prompt Template using .format() for Safety and Clarity ---
         # Note: Literal braces are escaped by doubling them (e.g., {{). Single braces are for placeholders.
         prompt_template = """You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage *all* provided data points for a nuanced understanding.
@@ -138,6 +139,9 @@ class AIService:
 --- Detailed Assessment Answers ---
 {detailed_answers}
 
+--- Photo Insights (from a separate expert agent) ---
+{photo_insights}
+
 --- Specific Contextual Guidance ---
 {country_guidance}
 
@@ -146,39 +150,39 @@ You MUST provide a JSON response with the following structure. Each section shou
 
 {{
     "overallGlowScore": <number between 0-100, calculated holistically. Explain in summary.>,
-    "biologicalAge": <estimated biological age. Justify based on physical vitality, health metrics, and lifestyle factors.>,
-    "emotionalAge": <estimated emotional age. Justify based on emotional health, relationships, stress, and happiness.>,
+    "biologicalAge": <estimated biological age. Justify based on physical vitality, health metrics, lifestyle factors, and photo insights.>,
+    "emotionalAge": <estimated emotional age. Justify based on emotional health, relationships, stress, happiness, and photo insights.>,
     "chronologicalAge": {chronological_age},
     "glowUpArchetype": {{
         "name": "<Creative, inspiring archetype name capturing user's state and potential.>",
-        "description": "<Detailed, empathetic description (150-250 words) synthesizing all data (scores, answers, metrics, context).>"
+        "description": "<Detailed, empathetic description (150-250 words) synthesizing all data (scores, answers, metrics, context, photo insights).>"
     }},
     "microHabits": [
-        "<**1. Specific, Actionable Habit:** Connect to a specific quiz answer/metric. Make it quantifiable. Consider country context: If from {country}, is this habit feasible?>",
+        "<**1. Specific, Actionable Habit:** Connect to a specific quiz answer/metric or photo insight. Make it quantifiable. Consider country context: If from {country}, is this habit feasible?>",
         "<**2. Specific, Actionable Habit:** (as above)>",
         "<**3. Specific, Actionable Habit:** (as above)>",
         "<**4. Specific, Actionable Habit:** (as above)>",
         "<**5. Specific, Actionable Habit:** (as above)>"
     ],
-    "analysisSummary": "<Comprehensive narrative (200-400 words). Explain scores, integrate detailed answers, health metrics, and context ({country}). End with an empowering message.>",
+    "analysisSummary": "<Comprehensive narrative (200-400 words). Explain scores, integrate detailed answers, health metrics, photo insights, and context ({country}). End with an empowering message.>",
     "detailedInsightsPerCategory": {{
         "physicalVitalityInsights": [
-            "<Analyze q1-q7, q17-q20. For each, state question, answer, and interpretation. E.g., 'Your 8+ glasses of water (q3) is excellent.' or 'Occasional smoking (q6) is a key area for improvement.' Compare to norms in {country}.>",
+            "<Analyze q1-q7, q17-q20. For each, state question, answer, and interpretation. E.g., 'Your 8+ glasses of water (q3) is excellent.' or 'Occasional smoking (q6) is a key area for improvement.' Compare to norms in {country}. Reference photo insights if relevant.>",
             "<Insight 2 for Physical Vitality>",
             "<Insight 3 for Physical Vitality>"
         ],
         "emotionalHealthInsights": [
-            "<Analyze q8-q12. For each, state question, answer, and interpretation. E.g., 'High stress (q8) suggests need for management techniques.' Compare to norms in {country}.>",
+            "<Analyze q8-q12. For each, state question, answer, and interpretation. E.g., 'High stress (q8) suggests need for management techniques.' Compare to norms in {country}. Reference photo insights if relevant.>",
             "<Insight 2 for Emotional Health>",
             "<Insight 3 for Emotional Health>"
         ],
         "visualAppearanceInsights": [
-            "<Analyze q13. State question, answer, and interpretation of self-perception. Compare to norms in {country}.>"
+            "<Analyze q13. State question, answer, and interpretation of self-perception. Compare to norms in {country}. Reference photo insights if relevant.>"
         ]
     }}
 }}
 
-Ensure all estimations are precise and justified. Micro-habits must be hyper-specific. The analysis must be a personalized, empathetic narrative using all context, especially the country.
+Ensure all estimations are precise and justified. Micro-habits must be hyper-specific. The analysis must be a personalized, empathetic narrative using all context, especially the country and photo insights.
 """
         
         # --- Final Assembly ---
@@ -189,6 +193,7 @@ Ensure all estimations are precise and justified. Micro-habits must be hyper-spe
             emotional_health_score=base_scores['emotionalHealth'],
             visual_appearance_score=base_scores['visualAppearance'],
             detailed_answers=detailed_answers_json,
+            photo_insights=photo_insights_str,
             country_guidance=country_specific_guidance,
             chronological_age=additional_data.get('chronologicalAge', '"Not provided"'),
             country=country
@@ -285,7 +290,8 @@ Ensure all estimations are precise and justified. Micro-habits must be hyper-spe
         ai_analysis: Dict[str, Any], 
         base_scores: Dict[str, float], 
         chronological_age: Optional[int], # This is the original chronological age from additional_data
-        photo_url: Optional[str]
+        photo_url: Optional[str],
+        photo_insights: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Format the final response, including all new AI analysis fields."""
         
@@ -309,5 +315,6 @@ Ensure all estimations are precise and justified. Micro-habits must be hyper-spe
             "avatarUrls": {
                 "before": photo_url if photo_url else settings.DEFAULT_AVATAR_BEFORE,
                 "after": settings.DEFAULT_AVATAR_AFTER
-            }
+            },
+            "photoInsights": photo_insights
         }

@@ -14,4 +14,7 @@ EXPOSE 8000
 # Set environment variables (optional, for .env support)
 ENV PYTHONUNBUFFERED=1
 
+# For .env support, ensure your .env file is copied or environment variables are set in Docker or docker-compose.
+# python-dotenv will load .env automatically if present in the working directory.
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"] 

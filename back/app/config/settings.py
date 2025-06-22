@@ -17,6 +17,9 @@ class Settings:
     # Gemini AI Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     GEMINI_MODEL: str = "gemini-2.0-flash"
+
+    # OpenAI API Configuration
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     
     # Server Configuration
     HOST: str = "0.0.0.0"
