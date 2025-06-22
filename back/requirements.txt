@@ -17,4 +17,4 @@ pillow==10.1.0
 # LangChain and LangGraph for multi-agent system
 langchain==0.2.5
 langgraph==0.0.69
-langchain-google-genai==1.0.5
+langchain-google-genai==1.0.6

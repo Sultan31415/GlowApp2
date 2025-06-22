@@ -4,9 +4,10 @@ import re
 import os
 import tempfile
 import traceback
+import httpx
 from typing import TypedDict, List, Any, Dict, Optional, Annotated
 
-import google.generativeai as genai
+
 from fastapi import HTTPException
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -52,11 +53,22 @@ class AIMultiAgentService:
     """Orchestrates AI analysis using a LangGraph multi-agent system."""
 
     def __init__(self):
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        # Using JsonOutputParser can simplify output formatting for the LLM
-        self.model = ChatGoogleGenerativeAI(model=settings.GEMINI_MODEL, temperature=0.7, google_api_key=settings.GEMINI_API_KEY)
-        # Use the same Gemini Flash model for both text and vision; assumes the model supports image input
-        self.vision_model = ChatGoogleGenerativeAI(model=settings.GEMINI_MODEL, temperature=0.4, google_api_key=settings.GEMINI_API_KEY)
+        # Configure Gemini for text-based agents (Quiz, Fusion)
+        self.model = ChatGoogleGenerativeAI(
+            model=settings.GEMINI_TEXT_MODEL,
+            google_api_key=settings.GEMINI_API_KEY,
+            temperature=0.7,
+            convert_system_message_to_human=True # Recommended for Gemini
+        )
+        
+        # Configure Gemini for vision-based agent (Photo Analysis)
+        self.vision_model = ChatGoogleGenerativeAI(
+            model=settings.GEMINI_VISION_MODEL,
+            google_api_key=settings.GEMINI_API_KEY,
+            temperature=0.4,
+            convert_system_message_to_human=True # Recommended for Gemini
+        )
+        
         self.question_map = self._build_question_map(quiz_data)
         self.graph = self._build_agent_graph()
 

@@ -16,7 +16,8 @@ class Settings:
     
     # Gemini AI Configuration
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_TEXT_MODEL: str = "gemini-2.0-flash"
+    GEMINI_VISION_MODEL: str = "gemini-2.0-flash" # Multimodal model
     
     # Server Configuration
     HOST: str = "0.0.0.0"
