@@ -17,7 +17,14 @@ class QuizAnalyzerGemini:
         """
         try:
             prompt = self._build_prompt(answers, base_scores, additional_data, question_map)
-            response = self.model.generate_content([prompt])
+            # Use a consistent generation configuration for reliable metrics
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.7,
+                top_p=0.9,
+                candidate_count=1,
+                max_output_tokens=1024
+            )
+            response = self.model.generate_content([prompt], generation_config=generation_config)
             return self._parse_response(response.text)
         except Exception as e:
             print(f"QuizAnalyzerGemini error: {e}")
@@ -57,47 +64,59 @@ class QuizAnalyzerGemini:
         detailed_answers_json = json.dumps(detailed_answers_context, indent=2)
 
         country = additional_data.get('countryOfResidence', 'Not provided')
-        country_specific_guidance = f"**Context: The user is from {country}.** Consider this in your analysis." if country and country.lower() != 'not provided' else "No specific country provided."
+        if country and country.lower() != 'not provided':
+            country_specific_guidance = f"""**Crucial Context: The user is from {country}.**
+When analyzing every relevant question and providing recommendations, you must infer and apply considerations based on {country}'s context (cultural, lifestyle, climate, nutrition, health risks, and healthcare norms). Integrate these insights deeply into your analysis."""
+        else:
+            country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends."
 
+        # Prompt modeled after the legacy AIService template for deeper, more accurate reasoning
         return f"""
-        You are a wellness assessment expert. Analyze the following quiz and health data. Do NOT reference any photo or visual data.
-        Your output MUST be a single JSON object. Do not include any text before or after the JSON, including markdown tags.
+You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage all provided data points for a nuanced understanding. Do NOT reference any photo or visual data.
 
-        --- User's General Profile ---
-        {user_profile_str}
-        {health_metrics_info}
+--- User's General Profile ---
+{user_profile_str}
+{health_metrics_info}
 
-        --- Overall Wellness Scores ---
-        - Physical Vitality: {base_scores['physicalVitality']}% 
-        - Emotional Health: {base_scores['emotionalHealth']}% 
-        - Visual Appearance: {base_scores['visualAppearance']}% 
+--- Overall Wellness Scores ---
+- Physical Vitality: {base_scores['physicalVitality']}%
+- Emotional Health: {base_scores['emotionalHealth']}%
+- Visual Appearance: {base_scores['visualAppearance']}%
 
-        --- Detailed Assessment Answers ---
-        {detailed_answers_json}
+--- Detailed Assessment Answers (JSON) ---
+{detailed_answers_json}
 
-        --- Context ---
-        {country_specific_guidance}
+--- Specific Contextual Guidance ---
+{country_specific_guidance}
 
-        --- Instructions ---
-        Based ONLY on the data above, return a JSON object with the following schema:
-        {{
-            "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
-            "keyStrengths": [
-                "<string, identify a key strength from the data with justification>",
-                "<string, identify another key strength>"
-            ],
-            "keyRisks": [
-                "<string, identify a key risk or area for improvement from the data with justification>",
-                "<string, identify another key risk>"
-            ],
-            "categorySpecificInsights": {{
-                "physicalVitality": "<string, summary of insights for this category based on quiz/health data>",
-                "emotionalHealth": "<string, summary of insights for this category based on quiz/health data>",
-                "visualAppearance": "<string, summary of insights for this category based on quiz/health data>"
-            }},
-            "quizDataSummary": "<string, a brief narrative summarizing the overall wellness picture from the quiz and health metrics>"
-        }}
-        """
+IMPORTANT:
+- Your response MUST be a single, valid JSON object and nothing else.
+- Do NOT include any explanations, markdown, comments, or text before or after the JSON.
+- Do NOT use trailing commas or any non-JSON syntax.
+- Double-check that your output is valid JSON and can be parsed by Python's json.loads().
+- If you are unsure, err on the side of strict JSON compliance.
+
+--- Detailed Instructions for Your Analysis ---
+You MUST provide a JSON response with EXACTLY the following structure. Each section should be richly detailed and directly reflective of the provided data:
+
+{{
+    "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
+    "keyStrengths": [
+        "<Identify a key strength with justification, explicitly citing question IDs and answers.>",
+        "<Another key strength...>"
+    ],
+    "keyRisks": [
+        "<Identify a key risk or area for improvement with justification, citing question IDs and answers.>",
+        "<Another key risk...>"
+    ],
+    "categorySpecificInsights": {{
+        "physicalVitality": "<Thorough insight synthesizing questions q1–q7, q17–q20 and health metrics. Compare to norms in {country}>.",
+        "emotionalHealth": "<Insight synthesizing questions q8–q12 and related metrics.>",
+        "visualAppearance": "<Insight interpreting q13 and any self-perception indicators.>"
+    }},
+    "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone.>"
+}}
+"""
 
     def _parse_response(self, response_text: str) -> Optional[Dict[str, Any]]:
         """
@@ -116,7 +135,33 @@ class QuizAnalyzerGemini:
                     return None
                 json_str = match.group(0)
             
-            return json.loads(json_str)
-        except (json.JSONDecodeError, IndexError) as e:
+            parsed = json.loads(json_str)
+            # Coerce numeric fields into numbers if they are strings
+            for num_key in ["chronologicalAge"]:
+                if num_key in parsed and isinstance(parsed[num_key], str):
+                    try:
+                        parsed[num_key] = float(parsed[num_key].replace('%',''))
+                    except ValueError:
+                        pass
+            return parsed
+        except json.JSONDecodeError as e:
+            # Attempt to clean common issues such as trailing commas and parse again
+            try:
+                cleaned_json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
+                parsed = json.loads(cleaned_json_str)
+                # Apply numeric coercion again
+                for num_key in ["chronologicalAge"]:
+                    if num_key in parsed and isinstance(parsed[num_key], str):
+                        try:
+                            parsed[num_key] = float(parsed[num_key].replace('%', ''))
+                        except ValueError:
+                            pass
+                print("QuizAnalyzer: Successfully parsed JSON after trailing comma cleanup.")
+                return parsed
+            except json.JSONDecodeError as e2:
+                print(f"Error parsing quiz analysis response after cleanup attempt: {e2}")
+            except Exception as e_generic:
+                print(f"Unexpected error during cleanup parsing: {e_generic}")
+        except (IndexError) as e:
             print(f"Error parsing quiz analysis response: {e}")
-            return None 
+        return None

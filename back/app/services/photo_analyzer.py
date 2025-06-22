@@ -46,6 +46,7 @@ class PhotoAnalyzerGPT4o:
                     },
                 ],
                 max_tokens=1024,
+                temperature=0.4,
                 response_format={"type": "json_object"},
             )
 
