@@ -64,10 +64,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
           {!showFutureStats ? (
             <>
               {/* Hero Section: Avatar & Core Stats */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6 flex flex-col items-center">
+              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6 flex flex-col items-center md:flex-row md:items-start md:space-x-8">
                 {/* Large Selfie */}
-                <div className="relative mb-6">
-                  <div className="w-48 h-48 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-3 shadow-xl shadow-purple-500/10 flex items-center justify-center">
+                <div className="relative mb-6 md:mb-0">
+                  <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-3 shadow-xl shadow-purple-500/10 flex items-center justify-center">
                     <img
                       src={results.avatarUrls.before}
                       alt="Your current avatar"
@@ -84,7 +84,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                 </div>
 
                 {/* Glow Score & Ages */}
-                <div className="w-full max-w-2xl grid grid-cols-4 gap-4">
+                <div className="w-full max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Glow Score */}
                   <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-4 text-center text-white shadow-xl shadow-purple-500/25 flex flex-col justify-center">
                     <div className="mb-2">
@@ -96,7 +96,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                   </div>
 
                   {/* Biological Age */}
-                  <div className="bg-white rounded-2xl p-4 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col justify-center">
+                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
                     <div className="w-8 h-8 bg-green-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
                       <Calendar className="w-5 h-5 text-white" />
                     </div>
@@ -105,7 +105,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                   </div>
 
                   {/* Emotional Age */}
-                  <div className="bg-white rounded-2xl p-4 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col justify-center">
+                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
                     <div className="w-8 h-8 bg-pink-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
                       <Heart className="w-5 h-5 text-white" />
                     </div>
@@ -114,7 +114,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoT
                   </div>
 
                   {/* Actual Age */}
-                  <div className="bg-white rounded-2xl p-4 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col justify-center">
+                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
                     <div className="w-8 h-8 bg-blue-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
                       <User className="w-5 h-5 text-white" />
                     </div>

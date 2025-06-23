@@ -88,15 +88,11 @@ export const TestModal: React.FC<TestModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div className="relative min-h-screen">
+
       
       {/* Modal Content */}
-      <div className="relative w-full h-full max-w-4xl max-h-[90vh] bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full h-full">
         {/* Close Button */}
         <button
           onClick={onClose}
