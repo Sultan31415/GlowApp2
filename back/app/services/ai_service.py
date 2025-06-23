@@ -85,20 +85,43 @@ class AIService:
         if quiz_insights and 'chronologicalAge' in quiz_insights:
             chronological_age = quiz_insights['chronologicalAge']
 
+        # Extract country-adjusted scores from the quiz analysis to use as a baseline for the final synthesis
+        adjusted_scores_str = "No adjusted scores available from quiz."
+        if quiz_insights and 'adjustedScores' in quiz_insights:
+            adjusted_scores_str = json.dumps(quiz_insights['adjustedScores'], indent=2)
+
         return f"""
-        You are an expert wellness and personal development coach. Your task is to synthesize a holistic analysis from two sources: a structured analysis of a user's photo and a structured analysis of their quiz answers and health data.
+        You are the final expert wellness synthesizer. Your task is to create a holistic, final analysis by integrating three sources of information:
+        1. A detailed analysis of a user's photo.
+        2. A comprehensive analysis of their quiz answers, which has already been adjusted for their country of residence.
+        3. The country-adjusted wellness scores derived from the quiz.
 
         --- Photo Analysis (JSON) ---
         {photo_str}
 
-        --- Quiz & Health Data Analysis (JSON) ---
+        --- Quiz & Health Data Analysis (JSON, already country-adjusted) ---
         {quiz_str}
+
+        --- Country-Adjusted Wellness Scores (from Quiz Analysis) ---
+        {adjusted_scores_str}
 
         Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.
 
-        Based on the provided data, generate a JSON object with the following schema:
+        --- Final Synthesis Instructions ---
+        Based on all the provided data, generate a final JSON object with the following schema. You must now perform the final score adjustment.
+
+        1.  **Start with the `Country-Adjusted Wellness Scores`**. These are your new baseline.
+        2.  **Critically evaluate the `visualAppearance` score.** The photo analysis is the most important factor for this score. You MUST adjust the `visualAppearance` score from the quiz analysis based on the detailed findings in the `photo_insights`. For example, if the photo shows clear, healthy skin, the score should increase. If it shows signs of stress or poor health, it should decrease significantly.
+        3.  The `physicalVitality` and `emotionalHealth` scores should be taken directly from the `Country-Adjusted Wellness Scores` unless the photo provides an exceptionally strong and direct contradiction.
+
+        Generate a JSON object with the following schema:
         {{
-          "overallGlowScore": <number, 0-100. Holistically assess and combine insights from both photo and quiz. Justify your score in the analysisSummary.>,
+          "overallGlowScore": <number, 0-100. Holistically assess and combine all insights. This should be a weighted average of the final adjustedCategoryScores. Justify in the analysisSummary.>,
+          "adjustedCategoryScores": {{
+              "physicalVitality": <number, from country-adjusted scores, with minimal changes unless photo strongly contradicts>,
+              "emotionalHealth": <number, from country-adjusted scores, with minimal changes unless photo strongly contradicts>,
+              "visualAppearance": <number, **This is the critical adjustment**. Start with the country-adjusted score and significantly modify it based on the photo analysis.>
+          }},
           "biologicalAge": <number, estimate based on all available data. Use photo 'estimatedAgeRange' as a primary visual cue and quiz 'keyRisks' (e.g., smoking, diet) to adjust. Justify in the analysisSummary.>,
           "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health. Justify in the analysisSummary.>,
           "chronologicalAge": {chronological_age},
@@ -113,7 +136,7 @@ class AIService:
             "<4. Specific, Actionable Habit: (as above)>",
             "<5. Specific, Actionable Habit: (as above)>"
           ],
-          "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing both photo and quiz insights (e.g., 'Your score reflects your strong emotional resilience noted in the quiz, balanced with visual signs of stress around the eyes from the photo.'). End with an empowering message.>",
+          "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing both photo and quiz insights (e.g., 'Your score reflects your strong emotional resilience noted in the quiz, balanced with visual signs of stress around the eyes from the photo.'). Explain the final score adjustments. End with an empowering message.>",
           "detailedInsightsPerCategory": {{
             "physicalVitalityInsights": [
                 "<string, Synthesize findings. Example: 'The quiz indicated a risk related to cardiovascular health, which is not visually apparent in the photo, suggesting a hidden risk to address.'>"
@@ -122,7 +145,7 @@ class AIService:
                 "<string, Synthesize findings. Example: 'Your quiz answers show high emotional awareness, and your facial expression in the photo appears calm and composed, suggesting a strong alignment.'>"
             ],
             "visualAppearanceInsights": [
-                "<string, Synthesize findings. Example: 'The photo analysis noted some skin redness, and your quiz answers about diet might suggest a link to inflammatory foods.'>"
+                "<string, Synthesize findings. Example: 'The photo analysis noted some skin redness, and your quiz answers about diet might suggest a link to inflammatory foods. This informed the final adjustment to your visual appearance score.'>"
             ]
           }}
         }}

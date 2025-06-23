@@ -82,81 +82,97 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     # --- Build the new, comprehensive prompt ---
     prompt = f"""
-You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your final task is to synthesize all available information into a single, holistic, and actionable analysis. You will be given raw user data, plus pre-analyzed insights from specialized agents. Your analysis must be the final word, intelligently combining everything.
+    You are an extremely knowledgeable and empathetic expert wellness synthesizer. Your ultimate task is to create a holistic, final analysis by intelligently integrating all provided information: raw user data, detailed quiz insights (which are already country-adjusted by another agent), and granular photo analysis.
 
---- RAW DATA ---
+    --- RAW DATA & INITIAL CONTEXT ---
 
-1.  **User's General Profile:**
-    {user_profile_str}
-    {health_metrics_info}
+    1.  **User's General Profile:**
+        {user_profile_str}
+        {health_metrics_info}
 
-2.  **Detailed Assessment Answers:**
-    {detailed_answers_json}
+    2.  **Detailed Assessment Answers:**
+        {detailed_answers_json}
 
-3.  **Base Category Scores (from quiz only):**
-    {base_scores_str}
+    3.  **Initial Base Category Scores (from quiz only - provided for reference, but use 'quiz_insights.adjustedScores' as your primary baseline):**
+        {base_scores_str}
 
---- PRE-ANALYZED INSIGHTS FROM SPECIALIST AGENTS ---
+    --- PRE-ANALYZED INSIGHTS FROM SPECIALIST AGENTS ---
 
-4.  **Photo Analysis (from Vision agent):**
-    {photo_str}
+    4.  **Photo Analysis (from Vision agent):**
+        {photo_str}
 
-5.  **Quiz Analysis (from Quiz agent):**
-    {quiz_str}
+    5.  **Quiz Analysis (from Quiz agent - NOTE: the 'adjustedScores' here have ALREADY factored in country context):**
+        {quiz_str}
 
---- INSTRUCTIONS FOR YOUR FINAL SYNTHESIS ---
+    --- CRITICAL INSTRUCTIONS FOR FINAL SYNTHESIS & SCORE ADJUSTMENTS ---
 
-**IMPORTANT:**
-- You are REQUIRED to reference at least one specific finding from the photo analysis when adjusting the overallGlowScore and each category score.
-- If the photo shows any negative indicators (e.g., stress, poor skin, tiredness), you MUST lower the score accordingly, even if quiz scores are high.
-- If the photo shows positive indicators, you may raise the score, but always justify this with explicit reference to the photo findings.
-- In your analysisSummary, you MUST justify the overallGlowScore by referencing BOTH photo and quiz insights. Failure to do so is a critical error.
+    **Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.**
 
-Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.
+    Based on ALL the information above, generate a final JSON object with the following schema. You must critically evaluate and synthesize, not just copy, the inputs.
 
-Based on ALL the information above, generate a JSON object with the following schema. You must critically evaluate and synthesize, not just copy, the inputs.
+    **SCORE ADJUSTMENT RULES:**
 
-{{
-    "overallGlowScore": <number, 0-100. This is the most important metric. Calculate it holistically. The base scores are a starting point, but you MUST adjust based on the severity of risks and significance of strengths from BOTH the quiz and photo analyses. For example, a user with good quiz scores but visible signs of high stress and poor skin in the photo should have a significantly lower score than their quiz answers suggest. Justify your final score in the analysisSummary, referencing at least one photo finding.>,
+    1.  **Baseline for Category Scores:** You MUST start with the `quiz_insights.adjustedScores` (which are already country-adjusted) as your primary baseline for `physicalVitality`, `emotionalHealth`, and `visualAppearance`.
+    2.  **Visual Appearance (`adjustedCategoryScores.visualAppearance`):** This score is **DOMINATED and HEAVILY weighted by the `photo_insights`**. You MUST significantly and numerically adjust the `visualAppearance` score from the quiz's `adjustedScores` based on the detailed findings in `photo_insights.skinAnalysis` and `photo_insights.stressAndTirednessIndicators`.
+        * **If photo indicates significant issues (e.g., pronounced redness, excessive oiliness, dullness, obvious blemishes, strong stress/tiredness indicators affecting appearance):** Drastically reduce the score (e.g., by 10-30 points or more if severe). The visual evidence overrides quiz answers here.
+        * **If photo indicates exceptional health/radiance (e.g., clear, even-toned, luminous skin, no visible stress signs):** Substantially increase the score (e.g., by 10-25 points).
+        * **Important: Any negative visual indicator (e.g., redness, dullness, roughness, fatigue signs) MUST result in a score reduction from the quiz-adjusted baseline. Do NOT interpret noticeable factors as neutral or positive if they indicate an issue.**
+        * **Always explicitly reference specific photo findings in your justification for this score.**
+    3.  **Physical Vitality (`adjustedCategoryScores.physicalVitality`):** This score is primarily from quiz answers but can be **moderately influenced by strong visual cues from the photo.**
+        * **If photo shows clear signs of fatigue or poor underlying physical health:**
+            * Look for specific indicators such as: `photo_insights.stressAndTirednessIndicators.skinToneAndLuster` (e.g., "sallow appearance," "dullness," "lack of natural glow") OR `photo_insights.stressAndTirednessIndicators.eyes` (e.g., "pronounced dark circles," "significant puffiness," "redness in sclera").
+            * You MUST moderately decrease this score (e.g., by 5-15 points) from the quiz's `adjustedScores` if such visual signs are clearly present, even if quiz answers are otherwise good.
+        * **If the `photo_insights.stressAndTirednessIndicators` explicitly state "none discernible" for all its sub-fields, then the photo provides NO direct negative influence on this score. The score should NOT be decreased based on photo for these cases. Any changes must come from positive photo indicators or quiz data alone.**
+        * **Explicitly reference specific photo findings if they influence this score.**
+    4.  **Emotional Health (`adjustedCategoryScores.emotionalHealth`):** This score is mostly from quiz answers, but facial expressions in the photo can provide **subtle supportive indicators.**
+        * **If photo shows clear facial tension or stress cues:** (`photo_insights.stressAndTirednessIndicators.facialExpressionCues` indicating "furrowed brow," "tension around mouth," "subtle lines between eyebrows") you MAY slightly decrease this score (e.g., by 1-5 points).
+        * **If the photo analysis explicitly states "none discernible" for all `stressAndTirednessIndicators`, then the photo has minimal direct influence on this score, and the quiz's adjusted score for Physical Vitality should remain largely unchanged by visual input.**
+        * **If photo shows a particularly calm, composed, or relaxed expression:** you MAY slightly increase this score (e.g., by 1-5 points). If the `photo_insights.stressAndTirednessIndicators.facialExpressionCues` explicitly states "none discernible," then the photo provides NO direct influence on this score.
+        * **Reference photo findings if they influence this score.**
+    5.  **Biological Age:**
+        * Use the `photo_insights.estimatedAgeRange` as the **primary visual anchor** for the biological age estimation.
+        * Refine this visual estimate by incorporating `quiz_insights.keyRisks` (e.g., smoking, poor diet, chronic stress, lack of exercise) and `quiz_insights.keyStrengths` (e.g., healthy lifestyle, good sleep).
+        * If the photo visually suggests an age older than chronological due to lifestyle risks from the quiz, adjust biological age upwards. If younger due to healthy lifestyle, adjust downwards.
+        * **CRITICAL: The `visualAppearance` score and its photo-based adjustments should NOT directly dictate the `biologicalAge` estimate.** They are related but distinct. A person can have bad skin but still have a good biological age if their underlying health is good. Focus on overall vitality for biological age, not just surface appearance.
+    6.  **Overall Glow Score:** Holistically assess and combine ALL insights (final adjusted category scores, photo analysis, quiz analysis, and the `country` context). This should be a weighted average of the final `adjustedCategoryScores`, but also a qualitative reflection of the severity of risks and significance of strengths identified across *all* data sources. Justify this comprehensively in the `analysisSummary`.
+    7.  **Analysis Summary:** MUST explain the `overallGlowScore` and age estimates, explicitly referencing **BOTH photo and quiz insights**, AND **the user's {country} context** (even if already handled by Quiz Analyzer, reiterate their impact on the *final* synthesis). Explain the final score adjustments, particularly for visual appearance and physical vitality based on the photo. End with an empowering message.
 
-    "adjustedCategoryScores": {{
-        "physicalVitality": <number, 0-100. Start with the base score ({base_scores['physicalVitality']}) and ADJUST it based on photo insights. For example, if the photo shows clear signs of fatigue or poor health not captured in the quiz, lower this score. If the user looks vibrant despite average quiz answers, you might slightly raise it. Reference at least one photo finding.>,
-        "emotionalHealth": <number, 0-100. Start with the base score ({base_scores['emotionalHealth']}) and ADJUST it based on photo insights. For example, if the photo shows facial tension or stress cues, lower this score. If the user appears calm and composed, you might slightly raise it. Reference at least one photo finding.>,
-        "visualAppearance": <number, 0-100. Start with the base score ({base_scores['visualAppearance']}) and ADJUST it based on the detailed skinAnalysis and stress indicators from the photo. This score should heavily reflect the objective photo analysis. Reference at least one photo finding.>
-    }},
-
-    "biologicalAge": <number, estimate based on all available data. Use the photo's 'estimatedAgeRange' as a primary visual cue and the quiz's 'keyRisks' (e.g., smoking, diet) to refine the estimate.>,
-    "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health, but also consider facial expression cues from the photo.>,
-    "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
-
-    "glowUpArchetype": {{
-        "name": "<string, create an inspiring archetype name that reflects the user's INTEGRATED profile (e.g., 'The Resilient Artist', 'The Mindful Innovator')>",
-        "description": "<string, 150-250 words. A detailed, empathetic description synthesizing insights from BOTH the photo (e.g., 'a thoughtful expression') and the quiz (e.g., 'a strong sense of community').>"
-    }},
-
-    "microHabits": [
+    --- Final JSON Schema ---
+    {{
+      "overallGlowScore": <number, 0-100. Holistically assessed based on all integrated insights and final adjusted category scores. Justify in the analysisSummary.>,
+      "adjustedCategoryScores": {{
+          "physicalVitality": <number, 0-100. Start with the quiz's adjusted score and **significantly adjust based on photo visual vitality cues (e.g., skin luster, eye appearance)**. Explicitly state how photo influenced this.>,
+          "emotionalHealth": <number, 0-100. Start with the quiz's adjusted score and **moderately adjust based on photo facial expression cues (e.g., tension, calmness)**. Explicitly state how photo influenced this.>,
+          "visualAppearance": <number, 0-100. **This is the most critical adjustment.** Start with the quiz's adjusted score and **drastically modify it based on the photo analysis's detailed skin and stress indicators (e.g., redness, texture, blemishes, dullness).** This score should predominantly reflect the visual evidence. Explicitly state how photo influenced this.>
+      }},
+      "biologicalAge": <number, estimate based on all available data. Primarily use photo 'estimatedAgeRange' as a visual anchor and refine with quiz 'keyRisks' and 'keyStrengths'. Justify in the analysisSummary.>,
+      "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health, but also consider facial expression cues from the photo. Justify in the analysisSummary.>,
+      "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
+      "glowUpArchetype": {{
+        "name": "<string, create an inspiring archetype name that reflects the user's integrated profile (e.g., 'The Resilient Artist', 'The Mindful Innovator')>",
+        "description": "<string, 150-250 words. A detailed, empathetic description synthesizing insights from both the photo (e.g., 'a thoughtful expression') and the quiz (e.g., 'a strong sense of community').>"
+      }},
+      "microHabits": [
         "<1. Specific, Actionable Habit: Connect this directly to a specific finding from EITHER the photo or quiz, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
-        "<2. Specific, Actionable Habit>",
-        "<3. Specific, Actionable Habit>",
-        "<4. Specific, Actionable Habit>",
-        "<5. Specific, Actionable Habit>"
-    ],
-
-    "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing BOTH photo and quiz insights (e.g., 'Your score reflects your strong emotional resilience noted in the quiz, balanced with visual signs of stress around the eyes from the photo.'). Integrate the {country} context. End with an empowering message.>",
-
-    "detailedInsightsPerCategory": {{
+        "<2. Specific, Actionable Habit: (as above)>",
+        "<3. Specific, Actionable Habit: (as above)>",
+        "<4. Specific, Actionable Habit: (as above)>",
+        "<5. Specific, Actionable Habit: (as above)>"
+      ],
+      "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing BOTH photo and quiz insights, and the {country} context. Explain the final score adjustments, especially visual appearance and physical vitality, *detailing how the photo influenced them*. End with an empowering message.>",
+      "detailedInsightsPerCategory": {{
         "physicalVitalityInsights": [
-            "<string, Synthesize findings. Example: 'The quiz indicated a risk related to cardiovascular health, which is not visually apparent in the photo, suggesting a hidden risk to address.'>"
+            "<string, Synthesize findings from quiz and photo. Example: 'The quiz indicated significant physical risks (e.g., lack of exercise and poor diet). The photo further reinforced this with subtle visual cues like a slight dullness in skin tone, contributing to the adjusted physical vitality score.'>"
         ],
         "emotionalHealthInsights": [
-            "<string, Synthesize findings. Example: 'Your quiz answers show high emotional awareness, and your facial expression in the photo appears calm and composed, suggesting a strong alignment.'>"
+            "<string, Synthesize findings from quiz and photo. Example: 'Your quiz answers show high emotional awareness, and your facial expression in the photo appears calm and composed, suggesting a strong alignment. Conversely, if facial tension was noted in the photo, it would have impacted this insight and the emotional health score.'>"
         ],
         "visualAppearanceInsights": [
-            "<string, Synthesize findings. Example: 'The photo analysis noted some skin redness, and your quiz answers about diet might suggest a link to inflammatory foods.'>"
+            "<string, Synthesize findings from quiz and photo. Example: 'The photo analysis noted pronounced redness on the cheeks and nose, which critically lowered your visual appearance score. This aligns with your quiz answers about diet, smoking, and alcohol consumption, strongly suggesting a link to inflammatory factors that are visibly impacting your skin.'>"
         ]
+      }}
     }}
-}}
-"""
+    """
     generation_config = genai.types.GenerationConfig(
         temperature=0.6, # Lower temperature for more deterministic synthesis
         top_p=0.9,

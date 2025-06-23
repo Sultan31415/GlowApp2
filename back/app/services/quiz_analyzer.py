@@ -64,59 +64,71 @@ class QuizAnalyzerGemini:
         detailed_answers_json = json.dumps(detailed_answers_context, indent=2)
 
         country = additional_data.get('countryOfResidence', 'Not provided')
+        country_specific_guidance = ""
         if country and country.lower() != 'not provided':
-            country_specific_guidance = f"""**Crucial Context: The user is from {country}.**
-When analyzing every relevant question and providing recommendations, you must infer and apply considerations based on {country}'s context (cultural, lifestyle, climate, nutrition, health risks, and healthcare norms). Integrate these insights deeply into your analysis."""
+            country_specific_guidance = f"""
+            **Crucial Context: The user is from {country}, and has resided there for the last 10 years.**
+            You must apply deep reasoning based on {country}'s typical environment, culture, and public health data when adjusting scores. Consider:
+            -   **Common Health Issues/Risks:** Are there prevalent diseases (e.g., high rates of diabetes, heart disease) or environmental factors (e.g., pollution, climate) in {country} that would typically lower Physical Vitality or Visual Appearance for the average resident?
+            -   **Lifestyle Norms:** What are typical diet patterns (e.g., high processed food, traditional healthy diet), physical activity levels (e.g., sedentary culture, active outdoor lifestyle), and sleep habits in {country}?
+            -   **Cultural Stressors/Support:** How do social structures or cultural expectations in {country} typically influence stress, mental well-being, and social support?
+            -   **Beauty & Appearance Norms:** Are there specific environmental impacts or common lifestyle choices in {country} that affect general visual appearance (e.g., skin health, overall glow)?
+
+            **Your numerical adjustments to the 'adjustedScores' MUST reflect these country-specific influences relative to a global average.** For example, if the user's habits are average but they live in a country with generally poor public health metrics, their score might be lower than global average for those habits. Conversely, if they live in a country with very high wellness standards and their habits are merely 'good', their score might be relatively lower than if they lived in a country with lower standards.
+            """
         else:
-            country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends."
+            country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends and the provided quiz data."
 
-        # Prompt modeled after the legacy AIService template for deeper, more accurate reasoning
         return f"""
-You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage all provided data points for a nuanced understanding. Do NOT reference any photo or visual data.
+        You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage all provided data points for a nuanced understanding. Do NOT reference any photo or visual data.
 
---- User's General Profile ---
-{user_profile_str}
-{health_metrics_info}
+        --- User's General Profile ---
+        {user_profile_str}
+        {health_metrics_info}
 
---- Overall Wellness Scores ---
-- Physical Vitality: {base_scores['physicalVitality']}%
-- Emotional Health: {base_scores['emotionalHealth']}%
-- Visual Appearance: {base_scores['visualAppearance']}%
+        --- Base Wellness Scores (Calculated from Quiz, Before Country-Specific Adjustments) ---
+        - Physical Vitality: {base_scores['physicalVitality']}%
+        - Emotional Health: {base_scores['emotionalHealth']}%
+        - Visual Appearance: {base_scores['visualAppearance']}%
 
---- Detailed Assessment Answers (JSON) ---
-{detailed_answers_json}
+        --- Detailed Assessment Answers (JSON) ---
+        {detailed_answers_json}
 
---- Specific Contextual Guidance ---
-{country_specific_guidance}
+        --- Specific Contextual Guidance ---
+        {country_specific_guidance}
 
-IMPORTANT:
-- Your response MUST be a single, valid JSON object and nothing else.
-- Do NOT include any explanations, markdown, comments, or text before or after the JSON.
-- Do NOT use trailing commas or any non-JSON syntax.
-- Double-check that your output is valid JSON and can be parsed by Python's json.loads().
-- If you are unsure, err on the side of strict JSON compliance.
+        IMPORTANT:
+        - Your response MUST be a single, valid JSON object and nothing else.
+        - Do NOT include any explanations, markdown, comments, or text before or after the JSON.
+        - Do NOT use trailing commas or any non-JSON syntax.
+        - Double-check that your output is valid JSON and can be parsed by Python's json.loads().
 
---- Detailed Instructions for Your Analysis ---
-You MUST provide a JSON response with EXACTLY the following structure. Each section should be richly detailed and directly reflective of the provided data:
+        --- Detailed Instructions for Your Analysis ---
+        You MUST provide a JSON response with EXACTLY the following structure. Each section should be richly detailed and directly reflective of the provided data:
 
-{{
-    "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
-    "keyStrengths": [
-        "<Identify a key strength with justification, explicitly citing question IDs and answers.>",
-        "<Another key strength...>"
-    ],
-    "keyRisks": [
-        "<Identify a key risk or area for improvement with justification, citing question IDs and answers.>",
-        "<Another key risk...>"
-    ],
-    "categorySpecificInsights": {{
-        "physicalVitality": "<Thorough insight synthesizing questions q1–q7, q17–q20 and health metrics. Compare to norms in {country}>.",
-        "emotionalHealth": "<Insight synthesizing questions q8–q12 and related metrics.>",
-        "visualAppearance": "<Insight interpreting q13 and any self-perception indicators.>"
-    }},
-    "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone. This field MUST NOT exceed 300 words.>"
-}}
-"""
+        {{
+            "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
+            "adjustedScores": {{
+                "physicalVitality": <number, 0-100. **Calculate this score by taking the base score ({base_scores['physicalVitality']}) and numerically adjusting it up or down** based on the user's answers and specific country context (e.g., common health issues, activity levels, diet in {country}). Justify this adjustment in 'categorySpecificInsights.physicalVitality'.>,
+                "emotionalHealth": <number, 0-100. **Calculate this score by taking the base score ({base_scores['emotionalHealth']}) and numerically adjusting it up or down** based on the user's answers and cultural norms, social support structures, and typical stress factors in {country}. Justify this adjustment in 'categorySpecificInsights.emotionalHealth'.>,
+                "visualAppearance": <number, 0-100. **Calculate this score by taking the base score ({base_scores['visualAppearance']}) and numerically adjusting it up or down** based on the user's answers and the environmental factors or common lifestyle impacts on appearance (e.g., skin health, overall presentation) in {country}. Justify this adjustment in 'categorySpecificInsights.visualAppearance'.>
+            }},
+            "keyStrengths": [
+                "<Identify a key strength with justification, explicitly citing question IDs and answers. Incorporate country context where relevant.>",
+                "<Another key strength...>"
+            ],
+            "keyRisks": [
+                "<Identify a key risk or area for improvement with justification, citing question IDs and answers. Incorporate country context where relevant.>",
+                "<Another key risk...>"
+            ],
+            "categorySpecificInsights": {{
+                "physicalVitality": "<Thorough insight synthesizing questions q1–q7, q17–q20 and health metrics. **Crucially, explicitly justify the numerical score adjustment made in 'adjustedScores.physicalVitality' by detailing how {country}'s norms and common health challenges influenced the final score.**>",
+                "emotionalHealth": "<Insight synthesizing questions q8–q12 and related metrics. **Explicitly justify the numerical score adjustment made in 'adjustedScores.emotionalHealth' by detailing how cultural norms and social pressures in {country} influenced the final score.**>",
+                "visualAppearance": "<Insight interpreting q13 and any self-perception indicators. **Explicitly justify the numerical score adjustment made in 'adjustedScores.visualAppearance' by detailing how local beauty standards and environmental factors in {country} influenced the final score.**>"
+            }},
+            "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone. This field MUST NOT exceed 300 words.>"
+        }}
+        """
 
     def _parse_response(self, response_text: str) -> Optional[Dict[str, Any]]:
         """
