@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { QuizAnswer, AssessmentResults, QuizSection } from './types';
 import { submitAssessment, getQuizData } from './utils/api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
 
 // Components
 import { Navigation } from './components/Navigation';
-
 import { TestModal } from './components/TestModal';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
@@ -58,8 +58,6 @@ function App() {
     setError(null);
     navigate('/test');
   };
-
-
 
   const handleAnswerSelect = (value: string | number, label: string) => {
     const currentQuestion = allQuestions[currentQuestionIndex];
@@ -174,75 +172,136 @@ function App() {
       />
       
       <Routes>
+        {/* Public routes */}
+        <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
+        <Route path="/sign-up/*" element={<SignUp routing="path" path="/sign-up" />} />
+
+        {/* Home page with different content for signed-in and signed-out users */}
         <Route path="/" element={
-          isQuizLoading ? <div className="p-6">Loading quiz...</div> :
-          quizError ? <div className="p-6 text-red-500">{quizError}</div> :
-          <div className="p-6 text-gray-700">Welcome to GlowApp. Click "CREATE" to start your assessment.</div>
+          <div className="p-6 text-gray-700">
+            <SignedOut>
+              Welcome to GlowApp. Please sign in to start your assessment.
+            </SignedOut>
+            <SignedIn>
+              {
+                isQuizLoading ? "Loading quiz..." :
+                quizError ? <div className="text-red-500">{quizError}</div> :
+                "Welcome back to GlowApp. Click \"CREATE\" to start your assessment."
+              }
+            </SignedIn>
+          </div>
         } />
-        <Route path="/test" element={
-          <TestModal
-            isOpen={true}
-            onClose={() => navigate('/')}
-            currentStep={currentTestStep}
-            currentQuestionIndex={currentQuestionIndex}
-            allQuestions={allQuestions}
-            answers={answers}
-            uploadedPhoto={uploadedPhoto}
-            onAnswerSelect={handleAnswerSelect}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onPhotoUpload={handlePhotoUpload}
-            onBackToQuiz={handleBackToQuiz}
-            onSubmitAssessment={handleSubmitAssessment}
-            canGoBack={canGoBack}
-            canGoNext={canGoNext}
-            getCurrentAnswer={getCurrentAnswer}
-            isSubmitting={isSubmitting}
-            error={error}
-          />
-        } />
+
+        {/* Protected Routes */}
         <Route
-          path="/results"
+          path="/test"
           element={
-            results ? (
-              <ResultsScreen
-                results={results}
-                onRestart={handleRestart}
-                onGoToDashboard={() => navigate('/dashboard')}
-              />
-            ) : (
-              <Navigate to="/error" replace />
-            )
+            <>
+              <SignedIn>
+                <TestModal
+                  isOpen={true}
+                  onClose={() => navigate('/')}
+                  currentStep={currentTestStep}
+                  currentQuestionIndex={currentQuestionIndex}
+                  allQuestions={allQuestions}
+                  answers={answers}
+                  uploadedPhoto={uploadedPhoto}
+                  onAnswerSelect={handleAnswerSelect}
+                  onNext={handleNext}
+                  onPrevious={handlePrevious}
+                  onPhotoUpload={handlePhotoUpload}
+                  onBackToQuiz={handleBackToQuiz}
+                  onSubmitAssessment={handleSubmitAssessment}
+                  canGoBack={canGoBack}
+                  canGoNext={canGoNext}
+                  getCurrentAnswer={getCurrentAnswer}
+                  isSubmitting={isSubmitting}
+                  error={error}
+                />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
         <Route
           path="/dashboard"
           element={
-            results ? (
-              <DashboardScreen
-                results={results}
-                onGoToMicroHabits={() => navigate('/micro-habits')}
-              />
-            ) : (
-              <Navigate to="/" replace />
-            )
+            <>
+              <SignedIn>
+                {results ? (
+                  <DashboardScreen
+                    results={results}
+                    onGoToMicroHabits={() => navigate('/micro-habits')}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/results/:id"
+          element={
+            <>
+              <SignedIn>
+                {results ? (
+                  <ResultsScreen
+                    results={results}
+                    onRestart={handleRestart}
+                    onGoToDashboard={() => navigate('/dashboard')}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
         <Route
           path="/micro-habits"
           element={
-            results ? (
-              <MicroHabitsScreen
-                microHabits={results.microHabits}
-                onBack={() => navigate('/dashboard')}
-              />
-            ) : (
-              <Navigate to="/" replace />
-            )
+            <>
+              <SignedIn>
+                {results ? (
+                  <MicroHabitsScreen
+                    microHabits={results.microHabits}
+                    onBack={() => navigate('/dashboard')}
+                  />
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
-        <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={error} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/error"
+          element={
+            <>
+              <SignedIn>
+                <ErrorScreen error={error} onRetry={handleRetry} />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+        
+        {/* Catch-all route */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
   );

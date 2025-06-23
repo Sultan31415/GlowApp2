@@ -30,5 +30,8 @@ class Settings:
     DEFAULT_AVATAR_BEFORE: str = "https://example.com/before.jpg"
     DEFAULT_AVATAR_AFTER: str = "https://example.com/after.jpg"
 
+    # Database Configuration
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://glowuser:glowpassword@localhost:5433/glowdb")
+
 # Create settings instance
 settings = Settings() 

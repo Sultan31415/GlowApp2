@@ -1,5 +1,6 @@
 import React from 'react';
-import { Zap, Plus, User, Target, MessageCircle, GraduationCap, Home } from 'lucide-react';
+import { Zap, Plus, Target, MessageCircle, Home } from 'lucide-react';
+import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavigationProps {
@@ -65,15 +66,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults 
           <span className="text-xs font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-200">COACH</span>
         </button>
       </nav>
-      {/* ME (moved to bottom) */}
+      {/* User Profile */}
       <div className="flex flex-col items-center w-full mt-auto px-2">
-        <button
-          disabled
-          className="group flex flex-col items-center w-full py-3 rounded-lg transition-all duration-300 focus:outline-none opacity-50 cursor-not-allowed"
-        >
-          <User className="w-6 h-6 mb-1" />
-          <span className="text-xs font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-200">ME</span>
-        </button>
+        <SignedIn>
+          <UserButton afterSignOutUrl='/' />
+        </SignedIn>
       </div>
     </aside>
   );

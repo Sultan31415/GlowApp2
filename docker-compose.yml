@@ -7,6 +7,10 @@ services:
     env_file:
       - ./back/.env
     restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://glowuser:glowpassword@postgres:5432/glowdb
+    depends_on:
+      - postgres
     networks:
       - glowapp-net
 
@@ -20,6 +24,25 @@ services:
     networks:
       - glowapp-net
 
+  postgres:
+    image: postgres:15
+    container_name: glowapp-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: glowdb
+      POSTGRES_USER: glowuser
+      POSTGRES_PASSWORD: glowpassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - glowapp-net
+
 networks:
   glowapp-net:
-    driver: bridge 
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

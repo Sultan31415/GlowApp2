@@ -4,6 +4,11 @@ import uvicorn
 
 from app.config.settings import settings
 from app.api.endpoints import router
+from app.db.session import Base, engine
+from app.models.user import User # Import model to register with Base
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
 app = FastAPI(
