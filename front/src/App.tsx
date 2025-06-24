@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { QuizAnswer, AssessmentResults, QuizSection } from './types';
 import { getQuizData } from './utils/api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp, useAuth } from '@clerk/clerk-react';
 import { useApi } from './utils/useApi';
 
 // Components
@@ -16,6 +16,7 @@ import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 function App() {
   const navigate = useNavigate();
   const { makeRequest } = useApi();
+  const { isSignedIn } = useAuth();
 
   const [currentTestStep, setCurrentTestStep] = useState<'quiz' | 'photo-upload' | 'loading'>('quiz');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -41,6 +42,44 @@ function App() {
     };
     fetchQuizData();
   }, []);
+
+  // Fetch latest results when the user signs in or when navigating to dashboard
+  useEffect(() => {
+    const fetchResults = async () => {
+      if (isSignedIn) { // Only fetch if signed in
+        try {
+          const data = await makeRequest('results');
+          setResults(data);
+        } catch (err) {
+          // Optionally handle error, e.g., setResults(null)
+        }
+      }
+    };
+
+    // Only fetch if on dashboard route
+    if (window.location.pathname === '/dashboard') {
+      fetchResults();
+    }
+  }, [isSignedIn, window.location.pathname]); // Add isSignedIn here
+
+  // When the user has just signed in, automatically navigate to the dashboard
+  useEffect(() => {
+    if (isSignedIn && window.location.pathname === '/') {
+      navigate('/dashboard');
+    }
+  }, [isSignedIn, navigate]);
+
+  useEffect(() => {
+    if (results && window.location.pathname === '/') {
+      navigate('/dashboard');
+    }
+  }, [results, navigate, window.location.pathname]);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      makeRequest('me').catch(() => {});
+    }
+  }, [isSignedIn]);
 
   // Get all questions in order
   const allQuestions = useMemo(() => 
@@ -256,14 +295,9 @@ function App() {
           element={
             <>
               <SignedIn>
-                {results ? (
-                  <DashboardScreen
-                    results={results}
-                    onGoToMicroHabits={() => navigate('/micro-habits')}
-                  />
-                ) : (
-                  <Navigate to="/" />
-                )}
+                <DashboardScreen
+                  onGoToMicroHabits={() => navigate('/micro-habits')}
+                />
               </SignedIn>
               <SignedOut>
                 <RedirectToSignIn />

@@ -1,15 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart, Zap, Eye, TrendingUp, Calendar, User, Target, ArrowRight, RotateCcw, Star, Activity } from 'lucide-react';
 import { AssessmentResults } from '../types';
+import { useApi } from '../utils/useApi';
+import { useUser } from '@clerk/clerk-react';
 
 interface DashboardScreenProps {
-  results: AssessmentResults;
   onGoToMicroHabits: () => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ results, onGoToMicroHabits }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHabits }) => {
+  const { user } = useUser();
+  const { makeRequest } = useApi();
+  const [results, setResults] = useState<AssessmentResults | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showFutureStats, setShowFutureStats] = useState(false);
   
+
+ 
+  
+  useEffect(() => {
+    const fetchResults = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await makeRequest('results');
+        setResults(data);
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          setError('No assessment found for your account. Please complete the quiz.');
+        } else {
+          setError('Failed to load your results. Please try again.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, []);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-xl text-gray-600">Loading your dashboard...</div>;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl text-gray-600">
+        {user && (
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+            <strong>Debug:</strong> Clerk user_id: {user.id}
+          </div>
+        )}
+        {error}
+      </div>
+    );
+  }
+  if (!results) return null;
+
   // Calculate projected future stats (simple enhancement logic)
   const projectedGlowScore = Math.min(100, results.overallGlowScore + 12);
   const projectedBiologicalAge = Math.max(18, results.biologicalAge - 3);

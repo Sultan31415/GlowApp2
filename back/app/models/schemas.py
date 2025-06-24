@@ -27,4 +27,23 @@ class AssessmentResponse(BaseModel):
     chronologicalAge: int
     glowUpArchetype: GlowUpArchetype
     microHabits: List[str]
-    avatarUrls: Dict[str, str] 
+    avatarUrls: Dict[str, str]
+
+class UserAssessmentCreate(BaseModel):
+    overall_glow_score: int
+    biological_age: int
+    emotional_age: int
+    chronological_age: int
+    category_scores: Dict[str, float]
+    glowup_archetype: Dict[str, str]
+    micro_habits: List[str]
+    avatar_urls: Optional[Dict[str, str]] = None
+    analysis_summary: Optional[str] = None
+    detailed_insights: Optional[Dict[str, Any]] = None
+
+class UserAssessmentResponse(UserAssessmentCreate):
+    id: int
+    created_at: str
+
+    class Config:
+        orm_mode = True 
