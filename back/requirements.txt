@@ -2,7 +2,7 @@
 fastapi==0.104.1
 
 # Data validation
-pydantic==2.5.2
+pydantic==2.11.2
 
 # Environment variables
 python-dotenv==1.0.0
@@ -15,7 +15,7 @@ psycopg2-binary==2.9.9
 SQLAlchemy==2.0.23
 google-generativeai==0.3.2
 pillow==10.1.0
-openai>=1.0.0
+openai==1.67.0
 
 # Additional packages
 python-dotenv==1.0.0
@@ -26,5 +26,8 @@ uvicorn==0.24.0
 
 langchain==0.2.*
 langgraph==0.0.*        # optional but nice for explicit graphs
-pydantic>=2
 tiktoken               # LangChain helper
+
+svix
+
+clerk_backend_api

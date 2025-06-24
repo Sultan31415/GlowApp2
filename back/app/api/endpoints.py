@@ -1,10 +1,13 @@
 import traceback
 from typing import List, Dict, Any
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
 from app.models.schemas import AssessmentRequest, AssessmentResponse
 from app.services.scoring_service import ScoringService
 from app.services.ai_service import AIService
 from app.data.quiz_data import quiz_data
+from app.utils.auth import get_current_user
+from app.services.user_service import get_or_create_user
+from app.db.session import SessionLocal
 
 # Initialize router
 router = APIRouter()
@@ -19,9 +22,13 @@ async def get_quiz_data():
     return quiz_data
 
 @router.post("/assess", response_model=AssessmentResponse)
-async def assess_results(request: AssessmentRequest):
-    """Analyze quiz results and return assessment"""
+async def assess_results(request: AssessmentRequest, user=Depends(get_current_user)):
+    """Analyze quiz results and return assessment. Requires authentication."""
+    print("[DEBUG] User info received from Clerk:", user)
+    db = SessionLocal()
     try:
+        get_or_create_user(db, user)
+        print("[DEBUG] User saved or found in DB.")
         # Calculate base scores
         base_scores = ScoringService.calculate_base_scores(request.answers)
 
@@ -43,5 +50,6 @@ async def assess_results(request: AssessmentRequest):
         return assessment
         
     except Exception as e:
-        print("Error in assess_results endpoint:", traceback.format_exc())
+        print("[ERROR] Exception in /assess endpoint:", e)
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e)) 

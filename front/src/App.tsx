@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { QuizAnswer, AssessmentResults, QuizSection } from './types';
-import { submitAssessment, getQuizData } from './utils/api';
+import { getQuizData } from './utils/api';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
+import { useApi } from './utils/useApi';
 
 // Components
 import { Navigation } from './components/Navigation';
@@ -14,6 +15,7 @@ import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 
 function App() {
   const navigate = useNavigate();
+  const { makeRequest } = useApi();
 
   const [currentTestStep, setCurrentTestStep] = useState<'quiz' | 'photo-upload' | 'loading'>('quiz');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -42,8 +44,8 @@ function App() {
 
   // Get all questions in order
   const allQuestions = useMemo(() => 
-    quizSections.flatMap(section => 
-      section.questions.map(question => ({
+    quizSections.flatMap((section: QuizSection) => 
+      section.questions.map((question: any) => ({
         ...question,
         sectionTitle: section.title
       }))
@@ -67,15 +69,15 @@ function App() {
       label
     };
 
-    setAnswers(prev => {
-      const filtered = prev.filter(answer => answer.questionId !== currentQuestion.id);
+    setAnswers((prev: QuizAnswer[]) => {
+      const filtered = prev.filter((answer: QuizAnswer) => answer.questionId !== currentQuestion.id);
       return [...filtered, newAnswer];
     });
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < allQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev: number) => prev + 1);
     } else {
       setCurrentTestStep('photo-upload');
     }
@@ -83,7 +85,7 @@ function App() {
 
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
+      setCurrentQuestionIndex((prev: number) => prev - 1);
     }
   };
 
@@ -105,9 +107,23 @@ function App() {
     setCurrentTestStep('loading');
     setIsSubmitting(true);
     setError(null);
-    
     try {
-      const assessmentResults = await submitAssessment(answers, uploadedPhoto);
+      // Prepare photo as base64
+      const photoBase64 = await fileToBase64(uploadedPhoto);
+      let chronologicalAge: number | undefined;
+      const ageAnswer = answers.find(answer => answer.questionId === 'q19');
+      if (ageAnswer && typeof ageAnswer.value === 'number') {
+        chronologicalAge = ageAnswer.value;
+      }
+      const payload = {
+        answers,
+        chronological_age: chronologicalAge,
+        photo_url: photoBase64
+      };
+      const assessmentResults = await makeRequest('assess', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
       setResults(assessmentResults);
       navigate('/dashboard');
     } catch (error) {
@@ -142,7 +158,7 @@ function App() {
 
   const canGoNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
-    const answer = answers.find(a => a.questionId === currentQuestion.id);
+    const answer = answers.find((a: QuizAnswer) => a.questionId === currentQuestion.id);
     
     if (currentQuestion.type === 'single-choice') {
       return answer?.value !== undefined;
@@ -160,8 +176,18 @@ function App() {
 
   const getCurrentAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
-    const answer = answers.find(a => a.questionId === currentQuestion.id);
+    const answer = answers.find((a: QuizAnswer) => a.questionId === currentQuestion.id);
     return answer?.value;
+  };
+
+  // Add fileToBase64 helper
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   return (
