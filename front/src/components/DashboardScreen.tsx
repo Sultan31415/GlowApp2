@@ -75,7 +75,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         </div>
         <button
           onClick={onGoToMicroHabits}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-1.5 px-4 rounded-full shadow-md hover:shadow-lg transition-all duration-300 text-sm"
+          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
           Get Started
         </button>
@@ -97,7 +97,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
           <div className="flex justify-center mb-6">
             <button
               onClick={() => setShowFutureStats(!showFutureStats)}
-              className="group bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all duration-300 flex items-center space-x-2 font-semibold text-sm"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
             >
               <span>{showFutureStats ? 'Show Current Stats' : 'See Your Transformation Potential'}</span>
               <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
@@ -246,7 +246,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {/* Track Your Progress */}
                   <div className="group">
-                    <button className="w-full bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-5 px-4 rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/30 transform hover:scale-105 flex flex-col items-center text-center text-sm">
+                    <button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center">
                       <TrendingUp className="w-7 h-7 mb-2" />
                       <span className="text-base mb-1">Track Your Progress</span>
                       <span className="text-xs opacity-90">Monitor your daily achievements</span>
@@ -257,7 +257,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                   <div className="group">
                     <button
                       onClick={onGoToMicroHabits}
-                      className="w-full bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-5 px-4 rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/30 transform hover:scale-105 flex flex-col items-center text-center text-sm"
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center"
                     >
                       <Target className="w-7 h-7 mb-2" />
                       <span className="text-base mb-1">See Your Micro-Habit Plan</span>
@@ -269,7 +269,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                   <div className="group opacity-60">
                     <button
                       disabled
-                      className="w-full bg-gray-100 text-gray-500 font-semibold py-5 px-4 rounded-2xl transition-all duration-300 shadow-lg flex flex-col items-center text-center cursor-not-allowed text-sm"
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center opacity-60 cursor-not-allowed"
                     >
                       <User className="w-7 h-7 mb-2" />
                       <span className="text-base mb-1">AI Coach</span>

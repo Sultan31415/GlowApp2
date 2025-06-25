@@ -6,8 +6,7 @@ import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp, useAuth } from '
 import { useApi } from './utils/useApi';
 
 // Components
-import { Navigation } from './components/Navigation';
-import { AuroraBackground } from './components/AuroraBackground';
+import { AppLayout } from './layouts/AppLayout';
 import { TestModal } from './components/TestModal';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
@@ -198,6 +197,7 @@ function App() {
 
   const canGoNext = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
+    if (!currentQuestion) return false;
     const answer = answers.find((a: QuizAnswer) => a.questionId === currentQuestion.id);
     
     if (currentQuestion.type === 'single-choice') {
@@ -216,6 +216,7 @@ function App() {
 
   const getCurrentAnswer = () => {
     const currentQuestion = allQuestions[currentQuestionIndex];
+    if (!currentQuestion) return undefined;
     const answer = answers.find((a: QuizAnswer) => a.questionId === currentQuestion.id);
     return answer?.value;
   };
@@ -231,12 +232,7 @@ function App() {
   };
 
   return (
-    <AuroraBackground className="min-h-screen pl-20">
-      <Navigation 
-        onStartTest={handleStartTest}
-        hasResults={!!results}
-      />
-      
+    <AppLayout onStartTest={handleStartTest} hasResults={!!results}>
       <Routes>
         {/* Public routes */}
         <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
@@ -364,7 +360,7 @@ function App() {
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </AuroraBackground>
+    </AppLayout>
   );
 }
 

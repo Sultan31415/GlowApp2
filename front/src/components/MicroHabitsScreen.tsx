@@ -24,7 +24,7 @@ export const MicroHabitsScreen: React.FC<MicroHabitsScreenProps> = ({ microHabit
         <div className="text-center">
           <button
             onClick={onBack}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 inline-flex items-center"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
             Back to Dashboard

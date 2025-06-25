@@ -6,10 +6,11 @@ import { useNavigate } from 'react-router-dom';
 interface NavigationProps {
   onStartTest: () => void;
   hasResults: boolean;
+  isExpanded: boolean;
+  setIsExpanded: (expanded: boolean) => void;
 }
 
-export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults, isExpanded, setIsExpanded }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navigate = useNavigate();
   const userBtnWrapperRef = React.useRef<HTMLDivElement>(null);
