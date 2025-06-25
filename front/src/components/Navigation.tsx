@@ -12,12 +12,15 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults, isExpanded, setIsExpanded }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const navigate = useNavigate();
   const userBtnWrapperRef = React.useRef<HTMLDivElement>(null);
   
   return (
     <aside
       className={`fixed top-0 left-0 h-screen ${isExpanded ? 'w-64' : 'w-16'} bg-white/10 backdrop-blur-lg border-r border-white/20 text-gray-800 flex flex-col py-4 shadow-lg z-50 transition-all duration-300 rounded-r-3xl`}
+      onMouseEnter={() => setIsSidebarHovered(true)}
+      onMouseLeave={() => setIsSidebarHovered(false)}
     >
       {/* Logo + Toggle */}
       {isExpanded ? (
@@ -40,14 +43,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
           onMouseEnter={() => setHoveredItem('logo')}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <div className={`transition-transform duration-200 ${hoveredItem === 'logo' ? 'scale-110' : ''}`}>
-            {hoveredItem === 'logo' ? (
+          <div className={`transition-transform duration-200 ${(hoveredItem === 'logo' || isSidebarHovered) ? 'scale-110' : ''}`}>
+            {(hoveredItem === 'logo' || isSidebarHovered) ? (
               <PanelLeftOpen className="w-8 h-8 text-gray-800" />
             ) : (
               <img src="/lcon.png" alt="Logo" className="w-8 h-8" />
             )}
           </div>
-          {!isExpanded && hoveredItem === 'logo' && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Expand</span>}
+          {!isExpanded && (hoveredItem === 'logo') && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Expand</span>}
         </button>
       )}
 

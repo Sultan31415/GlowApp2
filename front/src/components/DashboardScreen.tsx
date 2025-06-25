@@ -85,23 +85,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-6xl 2xl:text-6xl font-extrabold text-gray-900 mb-10 leading-tight tracking-wide text-center max-w-5xl mx-auto" style={{ fontFamily: '"Playfair Display", serif' }}>
               Your Dashboard
             </h1>
-            <p className="text-base text-gray-700 font-normal">
-              Track your transformation journey and current stats
-            </p>
-          </div>
-
-          {/* Toggle Button */}
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={() => setShowFutureStats(!showFutureStats)}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
-            >
-              <span>{showFutureStats ? 'Show Current Stats' : 'See Your Transformation Potential'}</span>
-              <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-            </button>
           </div>
 
           {/* Main Content */}
@@ -229,6 +215,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Toggle Button moved here */}
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={() => setShowFutureStats(!showFutureStats)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
+                >
+                  <span>{showFutureStats ? 'Show Current Stats' : 'See Your Transformation Potential'}</span>
+                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                </button>
               </div>
 
               {/* Glow-Up Archetype */}
