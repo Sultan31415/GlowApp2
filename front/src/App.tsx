@@ -7,6 +7,7 @@ import { useApi } from './utils/useApi';
 
 // Components
 import { Navigation } from './components/Navigation';
+import { AuroraBackground } from './components/AuroraBackground';
 import { TestModal } from './components/TestModal';
 import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
@@ -230,7 +231,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen pl-20">
+    <AuroraBackground className="min-h-screen pl-20">
       <Navigation 
         onStartTest={handleStartTest}
         hasResults={!!results}
@@ -363,7 +364,7 @@ function App() {
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </div>
+    </AuroraBackground>
   );
 }
 
