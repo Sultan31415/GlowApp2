@@ -67,17 +67,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
   const categoryScores = results.adjustedCategoryScores || results.categoryScores;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen aurora-bg">
       {/* Navigation Bar */}
       <header className="container mx-auto px-4 py-2 flex items-center justify-between">
         {/* Logo and app name removed */}
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-6xl 2xl:text-6xl font-extrabold text-gray-900 mb-10 leading-tight tracking-wide text-center max-w-5xl mx-auto" style={{ fontFamily: '"Playfair Display", serif' }}>
+          <div className="text-center mb-10">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
               Your Dashboard
             </h1>
           </div>
@@ -86,158 +86,147 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
           {!showFutureStats ? (
             <>
               {/* Hero Section: Avatar & Core Stats */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6 flex flex-col items-center md:flex-row md:items-start md:space-x-8">
+              <div className="bg-white/80 rounded-3xl p-8 shadow-2xl border border-gray-100 mb-10 flex flex-col md:flex-row items-center md:items-stretch gap-10 md:gap-12">
                 {/* Large Selfie */}
-                <div className="relative mb-6 md:mb-0">
-                  <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-3 shadow-xl shadow-purple-500/10 flex items-center justify-center">
+                <div className="relative flex-shrink-0 flex flex-col items-center">
+                  <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl p-3 shadow-xl flex items-center justify-center border-4 border-purple-300">
                     <img
                       src={results.avatarUrls.before}
                       alt="Your current avatar"
-                      className="w-full h-full rounded-xl object-cover"
+                      className="w-full h-full rounded-xl object-cover shadow-lg"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"%23f3f4f6\" rx=\"20\"/><text x=\"100\" y=\"100\" text-anchor=\"middle\" dy=\"0.3em\" font-family=\"Arial\" font-size=\"16\" fill=\"%236b7280\">You</text></svg>';
                       }}
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-2 shadow-lg shadow-purple-500/25">
-                    <Sparkles className="w-5 h-5 text-white" />
+                  <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-2 shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
                   </div>
                 </div>
 
                 {/* Glow Score & Ages */}
-                <div className="w-full max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
                   {/* Glow Score */}
-                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-4 text-center text-white shadow-xl shadow-purple-500/25 flex flex-col justify-center">
+                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-center text-white shadow-xl flex flex-col justify-center border-2 border-white/40">
                     <div className="mb-2">
-                      <Activity className="w-6 h-6 mx-auto mb-1" />
-                      <h3 className="text-base font-semibold">Glow Score</h3>
+                      <Activity className="w-7 h-7 mx-auto mb-1" />
+                      <h3 className="text-lg font-semibold">Glow Score</h3>
                     </div>
-                    <div className="text-3xl font-black mb-1">{results.overallGlowScore}</div>
+                    <div className="text-4xl font-black mb-1">{results.overallGlowScore}</div>
                     <p className="text-xs opacity-90">out of 100</p>
                   </div>
 
                   {/* Biological Age */}
-                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
-                    <div className="w-8 h-8 bg-green-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-white" />
+                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
+                    <div className="w-10 h-10 bg-green-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xs font-medium text-gray-600 mb-1">Biological</h3>
-                    <div className="text-xl font-bold text-gray-900">{results.biologicalAge}</div>
+                    <h3 className="text-sm font-medium text-gray-600 mb-1">Biological</h3>
+                    <div className="text-2xl font-bold text-gray-900">{results.biologicalAge}</div>
                   </div>
 
                   {/* Emotional Age */}
-                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
-                    <div className="w-8 h-8 bg-pink-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <Heart className="w-5 h-5 text-white" />
+                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
+                    <div className="w-10 h-10 bg-pink-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
+                      <Heart className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xs font-medium text-gray-600 mb-1">Emotional</h3>
-                    <div className="text-xl font-bold text-gray-900">{results.emotionalAge}</div>
+                    <h3 className="text-sm font-medium text-gray-600 mb-1">Emotional</h3>
+                    <div className="text-2xl font-bold text-gray-900">{results.emotionalAge}</div>
                   </div>
 
                   {/* Actual Age */}
-                  <div className="bg-white rounded-full w-28 h-28 md:w-32 md:h-32 text-center shadow-lg shadow-gray-500/5 border border-gray-100 flex flex-col items-center justify-center">
-                    <div className="w-8 h-8 bg-blue-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <User className="w-5 h-5 text-white" />
+                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
+                    <div className="w-10 h-10 bg-blue-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
+                      <User className="w-6 h-6 text-white" />
                     </div>
-                    <h3 className="text-xs font-medium text-gray-600 mb-1">Actual</h3>
-                    <div className="text-xl font-bold text-gray-900">{results.chronologicalAge}</div>
+                    <h3 className="text-sm font-medium text-gray-600 mb-1">Actual</h3>
+                    <div className="text-2xl font-bold text-gray-900">{results.chronologicalAge}</div>
                   </div>
                 </div>
               </div>
 
               {/* Detailed Category Scores */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Your Current Performance</h2>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="flex items-center justify-center mb-3">
-                      <div className="w-10 h-10 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/25 mr-2">
-                        <Zap className="w-6 h-6 text-white" />
+              <div className="bg-white/90 rounded-3xl p-8 shadow-xl border border-gray-100 mb-10">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">Your Current Performance</h2>
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
+                        <Zap className="w-7 h-7 text-white" />
                       </div>
-                      <h3 className="text-base font-bold text-gray-900">Physical Vitality</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Physical Vitality</h3>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
                       <div
                         className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
                         style={{ width: `${categoryScores.physicalVitality}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{categoryScores.physicalVitality}%</p>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-2xl font-black text-purple-700">{categoryScores.physicalVitality}%</p>
                       <span className="text-xs text-gray-500 font-medium">Energy & Fitness</span>
                     </div>
                   </div>
 
-                  <div className="text-center">
-                    <div className="flex items-center justify-center mb-3">
-                      <div className="w-10 h-10 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/25 mr-2">
-                        <Heart className="w-6 h-6 text-white" />
+                  <div className="bg-gradient-to-br from-pink-100 to-pink-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
+                        <Heart className="w-7 h-7 text-white" />
                       </div>
-                      <h3 className="text-base font-bold text-gray-900">Emotional Health</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Emotional Health</h3>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
                       <div
                         className="bg-gradient-to-r from-pink-500 to-pink-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
                         style={{ width: `${categoryScores.emotionalHealth}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{categoryScores.emotionalHealth}%</p>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-2xl font-black text-pink-700">{categoryScores.emotionalHealth}%</p>
                       <span className="text-xs text-gray-500 font-medium">Mood & Stress</span>
                     </div>
                   </div>
 
-                  <div className="text-center">
-                    <div className="flex items-center justify-center mb-3">
-                      <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 mr-2">
-                        <Eye className="w-6 h-6 text-white" />
+                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
+                        <Eye className="w-7 h-7 text-white" />
                       </div>
-                      <h3 className="text-base font-bold text-gray-900">Visual Appearance</h3>
+                      <h3 className="text-lg font-bold text-gray-900">Visual Appearance</h3>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-4 mb-2">
+                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
                       <div
                         className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
                         style={{ width: `${categoryScores.visualAppearance}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xl font-black text-gray-900">{categoryScores.visualAppearance}%</p>
+                    <div className="flex justify-between items-center w-full">
+                      <p className="text-2xl font-black text-blue-700">{categoryScores.visualAppearance}%</p>
                       <span className="text-xs text-gray-500 font-medium">Skin & Confidence</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Toggle Button moved here */}
-              <div className="flex justify-center mb-6">
-                <button
-                  onClick={() => onGoToFuture()}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
-                >
-                  <span>{showFutureStats ? 'Show Current Stats' : 'See Your Transformation Potential'}</span>
-                  <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
-                </button>
-              </div>
-
               {/* Glow-Up Archetype */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">Your Glow-Up Archetype</h2>
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-purple-100">
-                  <h3 className="text-lg font-bold text-purple-700 mb-2">{results.glowUpArchetype.name}</h3>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 shadow-xl border border-purple-100 mb-10 flex flex-col items-center">
+                <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-2"><Star className="w-6 h-6 text-yellow-400" />Your Glow-Up Archetype</h2>
+                <div className="bg-white/80 rounded-2xl p-6 border border-purple-100 w-full max-w-xl text-center">
+                  <h3 className="text-xl font-bold text-purple-700 mb-2">{results.glowUpArchetype.name}</h3>
                   <p className="text-gray-700 leading-relaxed text-base">{results.glowUpArchetype.description}</p>
                 </div>
               </div>
 
               {/* Quick Actions Section */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100 mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Your Tools</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="bg-white/90 rounded-3xl p-8 shadow-xl border border-gray-100 mb-10">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">Your Tools</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                   {/* Track Your Progress */}
                   <div className="group">
-                    <button className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center">
-                      <TrendingUp className="w-7 h-7 mb-2" />
-                      <span className="text-base mb-1">Track Your Progress</span>
+                    <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-6 text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center w-full">
+                      <TrendingUp className="w-8 h-8 mb-2" />
+                      <span className="text-base mb-1 font-semibold">Track Your Progress</span>
                       <span className="text-xs opacity-90">Monitor your daily achievements</span>
                     </button>
                   </div>
@@ -246,10 +235,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                   <div className="group">
                     <button
                       onClick={onGoToMicroHabits}
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-6 text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center w-full"
                     >
-                      <Target className="w-7 h-7 mb-2" />
-                      <span className="text-base mb-1">See Your Test Plan</span>
+                      <Target className="w-8 h-8 mb-2" />
+                      <span className="text-base mb-1 font-semibold">See Your Test Plan</span>
                       <span className="text-xs opacity-90">Start your transformation today</span>
                     </button>
                   </div>
@@ -258,10 +247,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                   <div className="group opacity-60">
                     <button
                       disabled
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center opacity-60 cursor-not-allowed"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-6 text-lg rounded-2xl shadow-lg flex flex-col items-center text-center w-full opacity-60 cursor-not-allowed"
                     >
-                      <User className="w-7 h-7 mb-2" />
-                      <span className="text-base mb-1">AI Coach</span>
+                      <User className="w-8 h-8 mb-2" />
+                      <span className="text-base mb-1 font-semibold">AI Coach</span>
                       <span className="text-xs">Coming Soon</span>
                     </button>
                   </div>

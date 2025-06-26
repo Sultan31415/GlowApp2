@@ -18,7 +18,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
   
   return (
     <aside
-      className={`fixed top-0 left-0 h-screen ${isExpanded ? 'w-64' : 'w-16'} bg-white/10 backdrop-blur-lg border-r border-white/20 text-gray-800 flex flex-col py-4 shadow-lg z-50 transition-all duration-300 rounded-r-3xl`}
+      className={`fixed top-0 left-0 h-screen ml-2 ${isExpanded ? 'w-64' : 'w-16'} bg-white/10 backdrop-blur-lg border-r border-white/20 text-gray-800 flex flex-col py-4 shadow-2xl z-50 transition-all duration-300 rounded-r-3xl border border-white/30`}
       onMouseEnter={() => setIsSidebarHovered(true)}
       onMouseLeave={() => setIsSidebarHovered(false)}
     >

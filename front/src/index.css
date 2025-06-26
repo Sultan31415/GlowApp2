@@ -23,3 +23,9 @@
   0% { background-position: 0% 50%; }
   100% { background-position: 100% 50%; }
 }
+
+.aurora-bg {
+  background: linear-gradient(120deg, #f8fafc 0%, #f1f5f9 20%, #e0e7ff 40%, #f1f5f9 70%, #fff 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}

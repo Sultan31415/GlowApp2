@@ -5,7 +5,7 @@ export const AppLayout = ({ children, onStartTest, hasResults }: { children: Rea
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8f9fc] via-[#eef1f7] to-white text-[#0f172a]">
+    <div className="min-h-screen aurora-bg text-[#0f172a]">
       <Navigation 
         onStartTest={onStartTest} 
         hasResults={hasResults} 
