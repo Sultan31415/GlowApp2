@@ -6,9 +6,10 @@ import { useUser } from '@clerk/clerk-react';
 
 interface DashboardScreenProps {
   onGoToMicroHabits: () => void;
+  onGoToFuture: () => void;
 }
 
-export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHabits }) => {
+export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHabits, onGoToFuture }) => {
   const { user } = useUser();
   const { makeRequest } = useApi();
   const [results, setResults] = useState<AssessmentResults | null>(null);
@@ -211,7 +212,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
               {/* Toggle Button moved here */}
               <div className="flex justify-center mb-6">
                 <button
-                  onClick={() => setShowFutureStats(!showFutureStats)}
+                  onClick={() => onGoToFuture()}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center space-x-2"
                 >
                   <span>{showFutureStats ? 'Show Current Stats' : 'See Your Transformation Potential'}</span>

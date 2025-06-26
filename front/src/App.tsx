@@ -12,6 +12,7 @@ import { ResultsScreen } from './components/ResultsScreen';
 import { DashboardScreen } from './components/DashboardScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { MicroHabitsScreen } from './components/MicroHabitsScreen';
+import { FutureScreen } from './components/FutureScreen';
 
 function App() {
   const navigate = useNavigate();
@@ -294,6 +295,7 @@ function App() {
               <SignedIn>
                 <DashboardScreen
                   onGoToMicroHabits={() => navigate('/micro-habits')}
+                  onGoToFuture={() => navigate('/future')}
                 />
               </SignedIn>
               <SignedOut>
@@ -313,6 +315,23 @@ function App() {
                     onRestart={handleRestart}
                     onGoToDashboard={() => navigate('/dashboard')}
                   />
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/future"
+          element={
+            <>
+              <SignedIn>
+                {results ? (
+                  <FutureScreen results={results} onBack={() => navigate('/dashboard')} />
                 ) : (
                   <Navigate to="/" />
                 )}
