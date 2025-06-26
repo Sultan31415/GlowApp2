@@ -69,16 +69,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
       <header className="container mx-auto px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-7 h-7 text-purple-600" fill="currentColor" />
-          <span className="text-xl font-bold text-gray-900">GlowApp</span>
-        </div>
-        <button
-          onClick={onGoToMicroHabits}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-        >
-          Get Started
-        </button>
+        {/* Logo and app name removed */}
       </header>
 
       <div className="container mx-auto px-4 py-6">
@@ -250,14 +241,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                     </button>
                   </div>
 
-                  {/* Micro-Habit Plan */}
+                  {/* Test Plan (was Glow Up) */}
                   <div className="group">
                     <button
                       onClick={onGoToMicroHabits}
                       className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center"
                     >
                       <Target className="w-7 h-7 mb-2" />
-                      <span className="text-base mb-1">See Your Micro-Habit Plan</span>
+                      <span className="text-base mb-1">See Your Test Plan</span>
                       <span className="text-xs opacity-90">Start your transformation today</span>
                     </button>
                   </div>

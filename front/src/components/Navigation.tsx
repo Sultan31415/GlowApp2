@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Target, MessageCircle, Home, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { Plus, Target, MessageCircle, Home, PanelLeftOpen, PanelLeftClose, ListChecks } from 'lucide-react';
 import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,7 +38,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       ) : (
         /* Collapsed: show logo, reveal expand icon on hover */
         <button
-          onClick={() => setIsExpanded(true)}
+          onClick={() => { setIsExpanded(true); setHoveredItem(null); }}
           className="relative mx-auto mb-6 flex items-center justify-center focus:outline-none"
           onMouseEnter={() => setHoveredItem('logo')}
           onMouseLeave={() => setHoveredItem(null)}
@@ -83,9 +83,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
               onMouseEnter={() => setHoveredItem('glowup')}
               onMouseLeave={() => setHoveredItem(null)}
             />
-            {!isExpanded && hoveredItem === 'glowup' && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Glow Up</span>}
+            {!isExpanded && hoveredItem === 'glowup' && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Test</span>}
           </div>
-          {isExpanded && <span className="ml-3 text-sm font-semibold tracking-wide">Glow Up</span>}​
+          {isExpanded && <span className="ml-3 text-sm font-semibold tracking-wide">Test</span>}​
         </button>
 
         {/* My plan (formerly GOALS) */}
@@ -114,6 +114,22 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
             {!isExpanded && hoveredItem === 'coach' && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Coach</span>}
           </div>
           {isExpanded && <span className="ml-3 text-sm font-semibold tracking-wide">COACH</span>}​
+        </button>
+
+        {/* MICRO HABITS */}
+        <button
+          onClick={() => navigate('/micro-habits')}
+          className={`w-full rounded-lg transition-all duration-200 flex focus:outline-none text-gray-700 ${isExpanded ? 'flex-row items-center py-2 px-2 hover:ring-2 hover:ring-gray-800 hover:bg-white/30 hover:text-gray-900' : 'flex-col items-center justify-center'}`}
+        >
+          <div className={`relative flex items-center justify-center ${!isExpanded ? 'p-2 rounded-lg' : ''}`}>
+            <ListChecks
+              className={`w-6 h-6 transition-transform duration-200 ${hoveredItem === 'microhabits' ? 'scale-110' : ''}`}
+              onMouseEnter={() => setHoveredItem('microhabits')}
+              onMouseLeave={() => setHoveredItem(null)}
+            />
+            {!isExpanded && hoveredItem === 'microhabits' && <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">Micro Habits</span>}
+          </div>
+          {isExpanded && <span className="ml-3 text-sm font-semibold tracking-wide">Micro Habits</span>}
         </button>
       </nav>
       {/* Account */}
