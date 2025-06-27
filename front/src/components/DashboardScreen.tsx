@@ -222,16 +222,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Physical Vitality */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                        <Zap className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">Physical Vitality</h4>
-                        <p className="text-sm text-gray-500">Energy, fitness & strength</p>
-                      </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-6">
+                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                      <Zap className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">Physical Vitality</h4>
+                      <p className="text-sm text-gray-500">Energy, fitness & strength</p>
                     </div>
                   </div>
                   
@@ -242,7 +240,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Progress</span>
                       <span className="font-medium text-gray-900">{categoryScores.physicalVitality}%</span>
@@ -268,16 +266,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                 </div>
 
                 {/* Emotional Health */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
-                        <Heart className="w-5 h-5 text-pink-600" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">Emotional Health</h4>
-                        <p className="text-sm text-gray-500">Mood, stress & resilience</p>
-                      </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-6">
+                    <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                      <Heart className="w-5 h-5 text-pink-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">Emotional Health</h4>
+                      <p className="text-sm text-gray-500">Mood, stress & resilience</p>
                     </div>
                   </div>
                   
@@ -288,7 +284,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Progress</span>
                       <span className="font-medium text-gray-900">{categoryScores.emotionalHealth}%</span>
@@ -314,16 +310,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                 </div>
 
                 {/* Visual Appearance */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                        <Eye className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">Visual Appearance</h4>
-                        <p className="text-sm text-gray-500">Skin, style & confidence</p>
-                      </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-6">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <Eye className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900">Visual Appearance</h4>
+                      <p className="text-sm text-gray-500">Skin, style & confidence</p>
                     </div>
                   </div>
                   
@@ -334,7 +328,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                     </div>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Progress</span>
                       <span className="font-medium text-gray-900">{categoryScores.visualAppearance}%</span>
