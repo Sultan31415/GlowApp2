@@ -135,15 +135,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
 
       {/* Enhanced Header */}
       <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-fuchsia-600"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4">
-              <Activity className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4 border border-gray-200/50">
+              <Activity className="w-6 h-6 text-slate-600" />
             </div>
             <div>
-              <h1 className="text-lg lg:text-xl font-bold text-white">Welcome back!</h1>
-              <p className="text-white/80 text-sm">Your wellness journey continues</p>
+              <h1 className="text-lg lg:text-xl font-medium text-slate-700">Welcome back!</h1>
+              <p className="text-slate-500 text-sm">Your wellness journey continues</p>
             </div>
           </div>
         </div>
@@ -185,18 +185,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                   
                   {/* Age Analysis Compact */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-center mb-3">
+                      <h4 className="text-sm font-semibold text-gray-700">Age Analysis</h4>
+                    </div>
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className="text-2xl font-bold text-emerald-600">{results.biologicalAge}</div>
-                        <div className="text-xs text-gray-600">Biological</div>
+                        <div className="text-xs text-gray-600">Biological Age</div>
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-pink-600">{results.emotionalAge}</div>
-                        <div className="text-xs text-gray-600">Emotional</div>
+                        <div className="text-xs text-gray-600">Emotional Age</div>
                       </div>
                       <div>
                         <div className="text-2xl font-bold text-gray-700">{results.chronologicalAge}</div>
-                        <div className="text-xs text-gray-600">Actual</div>
+                        <div className="text-xs text-gray-600">Actual Age</div>
                       </div>
                     </div>
                     
@@ -368,91 +371,86 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         {/* Archetype & Actions Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Glow-Up Archetype */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
-            <div className="flex items-center mb-5">
-              <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                <Star className="w-5 h-5 text-white" />
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center mb-6">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mr-3">
+                <Star className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Your Glow-Up Archetype</h3>
-                <p className="text-gray-600 text-sm">Personalized transformation type</p>
+                <h3 className="text-lg font-medium text-gray-800">Your Glow-Up Archetype</h3>
+                <p className="text-gray-500 text-sm">Personalized transformation type</p>
               </div>
             </div>
             
-            <div className="relative overflow-hidden rounded-xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-10"></div>
-              <div className="relative bg-white/50 backdrop-blur-sm border border-white/60 rounded-xl p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
-                    <Crown className="w-5 h-5 text-white" />
-                  </div>
-                  <h4 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                    {results.glowUpArchetype.name}
-                  </h4>
+            <div className="bg-blue-50/60 rounded-xl border border-blue-100/60 p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                  <Crown className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-gray-700 leading-relaxed">{results.glowUpArchetype.description}</p>
+                <h4 className="text-lg font-medium text-gray-700">
+                  {results.glowUpArchetype.name}
+                </h4>
               </div>
+              <p className="text-gray-600 leading-relaxed text-sm">{results.glowUpArchetype.description}</p>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
-            <div className="mb-5">
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Quick Actions</h3>
-              <p className="text-gray-600 text-sm">Start your transformation journey</p>
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">Quick Actions</h3>
+              <p className="text-gray-500 text-sm">Start your transformation journey</p>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
                 onClick={onGoToMicroHabits}
-                className="w-full group relative overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                className="w-full group bg-blue-50/80 hover:bg-blue-50 border border-blue-100 rounded-xl p-5 transition-all duration-200 hover:shadow-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                <div className="relative flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-                      <Target className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                      <Target className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-lg">View Test Plan</p>
-                      <p className="text-white/80 text-sm">Start your transformation journey</p>
+                      <p className="font-medium text-gray-700 text-base">View Test Plan</p>
+                      <p className="text-gray-500 text-sm">Start your transformation journey</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
                 </div>
               </button>
 
               <button
                 onClick={onGoToFuture}
-                className="w-full group relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                className="w-full group bg-orange-50/80 hover:bg-orange-50 border border-orange-100 rounded-xl p-5 transition-all duration-200 hover:shadow-sm"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                <div className="relative flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
-                      <Sparkles className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                      <Sparkles className="w-5 h-5 text-orange-600" />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-lg">Future Transformation</p>
-                      <p className="text-white/80 text-sm">See your potential results</p>
+                      <p className="font-medium text-gray-700 text-base">Future Transformation</p>
+                      <p className="text-gray-500 text-sm">See your potential results</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all" />
                 </div>
               </button>
 
-              <div className="relative p-6 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 opacity-70">
+              <div className="bg-gray-50/80 border border-gray-100 rounded-xl p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-12 h-12 bg-gray-400 rounded-xl flex items-center justify-center mr-4">
-                      <Brain className="w-6 h-6 text-white" />
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
+                      <Brain className="w-5 h-5 text-gray-400" />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-gray-600 text-lg">AI Coach</p>
-                      <p className="text-gray-500 text-sm">Personalized guidance & tips</p>
+                      <p className="font-medium text-gray-500 text-base">AI Coach</p>
+                      <p className="text-gray-400 text-sm">Personalized guidance & tips</p>
                     </div>
                   </div>
-                  <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
+                  <div className="bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full text-xs font-medium border border-yellow-100">
                     Coming Soon
                   </div>
                 </div>

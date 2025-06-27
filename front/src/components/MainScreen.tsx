@@ -1,11 +1,24 @@
 import React from 'react';
 import { Sparkles, Target, User, TrendingUp, Brain, Heart, ArrowRight, Star, MessageCircle, Camera, Check, Users, RefreshCw, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 
 interface MainScreenProps {
   onStartTest: () => void;
 }
 
 export const MainScreen: React.FC<MainScreenProps> = ({ onStartTest }) => {
+  const navigate = useNavigate();
+  const { isSignedIn } = useAuth();
+
+  const handleGetStarted = () => {
+    if (isSignedIn) {
+      onStartTest();
+    } else {
+      navigate('/sign-in');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation Bar */}
@@ -20,12 +33,20 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onStartTest }) => {
           <a href="#pricing" className="text-gray-600 hover:text-purple-600 font-medium transition-colors duration-200">Pricing</a>
           <a href="#contact" className="text-gray-600 hover:text-purple-600 font-medium transition-colors duration-200">Contact</a>
         </nav>
-        <button
-          onClick={onStartTest}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 hidden md:block"
-        >
-          Get Started
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate('/sign-in')}
+            className="text-purple-600 hover:text-purple-700 font-semibold transition-colors duration-200 hidden md:block"
+          >
+            Sign In
+          </button>
+          <button
+            onClick={handleGetStarted}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2 px-6 rounded-full shadow-md hover:shadow-lg transition-all duration-300 hidden md:block"
+          >
+            Get Started
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -48,7 +69,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onStartTest }) => {
             {/* Main CTA Button */}
             <div className="flex justify-center items-center gap-6">
               <button
-                onClick={onStartTest}
+                onClick={handleGetStarted}
                 className="group relative bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-full text-lg shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
               >
                 <span>Start Your GlowApp</span>
@@ -230,7 +251,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ onStartTest }) => {
 
             <div className="text-center">
               <button
-                onClick={onStartTest}
+                onClick={handleGetStarted}
                 className="group bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-10 rounded-full transition-all duration-300 shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transform hover:scale-105 inline-flex items-center text-lg gap-3"
               >
                 <span>Receive Your First Message</span>

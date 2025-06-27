@@ -13,6 +13,7 @@ import { DashboardScreen } from './components/DashboardScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { MicroHabitsScreen } from './components/MicroHabitsScreen';
 import { FutureScreen } from './components/FutureScreen';
+import { AdvancedMainScreen } from './components/AdvancedMainScreen';
 
 function App() {
   const navigate = useNavigate();
@@ -241,18 +242,70 @@ function App() {
 
         {/* Home page with different content for signed-in and signed-out users */}
         <Route path="/" element={
-          <div className="p-6 text-gray-700">
+          <>
             <SignedOut>
-              Welcome to GlowApp. Please sign in to start your assessment.
+              <AdvancedMainScreen onStartTest={handleStartTest} />
             </SignedOut>
             <SignedIn>
-              {
-                isQuizLoading ? "Loading quiz..." :
-                quizError ? <div className="text-red-500">{quizError}</div> :
-                "Welcome back to GlowApp. Click \"CREATE\" to start your assessment."
-              }
+              <div className="max-w-4xl mx-auto p-8">
+                {
+                  isQuizLoading ? (
+                    <div className="text-center py-12">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600">Loading quiz...</p>
+                    </div>
+                  ) :
+                  quizError ? (
+                    <div className="text-center py-12">
+                      <div className="text-red-500 mb-4">⚠️ {quizError}</div>
+                      <button 
+                        onClick={() => window.location.reload()} 
+                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome back to GlowApp! ✨</h1>
+                      <p className="text-xl text-gray-600 mb-8">Ready to continue your transformation journey?</p>
+                      
+                      {results ? (
+                        <div className="space-y-4">
+                          <p className="text-gray-700 mb-6">You have previous assessment results. You can view your dashboard or start a new assessment.</p>
+                          <div className="flex justify-center gap-4">
+                            <button
+                              onClick={() => navigate('/dashboard')}
+                              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                            >
+                              View Dashboard
+                            </button>
+                            <button
+                              onClick={handleStartTest}
+                              className="bg-white text-purple-600 border-2 border-purple-600 hover:bg-purple-50 font-semibold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105"
+                            >
+                              New Assessment
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <p className="text-gray-700 mb-6">Start your personalized assessment to discover your glow potential!</p>
+                          <button
+                            onClick={handleStartTest}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-4 px-8 rounded-full text-lg shadow-lg transition-all duration-300 transform hover:scale-105 inline-flex items-center gap-2"
+                          >
+                            <span>Start Your Assessment</span>
+                            <span>🚀</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+              </div>
             </SignedIn>
-          </div>
+          </>
         } />
 
         {/* Protected Routes */}
