@@ -32,16 +32,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
   const { user } = useUser();
   const { makeRequest } = useApi();
   const [results, setResults] = useState<AssessmentResults | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchResults = async () => {
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await makeRequest('results');
-        setResults(data);
+        const [resultsData, userInfo] = await Promise.all([
+          makeRequest('results'),
+          makeRequest('me')
+        ]);
+        setResults(resultsData);
+        setUserData(userInfo);
       } catch (err: any) {
         if (err?.response?.status === 404) {
           setError('No assessment found for your account. Please complete the quiz.');
@@ -52,7 +57,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         setLoading(false);
       }
     };
-    fetchResults();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -129,9 +134,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
       </div>
 
       {/* Enhanced Header */}
-      <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-fuchsia-600"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4">
               <Activity className="w-6 h-6 text-white" />
@@ -146,13 +151,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           
           {/* Profile Section */}
           <div className="lg:col-span-4">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 h-full">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6 h-full">
               <div className="text-center">
-                <div className="relative inline-block mb-8">
+                <div className="relative inline-block mb-6">
                   <div className="w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-2xl">
                     <img
                       src={results.avatarUrls.before}
@@ -164,15 +169,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                       }}
                     />
                   </div>
-                  <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full p-3 shadow-lg">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-4 mt-4">
                   <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Profile</h3>
-                    <p className="text-gray-600">Current wellness assessment</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {userData?.first_name && userData?.last_name 
+                        ? `${userData.first_name} ${userData.last_name}`
+                        : userData?.first_name 
+                        ? userData.first_name
+                        : 'Your Profile'
+                      }
+                    </h3>
                   </div>
                   
                   {/* Age Analysis Compact */}
@@ -208,10 +216,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
 
           {/* Performance Metrics */}
           <div className="lg:col-span-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 h-full">
-              <div className="flex items-center justify-between mb-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6 h-full">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Wellness Metrics</h3>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">Wellness Metrics</h3>
                   <p className="text-gray-600">Your current performance overview</p>
                 </div>
                 <div className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
@@ -222,21 +230,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Physical Vitality */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
-                  <div className="flex items-center mb-6">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                      <Zap className="w-5 h-5 text-purple-600" />
+                <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                      <Zap className="w-4 h-4 text-purple-600" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900">Physical Vitality</h4>
-                      <p className="text-sm text-gray-500">Energy, fitness & strength</p>
+                      <h4 className="text-base font-semibold text-gray-900">Physical Vitality</h4>
+                      <p className="text-xs text-gray-500">Energy, fitness & strength</p>
                     </div>
                   </div>
                   
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold text-gray-900">{categoryScores.physicalVitality}</span>
-                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                      <span className="text-3xl font-bold text-gray-900">{categoryScores.physicalVitality}</span>
+                      <span className="text-base text-gray-500 ml-2">/100</span>
                     </div>
                   </div>
                   
@@ -266,21 +274,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                 </div>
 
                 {/* Emotional Health */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
-                  <div className="flex items-center mb-6">
-                    <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
-                      <Heart className="w-5 h-5 text-pink-600" />
+                <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                      <Heart className="w-4 h-4 text-pink-600" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900">Emotional Health</h4>
-                      <p className="text-sm text-gray-500">Mood, stress & resilience</p>
+                      <h4 className="text-base font-semibold text-gray-900">Emotional Health</h4>
+                      <p className="text-xs text-gray-500">Mood, stress & resilience</p>
                     </div>
                   </div>
                   
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold text-gray-900">{categoryScores.emotionalHealth}</span>
-                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                      <span className="text-3xl font-bold text-gray-900">{categoryScores.emotionalHealth}</span>
+                      <span className="text-base text-gray-500 ml-2">/100</span>
                     </div>
                   </div>
                   
@@ -310,21 +318,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
                 </div>
 
                 {/* Visual Appearance */}
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm flex flex-col h-full">
-                  <div className="flex items-center mb-6">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <Eye className="w-5 h-5 text-blue-600" />
+                <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex flex-col h-full">
+                  <div className="flex items-center mb-4">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                      <Eye className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-900">Visual Appearance</h4>
-                      <p className="text-sm text-gray-500">Skin, style & confidence</p>
+                      <h4 className="text-base font-semibold text-gray-900">Visual Appearance</h4>
+                      <p className="text-xs text-gray-500">Skin, style & confidence</p>
                     </div>
                   </div>
                   
-                  <div className="mb-6">
+                  <div className="mb-4">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold text-gray-900">{categoryScores.visualAppearance}</span>
-                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                      <span className="text-3xl font-bold text-gray-900">{categoryScores.visualAppearance}</span>
+                      <span className="text-base text-gray-500 ml-2">/100</span>
                     </div>
                   </div>
                   
@@ -358,15 +366,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         </div>
 
         {/* Archetype & Actions Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Glow-Up Archetype */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
-            <div className="flex items-center mb-6">
-              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                <Star className="w-6 h-6 text-white" />
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+            <div className="flex items-center mb-5">
+              <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                <Star className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Your Glow-Up Archetype</h3>
+                <h3 className="text-lg font-bold text-gray-900">Your Glow-Up Archetype</h3>
                 <p className="text-gray-600 text-sm">Personalized transformation type</p>
               </div>
             </div>
@@ -388,9 +396,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Actions</h3>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Quick Actions</h3>
               <p className="text-gray-600 text-sm">Start your transformation journey</p>
             </div>
             
@@ -454,10 +462,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
         </div>
 
         {/* Enhanced Insights Section */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
-          <div className="flex items-center justify-between mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Progress Insights</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Progress Insights</h3>
               <p className="text-gray-600">Personalized recommendations based on your assessment</p>
             </div>
             <div className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">

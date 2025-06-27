@@ -135,4 +135,27 @@ async def ensure_user_in_db(
         "first_name": db_user.first_name,
         "last_name": db_user.last_name,
         "created_at": db_user.created_at,
+    }
+
+@router.post("/refresh-user")
+async def refresh_user_data(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Force refresh user data from Clerk. Useful for updating users with null email/name data."""
+    logger.debug(f"[DEBUG] Refreshing user data for user_id: {user.get('user_id')}")
+    logger.debug(f"[DEBUG] User data from Clerk: {user}")
+    
+    db_user = get_or_create_user(db, user)
+    
+    return {
+        "message": "User data refreshed successfully",
+        "user": {
+            "id": db_user.id,
+            "user_id": db_user.user_id,
+            "email": db_user.email,
+            "first_name": db_user.first_name,
+            "last_name": db_user.last_name,
+            "created_at": db_user.created_at,
+        }
     } 
