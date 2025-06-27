@@ -1,5 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Heart, Zap, Eye, TrendingUp, Calendar, User, Target, ArrowRight, RotateCcw, Star, Activity } from 'lucide-react';
+import { 
+  Sparkles, 
+  Heart, 
+  Zap, 
+  Eye, 
+  TrendingUp, 
+  Calendar, 
+  User, 
+  Target, 
+  ArrowRight, 
+  Star, 
+  Activity,
+  BarChart3,
+  Brain,
+  Shield,
+  ChevronRight,
+  Award,
+  Flame,
+  Crown
+} from 'lucide-react';
 import { AssessmentResults } from '../types';
 import { useApi } from '../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
@@ -15,11 +34,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showFutureStats, setShowFutureStats] = useState(false);
-  
 
- 
-  
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
@@ -40,388 +55,465 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ onGoToMicroHab
     fetchResults();
   }, []);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-xl text-gray-600">Loading your dashboard...</div>;
-  if (error) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl text-gray-600">
-        {user && (
-          <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
-            <strong>Debug:</strong> Clerk user_id: {user.id}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-        )}
-        {error}
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading your dashboard</h3>
+          <p className="text-gray-600">Preparing your wellness insights...</p>
+        </div>
       </div>
     );
   }
-  if (!results) return null;
 
-  // Calculate projected future stats (simple enhancement logic)
-  const projectedGlowScore = Math.min(100, results.overallGlowScore + 12);
-  const projectedBiologicalAge = Math.max(18, results.biologicalAge - 3);
-  const projectedEmotionalAge = Math.max(18, results.emotionalAge - 2);
-  const projectedPhysicalVitality = Math.min(100, results.categoryScores.physicalVitality + 15);
-  const projectedEmotionalHealth = Math.min(100, results.categoryScores.emotionalHealth + 15);
-  const projectedVisualAppearance = Math.min(100, results.categoryScores.visualAppearance + 15);
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            {user && (
+              <div className="text-xs text-gray-500 mb-4 p-2 bg-gray-50 rounded-lg">
+                <strong>Debug:</strong> Clerk user_id: {user.id}
+              </div>
+            )}
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Oops! Something went wrong</h3>
+            <p className="text-gray-600">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!results) return null;
 
   // For all category score displays, use adjustedCategoryScores if available, otherwise fallback to categoryScores
   const categoryScores = results.adjustedCategoryScores || results.categoryScores;
+  
+  // Calculate performance level
+  const getPerformanceLevel = (score: number) => {
+    if (score >= 80) return { label: 'Excellent', color: 'emerald', icon: Crown };
+    if (score >= 60) return { label: 'Good', color: 'blue', icon: Award };
+    if (score >= 40) return { label: 'Fair', color: 'yellow', icon: Flame };
+    return { label: 'Needs Focus', color: 'red', icon: Target };
+  };
+
+  const performanceLevel = getPerformanceLevel(results.overallGlowScore);
 
   return (
     <div className="min-h-screen aurora-bg">
-      {/* Navigation Bar */}
-      <header className="container mx-auto px-4 py-2 flex items-center justify-between">
-        {/* Logo and app name removed */}
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight tracking-wide" style={{ fontFamily: 'Playfair Display, serif' }}>
-              Your Dashboard
-            </h1>
+      {/* Fixed Glow Score Badge */}
+      <div className="fixed top-4 right-4 z-[100]">
+        <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-100 px-6 py-4 min-w-[140px] transition-all duration-200 hover:shadow-3xl hover:scale-105 backdrop-blur-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Glow Score</span>
+              <span className="text-3xl font-black text-gray-900">{results.overallGlowScore}</span>
+            </div>
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg ${
+              results.overallGlowScore >= 80 ? 'bg-emerald-500 text-white' :
+              results.overallGlowScore >= 60 ? 'bg-blue-500 text-white' :
+              results.overallGlowScore >= 40 ? 'bg-amber-500 text-white' :
+              'bg-red-500 text-white'
+            }`}>
+              <performanceLevel.icon className="w-5 h-5" />
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Main Content */}
-          {!showFutureStats ? (
-            <>
-              {/* Hero Section: Avatar & Core Stats */}
-              <div className="bg-white/80 rounded-3xl p-8 shadow-2xl border border-gray-100 mb-10 flex flex-col md:flex-row items-center md:items-stretch gap-10 md:gap-12">
-                {/* Large Selfie */}
-                <div className="relative flex-shrink-0 flex flex-col items-center">
-                  <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl p-3 shadow-xl flex items-center justify-center border-4 border-purple-300">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-fuchsia-600"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg lg:text-xl font-bold text-white">Welcome back!</h1>
+              <p className="text-white/80 text-sm">Your wellness journey continues</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+          
+          {/* Profile Section */}
+          <div className="lg:col-span-4">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 h-full">
+              <div className="text-center">
+                <div className="relative inline-block mb-8">
+                  <div className="w-32 h-32 lg:w-40 lg:h-40 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-2xl">
                     <img
                       src={results.avatarUrls.before}
-                      alt="Your current avatar"
-                      className="w-full h-full rounded-xl object-cover shadow-lg"
+                      alt="Your avatar"
+                      className="w-full h-full rounded-full object-cover bg-white"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"%23f3f4f6\" rx=\"20\"/><text x=\"100\" y=\"100\" text-anchor=\"middle\" dy=\"0.3em\" font-family=\"Arial\" font-size=\"16\" fill=\"%236b7280\">You</text></svg>';
+                        target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="%23f3f4f6" rx="100"/><text x="100" y="100" text-anchor="middle" dy="0.3em" font-family="Arial" font-size="16" fill="%236b7280">You</text></svg>';
                       }}
                     />
                   </div>
-                  <div className="absolute -bottom-3 -right-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-2 shadow-lg">
-                    <Sparkles className="w-6 h-6 text-white" />
+                  <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full p-3 shadow-lg">
+                    <Sparkles className="w-5 h-5 text-white" />
                   </div>
                 </div>
-
-                {/* Glow Score & Ages */}
-                <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-6 items-center">
-                  {/* Glow Score */}
-                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-center text-white shadow-xl flex flex-col justify-center border-2 border-white/40">
-                    <div className="mb-2">
-                      <Activity className="w-7 h-7 mx-auto mb-1" />
-                      <h3 className="text-lg font-semibold">Glow Score</h3>
-                    </div>
-                    <div className="text-4xl font-black mb-1">{results.overallGlowScore}</div>
-                    <p className="text-xs opacity-90">out of 100</p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Your Profile</h3>
+                    <p className="text-gray-600">Current wellness assessment</p>
                   </div>
-
-                  {/* Biological Age */}
-                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
-                    <div className="w-10 h-10 bg-green-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-white" />
+                  
+                  {/* Age Analysis Compact */}
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-emerald-600">{results.biologicalAge}</div>
+                        <div className="text-xs text-gray-600">Biological</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-pink-600">{results.emotionalAge}</div>
+                        <div className="text-xs text-gray-600">Emotional</div>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-gray-700">{results.chronologicalAge}</div>
+                        <div className="text-xs text-gray-600">Actual</div>
+                      </div>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-1">Biological</h3>
-                    <div className="text-2xl font-bold text-gray-900">{results.biologicalAge}</div>
-                  </div>
-
-                  {/* Emotional Age */}
-                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
-                    <div className="w-10 h-10 bg-pink-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <Heart className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-1">Emotional</h3>
-                    <div className="text-2xl font-bold text-gray-900">{results.emotionalAge}</div>
-                  </div>
-
-                  {/* Actual Age */}
-                  <div className="bg-white rounded-2xl w-full h-full text-center shadow-lg border border-gray-100 flex flex-col items-center justify-center p-4">
-                    <div className="w-10 h-10 bg-blue-500 rounded-xl mb-2 mx-auto flex items-center justify-center">
-                      <User className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-1">Actual</h3>
-                    <div className="text-2xl font-bold text-gray-900">{results.chronologicalAge}</div>
+                    
+                    {results.chronologicalAge - results.biologicalAge > 0 && (
+                      <div className="mt-4 text-center">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
+                          <TrendingUp className="w-4 h-4 mr-1" />
+                          {results.chronologicalAge - results.biologicalAge} years younger biologically!
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Detailed Category Scores */}
-              <div className="bg-white/90 rounded-3xl p-8 shadow-xl border border-gray-100 mb-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">Your Current Performance</h2>
-                <div className="grid md:grid-cols-3 gap-8">
-                  <div className="bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
-                        <Zap className="w-7 h-7 text-white" />
+          {/* Performance Metrics */}
+          <div className="lg:col-span-8">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 h-full">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Wellness Metrics</h3>
+                  <p className="text-gray-600">Your current performance overview</p>
+                </div>
+                <div className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Live Data
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Physical Vitality */}
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                        <Zap className="w-5 h-5 text-purple-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">Physical Vitality</h3>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Physical Vitality</h4>
+                        <p className="text-sm text-gray-500">Energy, fitness & strength</p>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline">
+                      <span className="text-4xl font-bold text-gray-900">{categoryScores.physicalVitality}</span>
+                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Progress</span>
+                      <span className="font-medium text-gray-900">{categoryScores.physicalVitality}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-purple-500 to-purple-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                        className="h-2 bg-purple-500 rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${categoryScores.physicalVitality}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-2xl font-black text-purple-700">{categoryScores.physicalVitality}%</p>
-                      <span className="text-xs text-gray-500 font-medium">Energy & Fitness</span>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        categoryScores.physicalVitality >= 70 
+                          ? 'bg-green-100 text-green-800' 
+                          : categoryScores.physicalVitality >= 50 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {categoryScores.physicalVitality >= 70 ? 'Excellent' : categoryScores.physicalVitality >= 50 ? 'Good' : 'Needs Focus'}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  <div className="bg-gradient-to-br from-pink-100 to-pink-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="w-12 h-12 bg-pink-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
-                        <Heart className="w-7 h-7 text-white" />
+                {/* Emotional Health */}
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+                        <Heart className="w-5 h-5 text-pink-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">Emotional Health</h3>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Emotional Health</h4>
+                        <p className="text-sm text-gray-500">Mood, stress & resilience</p>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline">
+                      <span className="text-4xl font-bold text-gray-900">{categoryScores.emotionalHealth}</span>
+                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Progress</span>
+                      <span className="font-medium text-gray-900">{categoryScores.emotionalHealth}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-pink-500 to-pink-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                        className="h-2 bg-pink-500 rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${categoryScores.emotionalHealth}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-2xl font-black text-pink-700">{categoryScores.emotionalHealth}%</p>
-                      <span className="text-xs text-gray-500 font-medium">Mood & Stress</span>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        categoryScores.emotionalHealth >= 70 
+                          ? 'bg-green-100 text-green-800' 
+                          : categoryScores.emotionalHealth >= 50 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {categoryScores.emotionalHealth >= 70 ? 'Excellent' : categoryScores.emotionalHealth >= 50 ? 'Good' : 'Needs Focus'}
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  <div className="bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl p-6 text-center shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col items-center">
-                    <div className="flex items-center justify-center mb-4">
-                      <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg mr-2">
-                        <Eye className="w-7 h-7 text-white" />
+                {/* Visual Appearance */}
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                        <Eye className="w-5 h-5 text-blue-600" />
                       </div>
-                      <h3 className="text-lg font-bold text-gray-900">Visual Appearance</h3>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">Visual Appearance</h4>
+                        <p className="text-sm text-gray-500">Skin, style & confidence</p>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-4 mb-3">
+                  </div>
+                  
+                  <div className="mb-6">
+                    <div className="flex items-baseline">
+                      <span className="text-4xl font-bold text-gray-900">{categoryScores.visualAppearance}</span>
+                      <span className="text-lg text-gray-500 ml-2">/100</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Progress</span>
+                      <span className="font-medium text-gray-900">{categoryScores.visualAppearance}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-1000 ease-out shadow-sm"
+                        className="h-2 bg-blue-500 rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${categoryScores.visualAppearance}%` }}
                       />
                     </div>
-                    <div className="flex justify-between items-center w-full">
-                      <p className="text-2xl font-black text-blue-700">{categoryScores.visualAppearance}%</p>
-                      <span className="text-xs text-gray-500 font-medium">Skin & Confidence</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Glow-Up Archetype */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-3xl p-8 shadow-xl border border-purple-100 mb-10 flex flex-col items-center">
-                <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center gap-2"><Star className="w-6 h-6 text-yellow-400" />Your Glow-Up Archetype</h2>
-                <div className="bg-white/80 rounded-2xl p-6 border border-purple-100 w-full max-w-xl text-center">
-                  <h3 className="text-xl font-bold text-purple-700 mb-2">{results.glowUpArchetype.name}</h3>
-                  <p className="text-gray-700 leading-relaxed text-base">{results.glowUpArchetype.description}</p>
-                </div>
-              </div>
-
-              {/* Quick Actions Section */}
-              <div className="bg-white/90 rounded-3xl p-8 shadow-xl border border-gray-100 mb-10">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center tracking-tight">Your Tools</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {/* Track Your Progress */}
-                  <div className="group">
-                    <button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-6 text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center w-full">
-                      <TrendingUp className="w-8 h-8 mb-2" />
-                      <span className="text-base mb-1 font-semibold">Track Your Progress</span>
-                      <span className="text-xs opacity-90">Monitor your daily achievements</span>
-                    </button>
-                  </div>
-
-                  {/* Test Plan (was Glow Up) */}
-                  <div className="group">
-                    <button
-                      onClick={onGoToMicroHabits}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-6 text-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center text-center w-full"
-                    >
-                      <Target className="w-8 h-8 mb-2" />
-                      <span className="text-base mb-1 font-semibold">See Your Test Plan</span>
-                      <span className="text-xs opacity-90">Start your transformation today</span>
-                    </button>
-                  </div>
-
-                  {/* AI Coach (future) */}
-                  <div className="group opacity-60">
-                    <button
-                      disabled
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-6 text-lg rounded-2xl shadow-lg flex flex-col items-center text-center w-full opacity-60 cursor-not-allowed"
-                    >
-                      <User className="w-8 h-8 mb-2" />
-                      <span className="text-base mb-1 font-semibold">AI Coach</span>
-                      <span className="text-xs">Coming Soon</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Future stats comparison
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {/* Current Stats */}
-              <div className="bg-white rounded-3xl p-6 shadow-xl shadow-gray-500/5 border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Current You</h2>
-                {/* Current Avatar and Glow Score */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="relative mb-4">
-                    <div className="w-40 h-40 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-2 shadow-xl shadow-purple-500/10">
-                      <img
-                        src={results.avatarUrls.before}
-                        alt="Your current avatar"
-                        className="w-full h-full rounded-xl object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"%23f3f4f6\" rx=\"20\"/><text x=\"100\" y=\"100\" text-anchor=\"middle\" dy=\"0.3em\" font-family=\"Arial\" font-size=\"16\" fill=\"%236b7280\">You</text></svg>';
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-xl shadow-purple-500/25 flex items-center justify-center mb-2">
-                      <span className="text-2xl font-black text-white">{results.overallGlowScore}</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">Glow Score</h3>
-                  </div>
-                </div>
-                {/* Current Stats */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-3 bg-gray-50 rounded-xl">
-                      <h4 className="text-xs font-medium text-gray-600 mb-1">Biological Age</h4>
-                      <p className="text-xl font-bold text-gray-900">{results.biologicalAge}</p>
-                    </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-xl">
-                      <h4 className="text-xs font-medium text-gray-600 mb-1">Emotional Age</h4>
-                      <p className="text-xl font-bold text-gray-900">{results.emotionalAge}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Physical Vitality</span>
-                        <span className="text-xs font-bold text-gray-900">{categoryScores.physicalVitality}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
-                          style={{ width: `${categoryScores.physicalVitality}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Emotional Health</span>
-                        <span className="text-xs font-bold text-gray-900">{categoryScores.emotionalHealth}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full"
-                          style={{ width: `${categoryScores.emotionalHealth}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Visual Appearance</span>
-                        <span className="text-xs font-bold text-gray-900">{categoryScores.visualAppearance}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
-                          style={{ width: `${categoryScores.visualAppearance}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Future Stats */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl p-6 shadow-xl shadow-purple-500/10 border border-purple-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">Future You</h2>
-                {/* Future Avatar and Glow Score */}
-                <div className="flex flex-col items-center mb-6">
-                  <div className="flex flex-col items-center mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-xl shadow-purple-500/25 flex items-center justify-center mb-2">
-                      <span className="text-2xl font-black text-white">{projectedGlowScore}</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">Projected Glow Score</h3>
-                  </div>
-                  <div className="relative">
-                    <div className="w-40 h-40 bg-gradient-to-br from-purple-200 to-pink-200 rounded-2xl p-2 shadow-xl shadow-purple-500/10">
-                      <img
-                        src={results.avatarUrls.after}
-                        alt="Your future avatar"
-                        className="w-full h-full rounded-xl object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"%23f3f4f6\" rx=\"20\"/><text x=\"100\" y=\"100\" text-anchor=\"middle\" dy=\"0.3em\" font-family=\"Arial\" font-size=\"16\" fill=\"%236b7280\">Future You</text></svg>';
-                        }}
-                      />
-                    </div>
-                    <div className="absolute -top-1 -right-1 bg-purple-600 rounded-xl p-2 shadow-lg shadow-purple-500/25">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                </div>
-                {/* Future Stats */}
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="text-center p-3 bg-white rounded-xl border border-purple-200">
-                      <h4 className="text-xs font-medium text-gray-600 mb-1">Biological Age</h4>
-                      <p className="text-xl font-bold text-purple-700">{projectedBiologicalAge}</p>
-                    </div>
-                    <div className="text-center p-3 bg-white rounded-xl border border-purple-200">
-                      <h4 className="text-xs font-medium text-gray-600 mb-1">Emotional Age</h4>
-                      <p className="text-xl font-bold text-purple-700">{projectedEmotionalAge}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Physical Vitality</span>
-                        <span className="text-xs font-bold text-purple-700">{projectedPhysicalVitality}%</span>
-                      </div>
-                      <div className="w-full bg-white rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full"
-                          style={{ width: `${projectedPhysicalVitality}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Emotional Health</span>
-                        <span className="text-xs font-bold text-purple-700">{projectedEmotionalHealth}%</span>
-                      </div>
-                      <div className="w-full bg-white rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-pink-500 to-pink-600 h-2 rounded-full"
-                          style={{ width: `${projectedEmotionalHealth}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-gray-600">Visual Appearance</span>
-                        <span className="text-xs font-bold text-purple-700">{projectedVisualAppearance}%</span>
-                      </div>
-                      <div className="w-full bg-white rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
-                          style={{ width: `${projectedVisualAppearance}%` }}
-                        />
-                      </div>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        categoryScores.visualAppearance >= 70 
+                          ? 'bg-green-100 text-green-800' 
+                          : categoryScores.visualAppearance >= 50 
+                          ? 'bg-yellow-100 text-yellow-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {categoryScores.visualAppearance >= 70 ? 'Excellent' : categoryScores.visualAppearance >= 50 ? 'Good' : 'Needs Focus'}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Archetype & Actions Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Glow-Up Archetype */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+            <div className="flex items-center mb-6">
+              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+                <Star className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Your Glow-Up Archetype</h3>
+                <p className="text-gray-600 text-sm">Personalized transformation type</p>
+              </div>
+            </div>
+            
+            <div className="relative overflow-hidden rounded-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-10"></div>
+              <div className="relative bg-white/50 backdrop-blur-sm border border-white/60 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                    <Crown className="w-5 h-5 text-white" />
+                  </div>
+                  <h4 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    {results.glowUpArchetype.name}
+                  </h4>
+                </div>
+                <p className="text-gray-700 leading-relaxed">{results.glowUpArchetype.description}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Quick Actions</h3>
+              <p className="text-gray-600 text-sm">Start your transformation journey</p>
+            </div>
+            
+            <div className="space-y-4">
+              <button
+                onClick={onGoToMicroHabits}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-lg">View Test Plan</p>
+                      <p className="text-white/80 text-sm">Start your transformation journey</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </div>
+              </button>
+
+              <button
+                onClick={onGoToFuture}
+                className="w-full group relative overflow-hidden bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-lg">Future Transformation</p>
+                      <p className="text-white/80 text-sm">See your potential results</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </div>
+              </button>
+
+              <div className="relative p-6 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 opacity-70">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="w-12 h-12 bg-gray-400 rounded-xl flex items-center justify-center mr-4">
+                      <Brain className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-gray-600 text-lg">AI Coach</p>
+                      <p className="text-gray-500 text-sm">Personalized guidance & tips</p>
+                    </div>
+                  </div>
+                  <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
+                    Coming Soon
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Insights Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Progress Insights</h3>
+              <p className="text-gray-600">Personalized recommendations based on your assessment</p>
+            </div>
+            <div className="flex items-center text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              AI Analysis
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Strengths Card */}
+            <div className="group p-6 bg-gradient-to-br from-emerald-50 to-green-100 rounded-xl border border-emerald-200 transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg flex items-center justify-center mr-3 shadow-lg">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <h4 className="text-lg font-bold text-emerald-900">Your Strengths</h4>
+              </div>
+              <p className="text-emerald-800 leading-relaxed">
+                Your biological age is <strong>{results.chronologicalAge - results.biologicalAge} years younger</strong> than your actual age! This shows excellent lifestyle choices.
+              </p>
+            </div>
+
+            {/* Growth Opportunity Card */}
+            <div className="group p-6 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl border border-blue-200 transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-lg">
+                  <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <h4 className="text-lg font-bold text-blue-900">Growth Opportunity</h4>
+              </div>
+              <p className="text-blue-800 leading-relaxed">
+                Focus on improving your <strong>lowest scoring area</strong> for maximum impact. Small, consistent changes yield the biggest results.
+              </p>
+            </div>
+
+            {/* Goal Achievement Card */}
+            <div className="group p-6 bg-gradient-to-br from-purple-50 to-violet-100 rounded-xl border border-purple-200 transition-all duration-300 hover:shadow-lg hover:scale-105">
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg flex items-center justify-center mr-3 shadow-lg">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <h4 className="text-lg font-bold text-purple-900">Achievement Goal</h4>
+              </div>
+              <p className="text-purple-800 leading-relaxed">
+                With consistent effort, you could reach an <strong>85+ Glow Score</strong> in just 3 months. Your potential is unlimited!
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  );
+      );
 };

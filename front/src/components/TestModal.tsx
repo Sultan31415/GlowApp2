@@ -88,7 +88,7 @@ export const TestModal: React.FC<TestModalProps> = ({
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen aurora-bg">
 
       
       {/* Modal Content */}
