@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { AuroraBackground } from './ui/AuroraBackground';
-import { Button } from './ui/Button';
-import { Card, CardContent } from './ui/Card';
-import { Badge } from './ui/Badge';
+import { AuroraBackground } from '../ui/AuroraBackground';
+import { Button } from '../ui/Button';
+import { Card, CardContent } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 
 interface AdvancedMainScreenProps {
   onStartTest: () => void;
@@ -23,6 +23,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
   const [activeSection, setActiveSection] = useState('hero');
   const [currentAvatar, setCurrentAvatar] = useState(0);
   const [sliderValue, setSliderValue] = useState([30]);
+  const [navScale, setNavScale] = useState(1);
 
   const sections = [
     { id: 'hero', name: 'Home' },
@@ -65,19 +66,31 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
   }, [sections, activeSection]);
 
   // Nav compress on scroll
+  const maxScroll = 300; // px after which nav stops shrinking further
+  const minScale = 0.95; // smallest horizontal scale
+
+  const handleNavScroll = () => {
+    const scrollY = window.scrollY;
+
+    // Gradual scale calculation
+    const clampedScroll = Math.min(scrollY, maxScroll);
+    const newScale = 1 - (clampedScroll / maxScroll) * (1 - minScale);
+    setNavScale(newScale);
+
+    // Still toggle compressed class for other style tweaks
+    if (scrollY > 120) {
+      setNavCompressed(true);
+    } else {
+      setNavCompressed(false);
+    }
+  };
+
   useEffect(() => {
-    const handleNavScroll = () => {
-      if (window.scrollY > 20) {
-        setNavCompressed(true);
-      } else {
-        setNavCompressed(false);
-      }
-    };
     window.addEventListener("scroll", handleNavScroll);
     return () => window.removeEventListener("scroll", handleNavScroll);
   }, []);
 
-  const scrollToSection = useCallback((e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const scrollToSection = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
     if (element) {
@@ -119,18 +132,26 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
       <div className="min-h-screen">
         {/* Navigation */}
         <nav
-          className={`bg-white/20 backdrop-blur-2xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out
-            ${navCompressed
-              ? "top-0 rounded-xl py-0.5 max-w-4xl mx-auto left-0 right-0 w-full"
-              : "top-4 rounded-full py-1 w-full left-0"}
-            px-0
+          className={`bg-white/20 backdrop-blur-2xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out px-0
+            ${
+              navCompressed
+                ? "top-0 mx-auto max-w-4xl left-0 right-0 rounded-xl py-0.5" // compressed: only adjust top & radius
+                : "top-4 mx-auto max-w-4xl left-0 right-0 rounded-full py-1"
+            }
           `}
+          style={{ transform: `scale(${navScale})`, transformOrigin: 'top center', willChange: 'transform' }}
         >
-          <div className={`mx-auto max-w-4xl px-4 flex items-center justify-between transition-all duration-300 ${navCompressed ? "py-0.5" : "py-1"}`}>
+          <div
+            className={`mx-auto max-w-4xl px-4 flex items-center justify-between transition-all duration-300 ${
+              navCompressed ? "py-0.5" : "py-1"
+            }`}
+          >
             <div className="flex items-center space-x-2">
-              <div className={`bg-gray-900 flex items-center justify-center transition-all duration-300 overflow-hidden ${navCompressed ? "w-6 h-6 rounded-lg" : "w-8 h-8 rounded-xl"}`}>
-                <Sparkles className={`text-white transition-all duration-300 ${navCompressed ? "w-4 h-4" : "w-6 h-6"}`} />
-              </div>
+              <img 
+                src="/icon.png" 
+                alt="GlowApp" 
+                className={`transition-all duration-300 ${navCompressed ? "w-6 h-6" : "w-8 h-8"} rounded-lg`} 
+              />
               <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"}`}>GlowApp</span>
             </div>
             {/* Desktop Nav */}
@@ -202,18 +223,18 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         )}
 
         {/* Hero Section */}
-        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen px-4">
+        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-40">
           <div className="max-w-7xl mx-auto text-center">
             {/* Main Headline */}
             <h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-8xl 2xl:text-8xl font-extrabold text-gray-900 mb-10 leading-tight tracking-wide text-center max-w-5xl mx-auto"
+              className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-8xl 2xl:text-8xl font-extrabold text-gray-900 mb-10 leading-tight tracking-wide text-center max-w-5xl mx-auto"
               style={{ fontFamily: '"Playfair Display", serif' }}
             >
               See the Truth.<br />
               Become the Potential.
             </h1>
             <p className="text-3xl md:text-4xl text-gray-600 mb-20 max-w-3xl mx-auto">
-              Start your transformation in 30 days.
+              Analyze your life today.
             </p>
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">

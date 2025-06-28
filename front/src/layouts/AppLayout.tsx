@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navigation } from '../components/Navigation';
+import { Navigation } from '../components/ui/Navigation';
 import { useAuth } from '@clerk/clerk-react';
 import { useLocation } from 'react-router-dom';
 

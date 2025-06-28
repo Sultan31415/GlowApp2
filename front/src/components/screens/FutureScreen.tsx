@@ -1,7 +1,7 @@
 import React from 'react';
 import { RotateCcw } from 'lucide-react';
-import { StatsCard } from './StatsCard';
-import { AssessmentResults } from '../types';
+import { StatsCard } from '../ui/StatsCard';
+import { AssessmentResults } from '../../types';
 
 interface FutureScreenProps {
   results: AssessmentResults;

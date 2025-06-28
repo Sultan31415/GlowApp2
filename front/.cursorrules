@@ -1,0 +1,41 @@
+Project Structure and Organization
+
+Use a modular component architecture: Organize components by feature and responsibility using a clear hierarchy (components/, layouts/, pages/, hooks/, utils/). Keep related files close together and follow the single responsibility principle.
+
+Implement proper separation of concerns: Keep UI components, business logic, API calls, and utilities in separate, well-defined modules for maintainability and testability.
+
+Component Design and Reusability
+
+Design components to be composable and reusable: Create small, focused components that can be combined to build complex UIs. Use composition over inheritance patterns.
+
+Implement consistent component interfaces: Use TypeScript interfaces for props, maintain consistent naming conventions, and provide clear component APIs with proper documentation.
+
+Type Safety and Validation
+
+Leverage TypeScript strictly: Use proper type definitions for all props, state, API responses, and function parameters. Avoid 'any' types and use union types, generics, and utility types effectively.
+
+Implement runtime validation: Use libraries like Zod or Yup for form validation and API response validation to ensure type safety at runtime, not just compile time.
+
+State Management and Data Flow
+
+Use appropriate state management patterns: Leverage React's built-in state management (useState, useContext) for simple cases, and consider state management libraries (Zustand, Redux Toolkit) for complex global state.
+
+Implement predictable data flow: Ensure data flows unidirectionally, use proper lifting state up patterns, and avoid direct prop drilling through multiple component layers.
+
+Error Handling and User Experience
+
+Implement comprehensive error boundaries: Use React error boundaries to catch and handle component errors gracefully, providing fallback UIs and error reporting.
+
+Provide meaningful user feedback: Display loading states, error messages, and success confirmations. Use proper accessibility attributes and ensure error messages are actionable and user-friendly.
+
+Performance and Optimization
+
+Optimize rendering performance: Use React.memo, useMemo, and useCallback appropriately to prevent unnecessary re-renders. Implement code splitting with lazy loading for route-based components.
+
+Manage bundle size effectively: Import only necessary parts of libraries, use tree-shaking, and monitor bundle size. Implement proper caching strategies for API calls and static assets.
+
+Accessibility and Standards
+
+Follow WCAG guidelines: Ensure proper semantic HTML, keyboard navigation, screen reader support, and sufficient color contrast. Use ARIA attributes when necessary.
+
+Implement responsive design: Use mobile-first approaches, proper breakpoints, and flexible layouts that work across all device sizes and orientations. 

@@ -100,7 +100,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
         /* Expanded header: logo left, collapse button right */
         <div className="flex items-center justify-between px-4 mb-6">
           <div className="flex items-center space-x-2">
-            <img src="/lcon.png" alt="GlowApp" className="w-8 h-8" />
+            <img src="/icon.png" alt="GlowApp" className="w-8 h-8" />
             {isExpanded && <span className="text-lg font-bold text-gray-800">GlowApp</span>}
           </div>
           <button
@@ -123,7 +123,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
             {(hoveredItem === 'logo' || isSidebarHovered) ? (
               <PanelLeftOpen className="w-8 h-8 text-gray-800" />
             ) : (
-              <img src="/lcon.png" alt="GlowApp" className="w-8 h-8" />
+              <img src="/icon.png" alt="GlowApp" className="w-8 h-8" />
             )}
           </div>
           {!isExpanded && (hoveredItem === 'logo') && (

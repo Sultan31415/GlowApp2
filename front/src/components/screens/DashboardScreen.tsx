@@ -19,8 +19,8 @@ import {
   Flame,
   Crown
 } from 'lucide-react';
-import { AssessmentResults } from '../types';
-import { useApi } from '../utils/useApi';
+import { AssessmentResults } from '../../types';
+import { useApi } from '../../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
 
 interface DashboardScreenProps {

@@ -1,9 +1,9 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { Question, QuizAnswer } from '../types';
+import { Question, QuizAnswer } from '../../types';
 import { QuizStep } from './QuizStep';
 import { PhotoUpload } from './PhotoUpload';
-import { LoadingScreen } from './LoadingScreen';
+import { LoadingScreen } from '../screens/LoadingScreen';
 
 interface TestModalProps {
   isOpen: boolean;

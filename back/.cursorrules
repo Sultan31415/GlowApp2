@@ -1,0 +1,29 @@
+Project Structure and Organization
+
+Use a modular project structure: Separate your application into logical components such as routers, core utilities (context management, security, error handling), and models/schemas. This makes the codebase scalable and easier to maintain.
+
+Organize routes by feature using APIRouter for clarity and modularity.
+
+Type Safety and Validation
+
+Use Python type hints for all function parameters and return values to enable FastAPI's automatic documentation and validation.
+
+Leverage Pydantic models for request and response validation, ensuring that both human and AI clients receive consistent, machine-readable data structures
+
+Dependency Injection and Shared Logic
+
+Use FastAPI's dependency injection system to handle shared resources such as database connections, authentication, and rate limiting. This promotes code reuse and makes testing easier.
+
+Chain dependencies where appropriate and decouple them for better testability and maintainability
+
+Semantic Error Handling
+
+Return structured, machine-readable error responses with error codes and actionable suggestions. This helps AI agents understand and recover from errors programmatically.
+
+Use custom exception handlers to standardize error responses across your API.
+
+Selective Endpoint Exposure
+
+Only expose endpoints that are safe and necessary for AI integration. Avoid exposing sensitive or potentially destructive operations (e.g., DELETE, PUT) unless absolutely required.
+
+Use tags or explicit inclusion/exclusion lists to control which endpoints are accessible to AI clients 
