@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Home, 
   PanelLeftOpen, 
@@ -22,10 +22,12 @@ interface NavigationProps {
 
 export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults, isExpanded, setIsExpanded }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const userBtnWrapperRef = React.useRef<HTMLDivElement>(null);
+  const navRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Helper function to check if a route is active
   const isRouteActive = (path: string) => {
@@ -33,6 +35,41 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       return location.pathname === '/' || (hasResults && location.pathname === '/dashboard');
     }
     return location.pathname === path;
+  };
+
+  // Calculate magnification based on distance from hovered item
+  const calculateMagnification = (itemId: string, hoveredId: string | null) => {
+    if (!hoveredId || hoveredId === itemId) {
+      return hoveredId === itemId ? 1.4 : 1.0; // 1.4x for hovered item, 1.0x for others when no hover
+    }
+
+    const currentElement = navRefs.current[itemId];
+    const hoveredElement = navRefs.current[hoveredId];
+    
+    if (!currentElement || !hoveredElement) return 1.0;
+
+    const currentRect = currentElement.getBoundingClientRect();
+    const hoveredRect = hoveredElement.getBoundingClientRect();
+    
+    // Calculate center-to-center distance
+    const currentCenter = currentRect.top + currentRect.height / 2;
+    const hoveredCenter = hoveredRect.top + hoveredRect.height / 2;
+    const distance = Math.abs(currentCenter - hoveredCenter);
+    
+    // Magnification falls off with distance
+    const maxDistance = 120; // pixels
+    const normalizedDistance = Math.min(distance / maxDistance, 1);
+    
+    // Easing function for smooth falloff
+    const easeOut = 1 - Math.pow(normalizedDistance, 2);
+    
+    // Scale from 1.0 to 1.2 based on proximity
+    return 1.0 + (easeOut * 0.2);
+  };
+
+  // Handle mouse move for smooth tracking
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePosition({ x: e.clientX, y: e.clientY });
   };
 
   // Navigation items configuration
@@ -93,7 +130,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
     <aside
       className={`fixed top-0 left-0 h-screen ml-2 ${isExpanded ? 'w-64' : 'w-16'} bg-white/10 backdrop-blur-lg border-r border-white/20 text-gray-800 flex flex-col py-4 shadow-2xl z-50 transition-all duration-300 rounded-r-3xl border border-white/30`}
       onMouseEnter={() => setIsSidebarHovered(true)}
-      onMouseLeave={() => setIsSidebarHovered(false)}
+      onMouseLeave={() => {
+        setIsSidebarHovered(false);
+        setHoveredItem(null);
+      }}
+      onMouseMove={handleMouseMove}
     >
       {/* Logo + Toggle */}
       {isExpanded ? (
@@ -105,7 +146,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
           </div>
           <button
             onClick={() => setIsExpanded(false)}
-            className="focus:outline-none transition-transform hover:scale-110"
+            className="focus:outline-none transition-all duration-300 hover:scale-110"
             title="Collapse"
           >
             <PanelLeftClose className="w-6 h-6 text-gray-800" />
@@ -119,7 +160,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
           onMouseEnter={() => setHoveredItem('logo')}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <div className={`transition-transform duration-200 ${(hoveredItem === 'logo' || isSidebarHovered) ? 'scale-110' : ''}`}>
+          <div className={`transition-all duration-300 ease-out ${(hoveredItem === 'logo' || isSidebarHovered) ? 'scale-125' : ''}`}>
             {(hoveredItem === 'logo' || isSidebarHovered) ? (
               <PanelLeftOpen className="w-8 h-8 text-gray-800" />
             ) : (
@@ -135,73 +176,83 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       )}
 
       {/* Navigation Links */}
-      <nav className="flex flex-col space-y-2 w-full px-2 flex-1">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={item.onClick}
-            disabled={!item.isAvailable}
-            className={`w-full rounded-xl transition-all duration-200 flex focus:outline-none relative group ${
-              !item.isAvailable 
-                ? 'opacity-40 cursor-not-allowed' 
-                : item.isActive
-                ? 'bg-white/40 text-gray-900 shadow-lg'
-                : 'text-gray-700 hover:bg-white/30 hover:text-gray-900'
-            } ${
-              isExpanded 
-                ? 'flex-row items-center py-3 px-3' 
-                : 'flex-col items-center justify-center py-3'
-            }`}
-          >
-            {/* Active indicator */}
-            {item.isActive && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-purple-600 rounded-r-full" />
-            )}
-            
-            <div className={`relative flex items-center justify-center ${!isExpanded ? 'mb-1' : ''}`}>
-              <item.icon 
-                className={`w-6 h-6 transition-all duration-200 ${
-                  item.isAvailable && hoveredItem === item.id ? 'scale-110' : ''
-                } ${item.isActive ? 'text-purple-600' : ''}`}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-              />
-              
-              {/* Tooltip for collapsed state */}
-              {!isExpanded && hoveredItem === item.id && (
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-black text-white rounded-lg shadow-lg whitespace-nowrap z-50">
-                  <div className="text-sm font-semibold">{item.tooltip}</div>
-                  {item.description && (
-                    <div className="text-xs opacity-80 mt-1">{item.description}</div>
-                  )}
-                  {!item.isAvailable && (
-                    <div className="text-xs text-yellow-300 mt-1">Coming Soon</div>
-                  )}
-                  {/* Arrow pointing to the button */}
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-black"></div>
-                </div>
+      <nav className="flex flex-col space-y-1 w-full px-2 flex-1">
+        {navItems.map((item) => {
+          const magnification = calculateMagnification(item.id, hoveredItem);
+          const isHovered = hoveredItem === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              ref={(el) => { navRefs.current[item.id] = el; }}
+              onClick={item.onClick}
+              disabled={!item.isAvailable}
+              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseLeave={() => setHoveredItem(null)}
+              className={`w-full rounded-xl transition-all duration-300 ease-out flex focus:outline-none relative group ${
+                !item.isAvailable 
+                  ? 'opacity-40 cursor-not-allowed' 
+                  : item.isActive
+                  ? 'bg-white/40 text-gray-900 shadow-lg'
+                  : 'text-gray-700 hover:bg-white/30 hover:text-gray-900'
+              } ${
+                isExpanded 
+                  ? 'flex-row items-center px-3' 
+                  : 'flex-col items-center justify-center'
+              }`}
+              style={{
+                transform: `scale(${magnification})`,
+                transformOrigin: isExpanded ? 'left center' : 'center',
+                paddingTop: isExpanded ? '12px' : `${12 * magnification}px`,
+                paddingBottom: isExpanded ? '12px' : `${12 * magnification}px`,
+                marginTop: isExpanded ? '0' : `${2 * (magnification - 1)}px`,
+                marginBottom: isExpanded ? '0' : `${2 * (magnification - 1)}px`,
+                zIndex: isHovered ? 10 : 1,
+              }}
+            >
+              {/* Active indicator */}
+              {item.isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-purple-600 rounded-r-full" />
               )}
-            </div>
-            
-            {/* Label for expanded state */}
-            {isExpanded && (
-              <div className="ml-3 flex-1 text-left">
-                <div className="text-sm font-semibold tracking-wide">{item.label}</div>
-                {item.description && (
-                  <div className="text-xs opacity-70 mt-0.5">{item.description}</div>
-                )}
-                {!item.isAvailable && (
-                  <div className="text-xs text-amber-600 mt-0.5">Coming Soon</div>
+              
+              <div className={`relative flex items-center justify-center ${!isExpanded ? 'mb-1' : ''}`}>
+                <item.icon 
+                  className={`transition-all duration-300 ease-out ${
+                    isExpanded ? 'w-6 h-6' : 'w-7 h-7'
+                  } ${item.isActive ? 'text-purple-600' : ''}`}
+                />
+                
+                {/* Tooltip for collapsed state */}
+                {!isExpanded && isHovered && (
+                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
+                    {item.tooltip}
+                    {!item.isAvailable && <span className="text-yellow-300 ml-1">(soon)</span>}
+                    {/* Arrow */}
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
+                  </div>
                 )}
               </div>
-            )}
+              
+              {/* Label for expanded state */}
+              {isExpanded && (
+                <div className="ml-3 flex-1 text-left">
+                  <div className="text-sm font-semibold tracking-wide">{item.label}</div>
+                  {item.description && (
+                    <div className="text-xs opacity-70 mt-0.5">{item.description}</div>
+                  )}
+                  {!item.isAvailable && (
+                    <div className="text-xs text-amber-600 mt-0.5">Coming Soon</div>
+                  )}
+                </div>
+              )}
 
-            {/* Status indicators for expanded state */}
-            {isExpanded && !item.isAvailable && (
-              <div className="w-2 h-2 bg-amber-400 rounded-full" />
-            )}
-          </button>
-        ))}
+              {/* Status indicators for expanded state */}
+              {isExpanded && !item.isAvailable && (
+                <div className="w-2 h-2 bg-amber-400 rounded-full" />
+              )}
+            </button>
+          );
+        })}
       </nav>
 
       {/* Account Section */}
@@ -221,20 +272,23 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
                 (el as HTMLElement | null)?.click();
               }
             }}
-            className={`w-full rounded-xl transition-all duration-200 flex cursor-pointer text-gray-700 hover:bg-white/30 hover:text-gray-900 ${
+            onMouseEnter={() => setHoveredItem('account')}
+            onMouseLeave={() => setHoveredItem(null)}
+            className={`w-full rounded-xl transition-all duration-300 ease-out flex cursor-pointer text-gray-700 hover:bg-white/30 hover:text-gray-900 ${
               isExpanded ? 'flex-row items-center py-3 px-3' : 'flex-col items-center justify-center py-3'
             }`}
+            style={{
+              transform: hoveredItem === 'account' ? 'scale(1.1)' : 'scale(1)',
+              transformOrigin: isExpanded ? 'left center' : 'center',
+            }}
           >
             <div className={`relative flex items-center justify-center ${!isExpanded ? 'mb-1' : ''}`}>
-              <div
-                onMouseEnter={() => setHoveredItem('account')}
-                onMouseLeave={() => setHoveredItem(null)}
-              >
+              <div className="transition-all duration-300 ease-out">
                 <UserButton
                   afterSignOutUrl='/'
                   appearance={{ 
                     elements: { 
-                      avatarBox: `w-6 h-6 transition-transform duration-200 ${hoveredItem === 'account' ? 'scale-110' : ''}` 
+                      avatarBox: 'w-6 h-6 transition-all duration-300' 
                     } 
                   }}
                 />
@@ -242,10 +296,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
               
               {/* Tooltip for collapsed account */}
               {!isExpanded && hoveredItem === 'account' && (
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 px-3 py-2 bg-black text-white rounded-lg shadow-lg whitespace-nowrap z-50">
-                  <div className="text-sm font-semibold">Account</div>
-                  <div className="text-xs opacity-80 mt-1">Manage your profile</div>
-                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-black"></div>
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
+                  Account
+                  <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
                 </div>
               )}
             </div>

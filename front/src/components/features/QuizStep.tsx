@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff } from 'lucide-react';
-import { Question, Option } from '../types';
+import { Question, Option } from '../../types';
 
 interface QuizStepProps {
   question: Question;
@@ -129,6 +129,36 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     }
   };
 
+  // Global keyboard event listener for all question types
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Prevent if user is typing in an input field
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (e.key === 'Enter' && canGoNext) {
+        // Cancel auto-advance if active to prevent double-advancing
+        if (showAutoAdvanceCountdown) {
+          cancelAutoAdvance();
+        }
+        onNext();
+      }
+      if (e.key === 'ArrowLeft' && canGoBack) {
+        onPrevious();
+      }
+      if (e.key === 'ArrowRight' && canGoNext) {
+        onNext();
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [canGoNext, canGoBack, onNext, onPrevious, showAutoAdvanceCountdown, cancelAutoAdvance]);
+
   // Letter indicators for options
   const optionIndicators = ['A', 'B', 'C', 'D', 'E'];
   
@@ -209,6 +239,9 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                 </div>
               );
             })}
+            <p className="text-sm text-gray-500 mt-4 text-center">
+              Press Enter to continue after selecting an answer or use the Next button
+            </p>
           </div>
         );
 

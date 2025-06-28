@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QuizAnswer, AssessmentResults } from '../types';
 import { useApi } from '../utils/useApi';
@@ -93,14 +93,14 @@ export const useAssessment = () => {
     }
   };
 
-  const fetchLatestResults = async () => {
+  const fetchLatestResults = useCallback(async () => {
     try {
       const data = await makeRequest('results');
       setResults(data);
     } catch (err) {
       // Optionally handle error
     }
-  };
+  }, [makeRequest]);
 
   return {
     currentTestStep,

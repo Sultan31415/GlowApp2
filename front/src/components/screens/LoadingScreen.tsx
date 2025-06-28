@@ -66,15 +66,15 @@ export const LoadingScreen: React.FC = () => {
 
   const [loadingSteps, setLoadingSteps] = useState(steps);
 
-  // Simulate progress
+  // Simulate progress - reduced frequency to prevent excessive updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setTimeElapsed(prev => prev + 0.1);
+      setTimeElapsed(prev => prev + 0.5);
       setProgress(prev => {
-        const newProgress = Math.min(prev + 0.8, 85); // Cap at 85% for realism
+        const newProgress = Math.min(prev + 2, 85); // Cap at 85% for realism
         return newProgress;
       });
-    }, 100);
+    }, 500); // Changed from 100ms to 500ms (5x less frequent)
 
     return () => clearInterval(interval);
   }, []);

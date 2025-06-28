@@ -29,7 +29,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       const url = URL.createObjectURL(uploadedPhoto);
       setPreviewUrl(url);
       setValidationError(null);
-      // Simulate upload progress for better UX
+      // Simulate upload progress for better UX - reduced frequency
       setUploadProgress(0);
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
@@ -37,9 +37,9 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
             clearInterval(progressInterval);
             return 100;
           }
-          return prev + 10;
+          return prev + 20; // Increased increment to compensate for slower interval
         });
-      }, 50);
+      }, 200); // Changed from 50ms to 200ms (4x less frequent)
       return () => {
         URL.revokeObjectURL(url);
         clearInterval(progressInterval);

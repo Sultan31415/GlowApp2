@@ -1,9 +1,10 @@
+import { useCallback } from "react";
 import { useAuth } from "@clerk/clerk-react";
 
 export const useApi = () => {
     const { getToken } = useAuth();
 
-    const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
+    const makeRequest = useCallback(async (endpoint: string, options: RequestInit = {}) => {
         const token = await getToken();
         const defaultOptions: RequestInit = {
             headers: {
@@ -30,7 +31,7 @@ export const useApi = () => {
         }
 
         return response.json();
-    };
+    }, [getToken]); // Only recreate if getToken changes
 
     return { makeRequest };
 };
