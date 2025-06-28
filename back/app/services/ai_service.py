@@ -30,11 +30,14 @@ class AIService:
     def __init__(self):
         """Initialize AI services and data, and set up LangGraph pipeline."""
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.orchestrator = genai.GenerativeModel(settings.GEMINI_MODEL)
-        self.question_map = self._build_question_map(quiz_data)
-        self._graph = build_analysis_graph(self.orchestrator, self.question_map)
+        self.orchestrator = genai.GenerativeModel(
+            model_name=settings.GEMINI_MODEL,
+            generation_config=genai.types.GenerationConfig()
+        )
         self.photo_analyzer = PhotoAnalyzerGPT4o()
         self.quiz_analyzer = QuizAnalyzerGemini()
+        self.question_map = self._build_question_map(quiz_data)
+        self._graph = build_analysis_graph(self.orchestrator, self.question_map)
 
     def _build_question_map(self, q_data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """Builds a map from question ID to its full question details for quick lookup."""
@@ -51,8 +54,12 @@ class AIService:
         additional_data: Dict[str, Any],
         photo_url: Optional[str]
     ) -> Dict[str, Any]:
-        """Orchestrate multi-agent analysis: quiz, photo, and holistic synthesis using LangGraph only."""
+        """Orchestrate multi-agent analysis: quiz, photo, and holistic synthesis using PARALLEL LangGraph processing."""
+        import time
+        start_time = time.time()
+        
         try:
+            print(f"[AI Service] 🚀 Starting PARALLEL LangGraph analysis pipeline...")
             initial_state: AnalysisState = {
                 "answers": answers,
                 "base_scores": base_scores,
@@ -60,8 +67,14 @@ class AIService:
                 "photo_url": photo_url,
             }
             final_state = self._graph.invoke(initial_state)
-            if final_state and final_state.get("ai_analysis") is not None:
-                ai_analysis = final_state["ai_analysis"]
+            
+            total_time = time.time() - start_time
+            print(f"[AI Service] ✅ PARALLEL LangGraph pipeline completed in {total_time:.2f}s")
+            
+            # FIXED: Handle both sync (ai_analysis) and async (final_analysis) pipeline results
+            ai_analysis = final_state.get("ai_analysis") or final_state.get("final_analysis")
+            
+            if final_state and ai_analysis is not None:
                 # Use the latest state for all required fields
                 return self._format_response(
                     ai_analysis,
@@ -72,6 +85,7 @@ class AIService:
                     final_state.get("quiz_insights")
                 )
             else:
+                print(f"[AI Service] ❌ LangGraph final state keys: {list(final_state.keys()) if final_state else 'None'}")
                 raise HTTPException(status_code=500, detail="AI analysis failed: No final response from LangGraph.")
         except Exception as e:
             print(f"Error in get_ai_analysis (LangGraph): {traceback.format_exc()}")
@@ -246,3 +260,30 @@ class AIService:
         builder.set_entry_point("photo")
         self._graph = builder.compile()
     # ---------------------------------------------------------------------------
+
+    async def generate_async(self, prompt: str) -> str:
+        """
+        OPTIMIZED: Async method for orchestrator generation.
+        Used by optimized async nodes for faster processing.
+        """
+        try:
+            # Optimized generation config for faster processing
+            generation_config = genai.types.GenerationConfig(
+                temperature=0.3,  # Lower for faster, more consistent results
+                top_p=0.8,
+                candidate_count=1,
+                max_output_tokens=800  # Reduced for faster response
+            )
+            
+            # Use asyncio to run the sync method in a thread pool since Gemini doesn't have native async
+            import asyncio
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                None,
+                lambda: self.orchestrator.generate_content([prompt], generation_config=generation_config)
+            )
+            return response.text
+            
+        except Exception as e:
+            print(f"Orchestrator async generation error: {e}")
+            raise e

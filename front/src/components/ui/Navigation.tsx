@@ -168,9 +168,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
             )}
           </div>
           {!isExpanded && (hoveredItem === 'logo') && (
-            <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs font-semibold text-white bg-black rounded shadow-lg whitespace-nowrap">
+            <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
               Expand
-            </span>
+              <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
+            </div>
           )}
         </button>
       )}

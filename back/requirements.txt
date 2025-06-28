@@ -17,17 +17,14 @@ google-generativeai==0.3.2
 pillow==10.1.0
 openai==1.67.0
 
-# Additional packages
-python-dotenv==1.0.0
-python-jose==3.3.0
-python-multipart==0.0.6
-uvicorn==0.24.0 
-
-
+# LangGraph and LangChain
 langchain==0.2.*
-langgraph==0.0.*        # optional but nice for explicit graphs
-tiktoken               # LangChain helper
+langgraph==0.0.*
+tiktoken
 
+# Async HTTP for optimization
+aiohttp==3.8.6
+
+# Additional packages
 svix
-
 clerk_backend_api
