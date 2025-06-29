@@ -196,10 +196,7 @@ function App() {
           element={
             <>
               <SignedIn>
-                <DashboardScreen
-                  onGoToMicroHabits={() => navigate('/micro-habits')}
-                  onGoToFuture={() => navigate('/future')}
-                />
+                <DashboardScreen />
               </SignedIn>
               <SignedOut>
                 <RedirectToSignIn />
@@ -230,6 +227,8 @@ function App() {
           }
         />
         
+        {/* TEMPORARILY DISABLED FOR MVP LAUNCH */}
+        {/* 
         <Route
           path="/future"
           element={
@@ -268,6 +267,25 @@ function App() {
             </>
           }
         />
+        
+        <Route
+          path="/progress"
+          element={
+            <>
+              <SignedIn>
+                {assessment.results ? (
+                  <div>Progress Tracker Page</div>
+                ) : (
+                  <Navigate to="/" />
+                )}
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+        */}
         
         <Route
           path="/error"

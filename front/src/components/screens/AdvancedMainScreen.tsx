@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Sparkles, Target, User, TrendingUp, Heart, ArrowRight, Star, MessageCircle, Camera, 
   Check, Users, RefreshCw, Clock, BarChart3, Trophy, Eye, Play, Crown, Zap, 
-  CheckCircle, Facebook, Twitter, Instagram, Youtube, Linkedin
+  CheckCircle, Facebook, Twitter, Instagram, Youtube, Linkedin, Brain
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
@@ -28,9 +28,9 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
 
   const sections = [
     { id: 'hero', name: 'Home' },
-    { id: 'how-it-works', name: 'How It Works' },
     { id: 'features', name: 'Features' },
-    { id: 'pricing', name: 'Pricing' },
+    { id: 'how-it-works', name: 'How It Works' },
+    { id: 'testimonials', name: 'Success Stories' },
     { id: 'contact', name: 'Contact' },
   ];
 
@@ -297,17 +297,210 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
           </div>
         </section>
 
+        {/* Revolutionary Features Section */}
+        <section id="features" className="py-20 px-4 bg-gradient-to-br from-slate-50 via-blue-25 to-indigo-50">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+              <Badge className="bg-purple-100 text-purple-700 border border-purple-200 mb-6">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Revolutionary AI Features
+              </Badge>
+              <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                Your Ultimate Glow-Up Experience
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Cutting-edge AI technology that analyzes, transforms, and guides your journey to your highest potential
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+              {/* Visual Transformation Avatar */}
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/50 hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
+                      <Camera className="w-8 h-8 text-green-600" />
+                    </div>
+                    <Badge className="bg-green-100 text-green-700 border border-green-200">Coming Soon</Badge>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Visual Transformation Avatar</h3>
+                  <p className="text-gray-600 mb-6">AI-powered avatar showing your full potential with detailed metrics and visual transformation preview</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                      AI-generated future self visualization
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                      Real-time progress tracking
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                      Biological age analysis
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Atomic Glow-Up System */}
+              <Card className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200/50 hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
+                      <Target className="w-8 h-8 text-red-600" />
+                    </div>
+                    <Badge className="bg-red-100 text-red-700 border border-red-200">Coming Soon</Badge>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">Atomic Glow-Up System</h3>
+                  <p className="text-gray-600 mb-6">30-day micro-habits and challenges scientifically designed to reach your full glow potential</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
+                      Personalized daily micro-habits
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
+                      Proven transformation methodology
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
+                      Gamified challenge system
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Coach */}
+              <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 hover:shadow-xl transition-all duration-300 group">
+                <CardContent className="p-8">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
+                      <Brain className="w-8 h-8 text-orange-600" />
+                    </div>
+                    <Badge className="bg-orange-100 text-orange-700 border border-orange-200">Coming Soon</Badge>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">AI Personal Coach</h3>
+                  <p className="text-gray-600 mb-6">Your 24/7 AI coach providing personalized guidance, tips, and motivation for your transformation journey</p>
+                  <div className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
+                      Real-time personalized guidance
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
+                      Adaptive coaching strategies
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
+                      24/7 motivation and support
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Glow Score Analytics Preview */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8 mb-12">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <Badge className="bg-purple-100 text-purple-700 border border-purple-200 mb-4">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Advanced Analytics
+                  </Badge>
+                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                    Get Your Complete Glow Score Analysis
+                  </h3>
+                  <p className="text-lg text-gray-600 mb-8">
+                    Our AI analyzes 50+ factors across Physical Vitality, Emotional Health, and Visual Appearance to give you a comprehensive wellness score with actionable insights.
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
+                        <Zap className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">Physical Vitality Score</h4>
+                        <p className="text-sm text-gray-600">Energy, fitness & strength analysis</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-4">
+                        <Heart className="w-4 h-4 text-pink-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">Emotional Health Score</h4>
+                        <p className="text-sm text-gray-600">Mood, stress & resilience tracking</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                        <Eye className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">Visual Appearance Score</h4>
+                        <p className="text-sm text-gray-600">Skin, style & confidence metrics</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8">
+                  <div className="text-center mb-6">
+                    <div className="inline-flex items-center bg-white rounded-xl shadow-lg px-6 py-4 mb-4">
+                      <span className="text-sm font-semibold text-gray-600 mr-4">Your Glow Score</span>
+                      <div className="flex items-center">
+                        <span className="text-3xl font-black text-gray-900">78</span>
+                        <div className="flex items-center ml-2">
+                          <TrendingUp className="w-4 h-4 text-emerald-500" />
+                          <span className="text-lg font-bold text-emerald-600">→85+</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">Potential to reach 85+ with our AI guidance</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Physical Vitality</span>
+                      <span className="text-sm font-bold text-purple-600">82/100</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="h-2 bg-purple-500 rounded-full" style={{ width: '82%' }}></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Emotional Health</span>
+                      <span className="text-sm font-bold text-pink-600">75/100</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="h-2 bg-pink-500 rounded-full" style={{ width: '75%' }}></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Visual Appearance</span>
+                      <span className="text-sm font-bold text-blue-600">77/100</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '77%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* How It Works */}
         <section id="how-it-works" className="py-20 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
               <Badge className="bg-gray-100 text-gray-600 border border-gray-200 mb-6">
                 <Target className="w-4 h-4 mr-2" />
-                Process
+                Simple Process
               </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">How It Works</h2>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">From Analysis to Transformation</h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Four simple steps to unlock your transformation potential
+                Four simple steps to unlock your complete transformation potential
               </p>
             </div>
 
@@ -315,30 +508,30 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               {[
                 {
                   step: "01",
-                  title: "Take the Quiz",
-                  description: "15 questions about your lifestyle and goals",
+                  title: "Complete Assessment",
+                  description: "15 detailed questions analyzing your lifestyle, habits, and wellness goals",
                   icon: MessageCircle,
                   color: "from-blue-200 to-blue-600",
                 },
                 {
                   step: "02",
-                  title: "Upload Selfie",
-                  description: "Get your FaceScore + GlowScore analysis",
+                  title: "Upload Photo",
+                  description: "AI analyzes your photo for biological age, facial features, and glow potential",
                   icon: Camera,
                   color: "from-purple-200 to-pink-500",
                 },
                 {
                   step: "03",
-                  title: "See Future Self",
-                  description: "AI-generated avatar of your potential",
-                  icon: Sparkles,
+                  title: "Get Your Scores",
+                  description: "Receive detailed Glow Score breakdown with personalized archetype analysis",
+                  icon: BarChart3,
                   color: "from-pink-200 to-red-500",
                 },
                 {
                   step: "04",
-                  title: "Start GlowApp",
-                  description: "30-day plan with daily micro-habits",
-                  icon: Target,
+                  title: "Start Transforming",
+                  description: "Access your dashboard with AI-powered features and transformation roadmap",
+                  icon: Sparkles,
                   color: "from-green-200 to-green-600",
                 },
               ].map((item, index) => (
@@ -358,6 +551,130 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section id="testimonials" className="py-20 px-4 bg-gradient-to-br from-purple-50 via-pink-25 to-red-50">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <Badge className="bg-pink-100 text-pink-700 border border-pink-200 mb-6">
+                <Star className="w-4 h-4 mr-2" />
+                Success Stories
+              </Badge>
+              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Real Transformations</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                See how our AI-powered platform has helped thousands discover their potential
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              {[
+                {
+                  name: "Sarah M.",
+                  age: 28,
+                  glowScore: 85,
+                  improvement: "+18 points",
+                  archetype: "Radiant Achiever",
+                  quote: "The biological age analysis was mind-blowing - I'm actually 3 years younger than my chronological age! The personalized insights helped me understand exactly what to focus on.",
+                  metrics: {
+                    physical: 88,
+                    emotional: 82,
+                    visual: 85
+                  }
+                },
+                {
+                  name: "Alex K.",
+                  age: 32,
+                  glowScore: 91,
+                  improvement: "+24 points",
+                  archetype: "Balanced Transformer",
+                  quote: "The Glow Score breakdown showed me I was stronger emotionally than I thought, but needed to work on physical vitality. The targeted approach really works!",
+                  metrics: {
+                    physical: 85,
+                    emotional: 95,
+                    visual: 92
+                  }
+                },
+                {
+                  name: "Maya L.",
+                  age: 25,
+                  glowScore: 87,
+                  improvement: "+21 points",
+                  archetype: "Confident Visionary",
+                  quote: "Seeing my future self avatar was incredibly motivating. The AI analysis gave me concrete steps to reach my full potential. I feel more confident than ever!",
+                  metrics: {
+                    physical: 90,
+                    emotional: 84,
+                    visual: 87
+                  }
+                }
+              ].map((testimonial, index) => (
+                <Card key={index} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                  <CardContent className="p-8">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                          {testimonial.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
+                          <p className="text-sm text-gray-500">{testimonial.archetype}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center">
+                          <span className="text-2xl font-bold text-gray-900">{testimonial.glowScore}</span>
+                          <div className="ml-2">
+                            <TrendingUp className="w-4 h-4 text-emerald-500" />
+                            <span className="text-sm font-bold text-emerald-600">{testimonial.improvement}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-6 italic">"{testimonial.quote}"</p>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Physical Vitality</span>
+                        <span className="font-bold text-purple-600">{testimonial.metrics.physical}/100</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div className="h-1.5 bg-purple-500 rounded-full" style={{ width: `${testimonial.metrics.physical}%` }}></div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Emotional Health</span>
+                        <span className="font-bold text-pink-600">{testimonial.metrics.emotional}/100</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div className="h-1.5 bg-pink-500 rounded-full" style={{ width: `${testimonial.metrics.emotional}%` }}></div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Visual Appearance</span>
+                        <span className="font-bold text-blue-600">{testimonial.metrics.visual}/100</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div className="h-1.5 bg-blue-500 rounded-full" style={{ width: `${testimonial.metrics.visual}%` }}></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Button 
+                onClick={handleGetStarted}
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                Start Your Transformation Journey
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
             </div>
           </div>
         </section>

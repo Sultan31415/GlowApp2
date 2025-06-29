@@ -5,10 +5,12 @@ import {
   PanelLeftClose, 
   BarChart3,
   Camera,
-  Target,
+  Calendar,
   Sparkles,
-  MessageCircle,
-  Settings
+  Activity,
+  Settings,
+  Image,
+  TrendingUp
 } from 'lucide-react';
 import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -96,19 +98,9 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       isActive: location.pathname === '/test'
     },
     {
-      id: 'habits',
-      label: 'My Habits',
-      icon: Target,
-      onClick: () => navigate('/micro-habits'),
-      isAvailable: hasResults,
-      tooltip: 'My Habits',
-      description: 'Personalized micro-habits',
-      isActive: isRouteActive('/micro-habits')
-    },
-    {
       id: 'transformation',
       label: 'Transformation',
-      icon: Sparkles,
+      icon: Image,
       onClick: () => navigate('/future'),
       isAvailable: hasResults,
       tooltip: 'Transformation',
@@ -116,14 +108,24 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       isActive: isRouteActive('/future')
     },
     {
-      id: 'coach',
-      label: 'AI Coach',
-      icon: MessageCircle,
-      onClick: () => {},
-      isAvailable: false,
-      tooltip: 'AI Coach (Coming Soon)',
-      description: 'Personal wellness coach',
-      isActive: false
+      id: 'habits',
+      label: 'My Habits',
+      icon: Calendar,
+      onClick: () => navigate('/micro-habits'),
+      isAvailable: hasResults,
+      tooltip: 'My Habits',
+      description: 'Personalized micro-habits',
+      isActive: isRouteActive('/micro-habits')
+    },
+    {
+      id: 'progress',
+      label: 'Progress Tracker',
+      icon: TrendingUp,
+      onClick: () => navigate('/progress'),
+      isAvailable: hasResults,
+      tooltip: 'Progress Tracker',
+      description: 'Track your transformation',
+      isActive: isRouteActive('/progress')
     }
   ];
   
