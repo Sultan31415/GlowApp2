@@ -50,11 +50,22 @@ The application follows a clean architecture pattern with clear separation of co
    # Gemini AI (for quiz analysis and orchestration)
    GEMINI_API_KEY=your_gemini_api_key_here
    
-   # Azure OpenAI (for photo analysis)
+   # Azure OpenAI (for photo analysis and orchestration)
    AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
    AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-   AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=gpt-4o
    AZURE_OPENAI_API_VERSION=2024-02-15-preview
+   
+   # Separate deployment names for different models (required in Azure OpenAI)
+   AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=gpt-4o
+   AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME=gpt-4o-mini
+   
+   # Optional: Specific model versions (use latest available in your region)
+   AZURE_OPENAI_GPT4O_DEPLOYMENT_VERSION=2024-05-13
+   AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_VERSION=2024-07-18
+   
+   # Optional: Deployment capacity in thousands of tokens per minute (adjust based on needs)
+   AZURE_OPENAI_GPT4O_DEPLOYMENT_CAPACITY=30
+   AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_CAPACITY=30
    
    # Database
    DATABASE_URL=postgresql://glowuser:glowpassword@localhost:5433/glowdb
@@ -64,12 +75,17 @@ The application follows a clean architecture pattern with clear separation of co
    JWT_KEY=your_jwt_key
    ```
 
-3. **Test photo processing** (optional):
+3. **Test Azure OpenAI configuration** (recommended):
+   ```bash
+   python3 test_azure_openai_config.py
+   ```
+
+4. **Test photo processing** (optional):
    ```bash
    python3 test_photo_processing.py
    ```
 
-4. **Run the application**:
+5. **Run the application**:
    ```bash
    python3 run.py
    ```
@@ -136,10 +152,17 @@ Response:
 - **Quiz Scoring**: Automated calculation of wellness scores across three categories
 - **AI Analysis**: Integration with Google Gemini AI for personalized insights and quiz analysis
 - **Photo Analysis**: Azure OpenAI GPT-4o Vision for advanced facial image analysis with fallback handling
+- **AI Orchestration**: Azure OpenAI GPT-4o Mini for intelligent synthesis of photo and quiz insights
 - **Age Estimation**: Biological and emotional age estimation using multi-modal AI
 - **Personalized Recommendations**: AI-generated micro-habits and archetypes
 
-## Recent Fixes
+## Recent Updates
+
+### Azure OpenAI Multi-Model Support (Latest)
+- **Enhancement**: Added proper support for separate Azure OpenAI deployments
+- **Configuration**: Now supports different deployment names for GPT-4o and GPT-4o mini
+- **Orchestration**: Updated orchestrator to use GPT-4o mini with fallback to Gemini
+- **Documentation**: Added comprehensive Azure OpenAI setup guide
 
 ### Photo Processing Issue (Fixed)
 - **Problem**: Photo processing was failing with `TypeError: Could not create Blob`
@@ -156,6 +179,27 @@ The codebase is organized for easy maintenance and extension:
 - Define new models in `app/models/schemas.py`
 - Update configuration in `app/config/settings.py`
 
+## Azure OpenAI Setup
+
+### Deployment Configuration
+In Azure OpenAI, each model requires a separate deployment. You need to create deployments for:
+
+1. **GPT-4o** (for photo analysis) - Set `AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME`
+2. **GPT-4o mini** (for orchestration) - Set `AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME`
+
+### Creating Azure OpenAI Deployments
+1. Go to Azure OpenAI Studio
+2. Navigate to "Deployments" → "Create new deployment"
+3. Create two deployments:
+   - **Model**: gpt-4o, **Deployment name**: `gpt-4o` (or your preferred name)
+   - **Model**: gpt-4o-mini, **Deployment name**: `gpt-4o-mini` (or your preferred name)
+4. Update your `.env` file with the actual deployment names
+
+### Model Versions and Capacity
+- Use the latest available model versions in your region
+- Adjust capacity based on your expected usage (default: 30K TPM)
+- For free tier accounts, use lower capacity values (e.g., 1-10K TPM)
+
 ## Troubleshooting
 
 ### Photo Processing Issues
@@ -166,16 +210,27 @@ If you encounter photo processing errors:
 4. Check the base64 encoding is correct
 5. Run `python3 test_photo_processing.py` to test the functionality
 
+### Azure OpenAI Issues
+Common Azure OpenAI configuration problems:
+1. **Deployment not found**: Verify deployment names match your Azure configuration
+2. **Rate limiting**: Check your deployment capacity and usage
+3. **API version**: Ensure you're using a supported API version
+4. **Region availability**: Some models may not be available in all regions
+
+**Quick Fix**: Run `python3 test_azure_openai_config.py` to test your configuration
+
 ### API Key Issues
 Make sure your `.env` file contains all required keys:
 ```
 # Required for quiz analysis
 GEMINI_API_KEY=your_actual_gemini_api_key_here
 
-# Required for photo analysis
+# Required for Azure OpenAI (photo analysis and orchestration)
 AZURE_OPENAI_API_KEY=your_actual_azure_openai_key_here
 AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
-AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=your_deployment_name
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=your_gpt4o_deployment_name
+AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME=your_gpt4o_mini_deployment_name
 
 # Required for authentication
 CLERK_SECRET_KEY=your_clerk_secret_key

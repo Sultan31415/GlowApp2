@@ -178,7 +178,7 @@ quiz_data: List[Dict[str, Any]] = [
         "questions": [
             {
                 "id": "q12",
-                "text": "How often do you experience the following: headaches, digestive issues, muscle tension, or frequent illness?",
+                "text": "How often do you experience physical symptoms like headaches, digestive issues, muscle tension, or frequent colds?",
                 "type": "single-choice",
                 "impact_weight": 0.8,
                 "options": [
@@ -213,6 +213,19 @@ quiz_data: List[Dict[str, Any]] = [
                     {"value": "overweight", "label": "Overweight (BMI 25-29.9)"},
                     {"value": "obese", "label": "Obese (BMI ≥ 30)"},
                     {"value": "unknown", "label": "I don't know my BMI"},
+                ],
+            },
+            {
+                "id": "q18",
+                "text": "How much water do you typically drink per day?",
+                "type": "single-choice",
+                "impact_weight": 0.6,
+                "options": [
+                    {"value": 5, "label": "8+ glasses (2+ liters) - well hydrated"},
+                    {"value": 4, "label": "6-7 glasses (1.5-2 liters)"},
+                    {"value": 3, "label": "4-5 glasses (1-1.5 liters)"},
+                    {"value": 2, "label": "2-3 glasses (0.5-1 liter)"},
+                    {"value": 1, "label": "Less than 2 glasses (under 0.5 liter)"},
                 ],
             },
         ],

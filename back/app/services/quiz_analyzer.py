@@ -1,6 +1,7 @@
 import google.generativeai as genai
 from app.config.settings import settings
 from app.models.schemas import QuizAnswer
+from app.services.prompt_optimizer import PromptOptimizer
 from typing import List, Dict, Any, Optional
 import json
 import re
@@ -11,15 +12,18 @@ class QuizAnalyzerGemini:
     def __init__(self):
         genai.configure(api_key=settings.GEMINI_API_KEY)
         self.model = genai.GenerativeModel(settings.GEMINI_MODEL)
-        # Create async model for optimized processing
-        self.async_model = genai.GenerativeModel(settings.GEMINI_MODEL)
+        # Remove async_model creation from __init__ to fix event loop issues
 
     async def analyze_quiz_async(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
         OPTIMIZED: Async quiz analysis with dramatically shortened prompts.
         Expected 40-60% faster than sync version.
+        Fixed event loop issue by creating async model in the correct context.
         """
         try:
+            # Create async model in the current event loop context to avoid "different loop" errors
+            async_model = genai.GenerativeModel(settings.GEMINI_MODEL)
+            
             prompt = self._build_optimized_prompt(answers, base_scores, additional_data, question_map)
             
             # Optimized generation config for faster processing
@@ -27,79 +31,122 @@ class QuizAnalyzerGemini:
                 temperature=0.3,  # Lower for faster, more consistent results
                 top_p=0.8,        # Reduced for faster processing
                 candidate_count=1,
-                max_output_tokens=800  # Reduced from 2048 for faster response
+                max_output_tokens=600  # Reduced to prevent truncation
             )
             
-            # Use async generation
-            response = await self.async_model.generate_content_async([prompt], generation_config=generation_config)
+            # Use async generation with model created in correct context
+            response = await async_model.generate_content_async([prompt], generation_config=generation_config)
             return self._parse_response(response.text)
             
         except Exception as e:
             print(f"QuizAnalyzerGemini ASYNC error: {e}")
             return None
 
+    def analyze_quiz_fast(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        ULTRA-FAST quiz analysis with optimized prompt and reduced complexity.
+        Uses compressed prompts and minimal required fields.
+        """
+        try:
+            print("[LangGraph] 📝⚡ Processing {} answers (speed mode) for {}".format(
+                len(answers), additional_data.get('countryOfResidence', 'Global')))
+
+            prompt = self._build_optimized_prompt(answers, base_scores, additional_data, question_map)
+
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.GenerationConfig(
+                    max_output_tokens=1200,  # Increased from 350 to handle JSON properly
+                    temperature=0.1,  # Even lower for maximum speed and consistency
+                )
+            )
+
+            if not response or not response.text:
+                print("QuizAnalyzer FAST: Empty response from Gemini")
+                return self._get_fallback_quiz_response(base_scores, additional_data)
+
+            result = self._parse_response(response.text)
+            if result is None:
+                print("QuizAnalyzer FAST: Failed to parse response, using fallback")
+                return self._get_fallback_quiz_response(base_scores, additional_data)
+                
+            return result
+
+        except Exception as e:
+            print(f"QuizAnalyzer FAST error: {e}")
+            return self._get_fallback_quiz_response(base_scores, additional_data)
+
     def _build_optimized_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> str:
         """
-        OPTIMIZED: Much shorter, focused prompt for faster processing.
-        Reduces token count by ~70% while maintaining quality.
+        FIXED: Concise prompt that prevents JSON truncation while maintaining quality.
+        Optimized for speed and reliability.
         """
         age = additional_data.get('chronologicalAge', 'Unknown')
         country = additional_data.get('countryOfResidence', 'Unknown')
         
-        # Build concise answer summary
+        # Build concise answer analysis
         key_answers = []
         for ans in answers:
             q_detail = question_map.get(ans.questionId, {})
-            q_text = q_detail.get('text', f'Q{ans.questionId}')[:50] + "..."  # Truncate long questions
+            q_text = q_detail.get('text', f'Q{ans.questionId}')[:40] + "..." if len(q_detail.get('text', '')) > 40 else q_detail.get('text', f'Q{ans.questionId}')
             label = ans.label or str(ans.value)
             key_answers.append(f"Q{ans.questionId}: {label}")
         
-        answers_summary = " | ".join(key_answers[:15])  # Limit to first 15 for brevity
+        answers_summary = " | ".join(key_answers[:12])  # Limit to prevent truncation
         
         return f"""Analyze wellness data for user (Age: {age}, Country: {country}).
 
-BASE SCORES: Physical={base_scores['physicalVitality']}, Emotional={base_scores['emotionalHealth']}, Visual={base_scores['visualAppearance']}
+BASE SCORES: Physical={base_scores['physicalVitality']:.1f}, Emotional={base_scores['emotionalHealth']:.1f}, Visual={base_scores['visualAppearance']:.1f}
 
-ANSWERS: {answers_summary}
+KEY ANSWERS: {answers_summary}
 
-Adjust scores based on answers and {country} context. Return ONLY JSON:
+Apply {country}-specific health context and cultural factors. Be concise but thorough.
+
+Return ONLY JSON (no extra text):
 {{
   "chronologicalAge": {age},
   "adjustedScores": {{
-    "physicalVitality": <0-100, adjust base score based on sleep, exercise, diet answers and {country} health norms>,
-    "emotionalHealth": <0-100, adjust base score based on stress, happiness, social answers and {country} cultural factors>,
-    "visualAppearance": <0-100, adjust base score based on self-perception and {country} appearance factors>
+    "physicalVitality": <0-100, adjust base score considering exercise, sleep, diet, and {country} health norms>,
+    "emotionalHealth": <0-100, adjust base score considering stress, social support, and {country} cultural factors>,
+    "visualAppearance": <0-100, adjust base score considering self-perception and {country} appearance standards>
+  }},
+  "healthAssessment": {{
+    "physicalRisks": ["<top 2 health risks>"],
+    "mentalWellness": ["<top 2 emotional patterns>"],
+    "lifestyleFactors": ["<top 2 lifestyle impacts>"]
   }},
   "keyStrengths": [
-    "<1-2 sentences citing specific answers>",
-    "<1-2 sentences citing specific answers>"
+    "<strength 1 with evidence>",
+    "<strength 2 with evidence>"
   ],
-  "keyRisks": [
-    "<1-2 sentences citing specific answers>", 
-    "<1-2 sentences citing specific answers>"
+  "priorityAreas": [
+    "<priority 1 with action>",
+    "<priority 2 with action>"
   ],
-  "categorySpecificInsights": {{
-    "physicalVitality": "<Brief insight explaining score adjustment for {country} context>",
-    "emotionalHealth": "<Brief insight explaining score adjustment for {country} context>",
-    "visualAppearance": "<Brief insight explaining score adjustment for {country} context>"
+  "culturalContext": "<brief {country}-specific health insight>",
+  "recommendations": {{
+    "physicalVitality": "<specific actionable advice>",
+    "emotionalHealth": "<targeted wellness strategy>",
+    "visualAppearance": "<appearance-related guidance>"
   }},
-  "quizDataSummary": "<150 words max summary with encouragement>"
+  "summary": "<100 words integrating all factors with encouraging tone>"
 }}
 
-Be concise, accurate, and country-aware. Output only JSON."""
+Keep responses concise to prevent truncation. Focus on key insights and actionable recommendations."""
 
     def analyze_quiz(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
-        Analyze quiz answers and health metrics, return structured quiz insights (JSON).
+        ENHANCED: Comprehensive quiz analysis with advanced psychological and health assessment.
+        Provides detailed wellness insights for integration with photo analysis.
         """
         try:
-            prompt = self._build_prompt(answers, base_scores, additional_data, question_map)
-            # Use a consistent generation configuration for reliable metrics
+            prompt = self._build_enhanced_prompt(answers, base_scores, additional_data, question_map)
+            # Use optimized generation configuration for comprehensive yet efficient analysis
             generation_config = genai.types.GenerationConfig(
-                temperature=0.7,
+                temperature=0.4,  # Balanced for nuanced analysis
                 top_p=0.9,
                 candidate_count=1,
-                max_output_tokens=2048
+                max_output_tokens=2500  # Increased for comprehensive analysis
             )
             response = self.model.generate_content([prompt], generation_config=generation_config)
             return self._parse_response(response.text)
@@ -107,112 +154,239 @@ Be concise, accurate, and country-aware. Output only JSON."""
             print(f"QuizAnalyzerGemini error: {e}")
             return None
 
-    def _build_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> str:
+    def _build_enhanced_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> str:
+        """
+        ENHANCED: Comprehensive prompt using advanced wellness assessment principles.
+        Integrates psychological, physiological, and cultural factors for holistic analysis.
+        """
         user_profile_lines = [
             f"Chronological Age: {additional_data.get('chronologicalAge', 'Not provided')} years",
             f"Biological Sex: {additional_data.get('biologicalSex', 'Not provided').replace('-', ' ').title()}",
-            f"Country of Primary Residence (past 10 years): {additional_data.get('countryOfResidence', 'Not provided')}"
+            f"Country of Primary Residence: {additional_data.get('countryOfResidence', 'Not provided')}",
+            f"Assessment Date: Current comprehensive wellness evaluation"
         ]
         user_profile_str = "\n".join(user_profile_lines)
 
+        # Enhanced health metrics section
         health_metrics_lines = []
-        if additional_data.get('bmi'): health_metrics_lines.append(f"- BMI Status: {additional_data['bmi'].replace('-', ' ').title()}")
-        if additional_data.get('bloodPressure'): health_metrics_lines.append(f"- Blood Pressure: {additional_data['bloodPressure'].replace('-', ' ').title()}")
-        if additional_data.get('restingHeartRate'): health_metrics_lines.append(f"- Resting Heart Rate: {additional_data['restingHeartRate'].replace('-', ' ').title()}")
-        if additional_data.get('cvdHistory'): health_metrics_lines.append(f"- Cardiovascular Disease History: {additional_data['cvdHistory'].replace('-', ' ').title()}")
-        health_metrics_info = "\nAdditional Health Metrics:\n" + "\n".join(health_metrics_lines) if health_metrics_lines else ""
+        if additional_data.get('bmi'): 
+            health_metrics_lines.append(f"- BMI Category: {additional_data['bmi'].replace('-', ' ').title()}")
+        if additional_data.get('bloodPressure'): 
+            health_metrics_lines.append(f"- Blood Pressure Status: {additional_data['bloodPressure'].replace('-', ' ').title()}")
+        if additional_data.get('restingHeartRate'): 
+            health_metrics_lines.append(f"- Resting Heart Rate: {additional_data['restingHeartRate'].replace('-', ' ').title()}")
+        if additional_data.get('cvdHistory'): 
+            health_metrics_lines.append(f"- Cardiovascular History: {additional_data['cvdHistory'].replace('-', ' ').title()}")
+        
+        health_metrics_info = "\nClinical Health Indicators:\n" + "\n".join(health_metrics_lines) if health_metrics_lines else "\nNo additional clinical metrics provided."
 
-        detailed_answers_context = []
+        # Comprehensive answer categorization and analysis
+        detailed_answers_analysis = []
+        physical_vitality_questions = []
+        emotional_health_questions = []
+        visual_appearance_questions = []
+        lifestyle_questions = []
+        
         for ans in answers:
-            q_detail = question_map.get(ans.questionId)
-            selected_option_label = ans.label
+            q_detail = question_map.get(ans.questionId, {})
+            selected_option_label = ans.label or str(ans.value)
+            
             if q_detail:
-                if not selected_option_label and q_detail.get('type') == 'single-choice' and 'options' in q_detail:
-                    selected_option_label = next((opt['label'] for opt in q_detail['options'] if opt['value'] == ans.value), str(ans.value))
-                detailed_answers_context.append({
-                    "questionId": ans.questionId, "questionText": q_detail['text'],
-                    "questionType": q_detail['type'], "selectedValue": ans.value, "selectedLabel": selected_option_label
-                })
-            else:
-                detailed_answers_context.append({
-                    "questionId": ans.questionId, "questionText": f"Unknown Question: {ans.questionId}",
-                    "selectedValue": ans.value, "selectedLabel": ans.label
-                })
-        detailed_answers_json = json.dumps(detailed_answers_context, indent=2)
+                question_context = {
+                    "questionId": ans.questionId,
+                    "category": q_detail.get('category', 'general'),
+                    "questionText": q_detail['text'],
+                    "selectedValue": ans.value,
+                    "selectedLabel": selected_option_label,
+                    "impactWeight": q_detail.get('impact_weight', 1.0)
+                }
+                
+                # Categorize for targeted analysis
+                if ans.questionId in ['q1', 'q2', 'q3', 'q4', 'q5', 'q12', 'q13', 'q14']:
+                    physical_vitality_questions.append(question_context)
+                elif ans.questionId in ['q6', 'q7', 'q8', 'q9']:
+                    emotional_health_questions.append(question_context)
+                elif ans.questionId in ['q10', 'q11']:
+                    visual_appearance_questions.append(question_context)
+                else:
+                    lifestyle_questions.append(question_context)
+                
+                detailed_answers_analysis.append(question_context)
 
-        country = additional_data.get('countryOfResidence', 'Not provided')
-        country_specific_guidance = ""
-        if country and country.lower() != 'not provided':
-            country_specific_guidance = f"""
-            **Crucial Context: The user is from {country}, and has resided there for the last 10 years.**
-            You must apply deep reasoning based on {country}'s typical environment, culture, and public health data when adjusting scores. Consider:
-            -   **Common Health Issues/Risks:** Are there prevalent diseases (e.g., high rates of diabetes, heart disease) or environmental factors (e.g., pollution, climate) in {country} that would typically lower Physical Vitality or Visual Appearance for the average resident?
-            -   **Lifestyle Norms:** What are typical diet patterns (e.g., high processed food, traditional healthy diet), physical activity levels (e.g., sedentary culture, active outdoor lifestyle), and sleep habits in {country}?
-            -   **Cultural Stressors/Support:** How do social structures or cultural expectations in {country} typically influence stress, mental well-being, and social support?
-            -   **Beauty & Appearance Norms:** Are there specific environmental impacts or common lifestyle choices in {country} that affect general visual appearance (e.g., skin health, overall glow)?
-
-            **Your numerical adjustments to the 'adjustedScores' MUST reflect these country-specific influences relative to a global average.** For example, if the user's habits are average but they live in a country with generally poor public health metrics, their score might be lower than global average for those habits. Conversely, if they live in a country with very high wellness standards and their habits are merely 'good', their score might be relatively lower than if they lived in a country with lower standards.
+        country = additional_data.get('countryOfResidence', 'Global')
+        
+        # Enhanced country-specific analysis
+        country_analysis_prompt = ""
+        if country and country.lower() not in ['not provided', 'global', 'unknown']:
+            country_analysis_prompt = f"""
+            **CRITICAL CULTURAL & ENVIRONMENTAL CONTEXT: {country} Assessment Framework**
+            
+            Apply sophisticated analysis considering {country}'s specific health landscape:
+            
+            **Health System & Access Factors:**
+            - Healthcare accessibility and quality in {country}
+            - Preventive care culture and health education levels
+            - Mental health stigma and support availability
+            - Nutritional education and food security patterns
+            
+            **Environmental & Lifestyle Factors:**
+            - Climate impact on physical activity and vitamin D levels
+            - Air quality and pollution effects on physical vitality
+            - Urbanization vs rural lifestyle impacts
+            - Work culture and stress patterns typical in {country}
+            
+            **Cultural & Social Factors:**
+            - Beauty standards and appearance pressures in {country}
+            - Social support systems and community structures
+            - Family dynamics and intergenerational influences
+            - Gender roles and expectations affecting wellness
+            
+            **Economic & Socioeconomic Considerations:**
+            - Access to healthy food, exercise facilities, mental health resources
+            - Work-life balance norms and economic pressures
+            - Healthcare costs and insurance coverage patterns
+            
+            **Demographic Health Patterns:**
+            - Common health issues and risk factors in {country}
+            - Life expectancy and healthy aging patterns
+            - Nutritional deficiencies or abundance patterns
+            - Substance use cultural norms and regulations
+            
+            **Integration Requirement:** Your adjusted scores MUST reflect how these {country}-specific factors would realistically impact someone with these survey responses compared to global averages.
             """
         else:
-            country_specific_guidance = "No specific country of residence provided. Base analysis on general global wellness trends and the provided quiz data."
+            country_analysis_prompt = "Apply general global wellness assessment principles with cultural sensitivity."
+
+        physical_questions_json = json.dumps(physical_vitality_questions, indent=1)
+        emotional_questions_json = json.dumps(emotional_health_questions, indent=1)
+        visual_questions_json = json.dumps(visual_appearance_questions, indent=1)
 
         return f"""
-        You are an extremely knowledgeable and empathetic expert wellness and personal development coach. Your primary goal is to provide a comprehensive, highly personalized, and actionable analysis of the user's wellness assessment results. Leverage all provided data points for a nuanced understanding. Do NOT reference any photo or visual data.
+        You are a leading expert in integrative wellness assessment with advanced training in:
+        - Clinical psychology and behavioral health assessment
+        - Exercise physiology and nutritional science  
+        - Psychoneuroimmunology and stress medicine
+        - Cultural competency in global health patterns
+        - Lifestyle medicine and preventive health
+        - Positive psychology and resilience factors
 
-        --- User's General Profile ---
+        Your task is to conduct a comprehensive, evidence-based wellness analysis that will integrate with advanced facial analysis for holistic health assessment.
+
+        **ASSESSMENT SUBJECT PROFILE:**
         {user_profile_str}
         {health_metrics_info}
 
-        --- Base Wellness Scores (Calculated from Quiz, Before Country-Specific Adjustments) ---
-        - Physical Vitality: {base_scores['physicalVitality']}%
-        - Emotional Health: {base_scores['emotionalHealth']}%
-        - Visual Appearance: {base_scores['visualAppearance']}%
+        **BASELINE WELLNESS METRICS (Pre-Cultural Adjustment):**
+        - Physical Vitality Baseline: {base_scores['physicalVitality']:.2f}%
+        - Emotional Health Baseline: {base_scores['emotionalHealth']:.2f}%  
+        - Visual Appearance Baseline: {base_scores['visualAppearance']:.2f}%
 
-        --- Detailed Assessment Answers (JSON) ---
-        {detailed_answers_json}
+        **DETAILED RESPONSE ANALYSIS BY CATEGORY:**
 
-        --- Specific Contextual Guidance ---
-        {country_specific_guidance}
+        **Physical Vitality Assessment Data:**
+        {physical_questions_json}
 
-        IMPORTANT:
-        - Your response MUST be a single, valid JSON object and nothing else.
-        - Do NOT include any explanations, markdown, comments, or text before or after the JSON.
-        - Do NOT use trailing commas or any non-JSON syntax.
-        - Double-check that your output is valid JSON and can be parsed by Python's json.loads().
+        **Emotional Health Assessment Data:**
+        {emotional_questions_json}
 
-        --- Detailed Instructions for Your Analysis ---
-        You MUST provide a JSON response with EXACTLY the following structure. Each section should be richly detailed and directly reflective of the provided data:
+        **Visual Appearance Assessment Data:**
+        {visual_questions_json}
+
+        {country_analysis_prompt}
+
+        **CRITICAL OUTPUT REQUIREMENTS:**
+        - Return ONLY valid JSON (no markdown, explanations, or text outside JSON)
+        - Apply evidence-based wellness science principles
+        - Integrate cultural competency and demographic awareness
+        - Provide actionable, specific insights for personalized recommendations
+        - Ensure numerical adjustments reflect realistic cultural and individual factors
+
+        **REQUIRED JSON OUTPUT STRUCTURE:**
 
         {{
             "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
             "adjustedScores": {{
-                "physicalVitality": <number, 0-100. **Calculate this score by taking the base score ({base_scores['physicalVitality']}) and numerically adjusting it up or down** based on the user's answers and specific country context (e.g., common health issues, activity levels, diet in {country}). Justify this adjustment in 'categorySpecificInsights.physicalVitality'.>,
-                "emotionalHealth": <number, 0-100. **Calculate this score by taking the base score ({base_scores['emotionalHealth']}) and numerically adjusting it up or down** based on the user's answers and cultural norms, social support structures, and typical stress factors in {country}. Justify this adjustment in 'categorySpecificInsights.emotionalHealth'.>,
-                "visualAppearance": <number, 0-100. **Calculate this score by taking the base score ({base_scores['visualAppearance']}) and numerically adjusting it up or down** based on the user's answers and the environmental factors or common lifestyle impacts on appearance (e.g., skin health, overall presentation) in {country}. Justify this adjustment in 'categorySpecificInsights.visualAppearance'.>
+                "physicalVitality": <number, 0-100. Evidence-based adjustment of {base_scores['physicalVitality']:.1f} considering sleep quality, cardiovascular fitness, nutrition patterns, substance use, and {country} environmental factors. Must reflect realistic impact of survey responses.>,
+                "emotionalHealth": <number, 0-100. Sophisticated adjustment of {base_scores['emotionalHealth']:.1f} based on stress resilience, emotional regulation, social connectedness, and {country} cultural mental health factors.>,
+                "visualAppearance": <number, 0-100. Thoughtful adjustment of {base_scores['visualAppearance']:.1f} considering self-perception, body image, lifestyle impacts on appearance, and {country} beauty culture influences.>
             }},
-            "keyStrengths": [
-                "<Identify a key strength with justification, explicitly citing question IDs and answers. Incorporate country context where relevant.>",
-                "<Another key strength...>"
+            "comprehensiveWellnessProfile": {{
+                "physicalHealthAnalysis": {{
+                    "cardiovascularRiskProfile": "<comprehensive assessment based on exercise, diet, smoking, stress, family history>",
+                    "metabolicHealthStatus": "<detailed analysis of weight management, nutrition, activity patterns>",
+                    "sleepHealthAssessment": "<thorough evaluation of sleep quality, duration, and recovery patterns>",
+                    "nutritionalWellnessEvaluation": "<analysis of dietary patterns, nutritional knowledge, eating behaviors>",
+                    "substanceUseHealthImpact": "<objective assessment of alcohol, tobacco, and other substance effects>",
+                    "physicalActivityProfile": "<detailed evaluation of exercise habits, fitness level, movement patterns>",
+                    "energyVitalityAssessment": "<analysis of energy levels, fatigue patterns, physical resilience>"
+                }},
+                "mentalEmotionalProfile": {{
+                    "stressManagementCapacity": "<detailed assessment of stress coping mechanisms and resilience>",
+                    "emotionalIntelligenceIndicators": "<evaluation of emotional awareness, regulation, and expression>",
+                    "socialConnectionQuality": "<analysis of relationship satisfaction, social support, community engagement>",
+                    "psychologicalResilienceFactors": "<assessment of mental toughness, adaptability, recovery capacity>",
+                    "moodStabilityPatterns": "<evaluation of emotional balance, mood regulation, psychological wellbeing>",
+                    "cognitiveFunctionIndicators": "<assessment of mental clarity, focus, cognitive health patterns>",
+                    "purposeAndMeaningAssessment": "<evaluation of life satisfaction, purpose, personal fulfillment>"
+                }},
+                "lifestyleBehavioralAnalysis": {{
+                    "selfCareConsistencyEvaluation": "<assessment of personal care habits, health maintenance behaviors>",
+                    "workLifeIntegrationAssessment": "<evaluation of balance, boundaries, stress management in work/life>",
+                    "environmentalWellnessFactors": "<analysis of living environment, nature access, environmental stressors>",
+                    "personalGrowthOrientation": "<assessment of learning, development, self-improvement habits>",
+                    "healthBehaviorSustainability": "<evaluation of long-term health habit maintenance and motivation>"
+                }}
+            }},
+            "riskStratificationAnalysis": {{
+                "highPriorityHealthRisks": [
+                    "<specific, evidence-based health risks requiring immediate attention with clear rationale>",
+                    "<additional high-priority risks based on survey responses and demographic factors>"
+                ],
+                "emergingHealthConcerns": [
+                    "<potential future health issues based on current behavioral patterns>",
+                    "<lifestyle-related risks that may develop if current patterns continue>"
+                ],
+                "protectiveHealthFactors": [
+                    "<current behaviors and characteristics that protect against health risks>",
+                    "<strengths that support long-term wellness and disease prevention>"
+                ],
+                "culturalRiskModifiers": [
+                    "<{country}-specific factors that may increase or decrease standard risk assessments>"
+                ]
+            }},
+            "keyStrengthsIdentified": [
+                "<specific wellness strength with evidence from survey responses and impact explanation>",
+                "<additional strength citing specific questions and demonstrating positive health behaviors>",
+                "<third strength if applicable, focusing on resilience or positive lifestyle factors>"
             ],
-            "keyRisks": [
-                "<Identify a key risk or area for improvement with justification, citing question IDs and answers. Incorporate country context where relevant.>",
-                "<Another key risk...>"
+            "priorityDevelopmentAreas": [
+                "<highest impact improvement area with specific, actionable recommendations>",
+                "<second priority area with clear rationale and suggested interventions>",
+                "<third area if significant, focusing on sustainable behavior change>"
             ],
+            "culturalContextIntegration": {{
+                "countrySpecificHealthLandscape": "<detailed analysis of how {country}'s health environment influences assessment>",
+                "culturalStrengthFactors": "<cultural elements that support the individual's wellness journey>",
+                "culturalChallengeFactors": "<cultural barriers or challenges that may impact wellness goals>",
+                "culturallyAdaptedRecommendations": "<wellness strategies adapted to {country}'s cultural context>"
+            }},
             "categorySpecificInsights": {{
-                "physicalVitality": "<Thorough insight synthesizing questions q1–q7, q17–q20 and health metrics. **Crucially, explicitly justify the numerical score adjustment made in 'adjustedScores.physicalVitality' by detailing how {country}'s norms and common health challenges influenced the final score.**>",
-                "emotionalHealth": "<Insight synthesizing questions q8–q12 and related metrics. **Explicitly justify the numerical score adjustment made in 'adjustedScores.emotionalHealth' by detailing how cultural norms and social pressures in {country} influenced the final score.**>",
-                "visualAppearance": "<Insight interpreting q13 and any self-perception indicators. **Explicitly justify the numerical score adjustment made in 'adjustedScores.visualAppearance' by detailing how local beauty standards and environmental factors in {country} influenced the final score.**>"
+                "physicalVitalityDeepDive": "<comprehensive analysis justifying the adjusted physical vitality score, citing specific survey responses and {country} factors, minimum 100 words>",
+                "emotionalHealthDeepDive": "<thorough analysis explaining the emotional health score adjustment with specific evidence from responses and cultural factors, minimum 100 words>", 
+                "visualAppearanceDeepDive": "<detailed analysis of visual appearance score considering self-perception, lifestyle impacts, and {country} cultural beauty standards, minimum 75 words>"
             }},
-            "quizDataSummary": "<200–300-word narrative weaving together all quiz answers, health metrics, and {country} context. End with an encouraging, empowering tone. This field MUST NOT exceed 300 words.>"
+            "integrativeWellnessSummary": "<300-400 word comprehensive narrative integrating all assessment domains, highlighting the interconnections between physical, emotional, and lifestyle factors, acknowledging cultural context, and providing an empowering, realistic outlook for wellness optimization. This should read like a professional wellness consultation summary.>"
         }}
         """
 
     def _parse_response(self, response_text: str) -> Optional[Dict[str, Any]]:
         """
-        Parses the JSON response from Gemini, resilient to markdown code blocks.
+        ENHANCED: Parses the comprehensive JSON response from Gemini with robust validation and error recovery.
         """
         try:
-            print(f"Raw Gemini response: {response_text}")
+            print(f"Raw Gemini quiz response: {response_text}")
+            
+            # Handle JSON code blocks or plain JSON
             match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
             if match:
                 json_str = match.group(1)
@@ -224,38 +398,137 @@ Be concise, accurate, and country-aware. Output only JSON."""
                     return None
                 json_str = match.group(0)
 
-            # Truncation/malformed check: look for unclosed string or abrupt ending
+            # Check for truncation/malformed JSON and attempt to fix
             if not json_str.strip().endswith('}'):
-                print("QuizAnalyzer: Detected truncated or incomplete JSON from LLM. Returning user-friendly error.")
-                return {"error": "The AI response was incomplete or truncated. Please try again or contact support if this persists."}
+                print("QuizAnalyzer: Detected truncated JSON, attempting to fix...")
+                # Try to close the JSON by finding the last complete field
+                try:
+                    # Find the last complete quote and close the JSON there
+                    json_str = json_str.rstrip()
+                    if json_str.endswith(','):
+                        json_str = json_str[:-1]  # Remove trailing comma
+                    
+                    # Try to find the last complete field
+                    last_quote = json_str.rfind('"')
+                    if last_quote > 0:
+                        # Look for the pattern: "key": "value" or "key": number
+                        # Find where the last value ends
+                        after_quote = json_str[last_quote+1:].lstrip()
+                        if after_quote.startswith(':'):
+                            # This quote is a key, find its value
+                            value_start = json_str.find(':', last_quote) + 1
+                            value_part = json_str[value_start:].strip()
+                            
+                            if value_part.startswith('"'):
+                                # String value, find closing quote
+                                closing_quote = value_part.find('"', 1)
+                                if closing_quote > 0:
+                                    json_str = json_str[:value_start + closing_quote + 1]
+                            else:
+                                # Number or other value, find where it should end
+                                # Take everything up to the last meaningful content
+                                json_str = json_str.rstrip(' ,\n\r\t')
+                    
+                    if not json_str.endswith('}'):
+                        json_str += '}'
+                    
+                    # Clean up any remaining issues
+                    json_str = re.sub(r',\s*}', '}', json_str)  # Remove trailing commas
+                    json_str = re.sub(r',\s*]', ']', json_str)  # Remove trailing commas in arrays
+                    
+                    print(f"QuizAnalyzer: Attempted to fix truncated JSON")
+                except Exception as repair_error:
+                    print(f"QuizAnalyzer: JSON repair failed: {repair_error}")
+                    return None
 
             parsed = json.loads(json_str)
-            # Coerce numeric fields into numbers if they are strings
-            for num_key in ["chronologicalAge"]:
-                if num_key in parsed and isinstance(parsed[num_key], str):
-                    try:
-                        parsed[num_key] = float(parsed[num_key].replace('%',''))
-                    except ValueError:
-                        pass
-            return parsed
-        except json.JSONDecodeError as e:
-            # Attempt to clean common issues such as trailing commas and parse again
-            try:
-                cleaned_json_str = re.sub(r',\s*([}\]])', r'\1', json_str)
-                parsed = json.loads(cleaned_json_str)
-                # Apply numeric coercion again
-                for num_key in ["chronologicalAge"]:
-                    if num_key in parsed and isinstance(parsed[num_key], str):
+            
+            # Simplified validation for new schema
+            required_fields = ["chronologicalAge", "adjustedScores"]
+            
+            # Validate required fields exist
+            for field in required_fields:
+                if field not in parsed:
+                    print(f"QuizAnalyzer: Missing required field '{field}'")
+                    return None
+            
+            # Validate adjusted scores structure
+            if "adjustedScores" in parsed:
+                required_scores = ["physicalVitality", "emotionalHealth", "visualAppearance"]
+                for score_key in required_scores:
+                    if score_key not in parsed["adjustedScores"]:
+                        print(f"QuizAnalyzer: Missing score '{score_key}' in adjustedScores")
+                        return None
+                    
+                    # Ensure scores are numeric and within range
+                    score_value = parsed["adjustedScores"][score_key]
+                    if isinstance(score_value, str):
                         try:
-                            parsed[num_key] = float(parsed[num_key].replace('%', ''))
+                            parsed["adjustedScores"][score_key] = float(score_value.replace('%', ''))
                         except ValueError:
-                            pass
-                print("QuizAnalyzer: Successfully parsed JSON after trailing comma cleanup.")
-                return parsed
-            except json.JSONDecodeError as e2:
-                print(f"Error parsing quiz analysis response after cleanup attempt: {e2}")
-            except Exception as e_generic:
-                print(f"Unexpected error during cleanup parsing: {e_generic}")
-        except (IndexError) as e:
+                            print(f"Warning: Could not convert score {score_key} to number: {score_value}")
+                    
+                    # Validate score range (0-100)
+                    final_score = parsed["adjustedScores"][score_key]
+                    if not isinstance(final_score, (int, float)) or final_score < 0 or final_score > 100:
+                        print(f"Warning: Score {score_key} out of range (0-100): {final_score}")
+            
+            # Coerce numeric fields
+            if "chronologicalAge" in parsed and isinstance(parsed["chronologicalAge"], str):
+                try:
+                    parsed["chronologicalAge"] = int(float(parsed["chronologicalAge"].replace('%','')))
+                except ValueError:
+                    print(f"Warning: Could not convert chronologicalAge to number: {parsed['chronologicalAge']}")
+            
+            print("QuizAnalyzer: Successfully parsed quiz analysis JSON")
+            return parsed
+            
+        except json.JSONDecodeError as e:
             print(f"Error parsing quiz analysis response: {e}")
+            print(f"Problematic JSON string: {json_str[:300] if 'json_str' in locals() else 'Not extracted'}...")
+            
+            # Attempt one more aggressive repair
+            try:
+                if 'json_str' in locals() and json_str:
+                    # Try to extract just the essential fields
+                    essential_pattern = r'\{\s*"chronologicalAge":\s*\d+,\s*"adjustedScores":\s*\{[^}]+\}'
+                    match = re.search(essential_pattern, json_str)
+                    if match:
+                        minimal_json = match.group(0) + '}'
+                        parsed = json.loads(minimal_json)
+                        print("QuizAnalyzer: Successfully extracted essential fields")
+                        return parsed
+            except Exception as final_error:
+                print(f"QuizAnalyzer: Final repair attempt failed: {final_error}")
+                
+        except (IndexError, KeyError) as e:
+            print(f"Error parsing quiz analysis response: {e}")
+            
         return None
+
+    def _get_fallback_quiz_response(self, base_scores: Dict[str, float], additional_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns a basic fallback response when quiz analysis fails."""
+        return {
+            "chronologicalAge": additional_data.get('chronologicalAge', 25),
+            "adjustedScores": {
+                "physicalVitality": max(50, min(90, base_scores.get('physicalVitality', 70))),
+                "emotionalHealth": max(50, min(90, base_scores.get('emotionalHealth', 70))),
+                "visualAppearance": max(50, min(90, base_scores.get('visualAppearance', 60)))
+            },
+            "keyStrengths": [
+                "Seeking personal wellness improvement",
+                "Taking proactive steps toward health goals"
+            ],
+            "priorityAreas": [
+                "Continue building healthy habits",
+                "Focus on consistent wellness practices",
+                "Maintain motivation for positive changes"
+            ],
+            "culturalContext": f"Analysis completed for {additional_data.get('countryOfResidence', 'your location')} with standard wellness principles.",
+            "recommendations": {
+                "physicalVitality": "Focus on consistent sleep, nutrition, and regular physical activity.",
+                "emotionalHealth": "Practice stress management and maintain social connections.",
+                "visualAppearance": "Develop healthy self-care routines and positive self-image practices."
+            },
+            "summary": "Your wellness assessment shows good potential for improvement. Focus on building consistent healthy habits across physical, emotional, and lifestyle areas. Analysis was completed with fallback data due to processing limitations."
+        }

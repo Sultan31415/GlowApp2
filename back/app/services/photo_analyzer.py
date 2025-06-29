@@ -8,6 +8,7 @@ import aiohttp
 import asyncio
 from typing import Optional, Dict, Any
 from app.config.settings import settings
+from app.services.prompt_optimizer import PromptOptimizer
 
 # Note: Using Azure OpenAI instead of standard OpenAI
 # Make sure to configure these in your .env file:
@@ -47,8 +48,8 @@ class PhotoAnalyzerGPT4o:
 
     async def analyze_photo_async(self, photo_url: str) -> Optional[Dict[str, Any]]:
         """
-        OPTIMIZED: Async photo analysis with faster, more concise prompts.
-        Expected 30-50% faster than sync version.
+        OPTIMIZED: Async photo analysis with comprehensive health indicators.
+        Enhanced prompt while maintaining speed optimization.
         """
         try:
             # Handle data URLs and remote URLs
@@ -64,32 +65,101 @@ class PhotoAnalyzerGPT4o:
                         mime_type = response.headers.get("Content-Type") or "image/jpeg"
                         encoded = base64.b64encode(img_bytes).decode()
 
-            # OPTIMIZED: Much shorter, focused prompt for faster processing
-            optimized_prompt = """Analyze this face photo. Return ONLY JSON:
+            # ENHANCED: Comprehensive health-focused prompt optimized for speed
+            optimized_prompt = """Analyze this facial photo for wellness assessment. Return ONLY JSON:
 {
-  "estimatedAgeRange": {"lower": <int>, "upper": <int>, "justification": "<brief>"},
-  "skinAnalysis": {
-    "overallComplexion": "<fair/medium/dark>",
-    "rednessOrErythema": "<none discernible OR brief description>",
-    "shineOrOiliness": "<none discernible OR brief description>",
-    "texture": "<smooth/rough/mixed with pore visibility>",
-    "blemishesOrIrregularities": "<none discernible OR brief list>",
-    "visibleCapillariesOrVascularity": "<none discernible OR brief description>"
+  "ageAssessment": {
+    "estimatedRange": {"lower": <int>, "upper": <int>},
+    "biologicalAgeIndicators": "<brief description of key age-related features>",
+    "youthfulnessMarkers": "<positive aging indicators or 'none observed'>",
+    "agingConcerns": "<visible aging signs or 'none observed'>"
   },
-  "stressAndTirednessIndicators": {
-    "eyes": "<none discernible OR brief observation>",
-    "skinToneAndLuster": "<none discernible OR brief observation>",
-    "facialExpressionCues": "<none discernible OR brief observation>"
+  "comprehensiveSkinAnalysis": {
+    "overallSkinHealth": "<excellent/good/fair/poor>",
+    "skinType": {
+      "complexion": "<fair/medium/dark/olive>",
+      "undertone": "<cool/warm/neutral or 'not discernible'>",
+      "skinThickness": "<thin/normal/thick>"
+    },
+    "skinQualityMetrics": {
+      "texture": "<smooth/fine-textured/slightly-rough/rough>",
+      "poreVisibility": "<minimal/small/moderate/enlarged>",
+      "skinToneEvenness": "<very-even/mostly-even/somewhat-uneven/patchy>",
+      "elasticity": "<excellent/good/moderate/poor>",
+      "hydrationLevel": "<well-hydrated/adequately-hydrated/slightly-dry/dry>"
+    },
+    "skinConcerns": {
+      "acneAndBlemishes": "<clear/occasional-blemishes/active-breakouts/scarring>",
+      "redness": "<none/slight-flush/moderate-redness/significant>",
+      "visibleDamage": "<none/early-photodamage/moderate-sun-damage/significant>"
+    },
+    "skinLuminosity": {
+      "radiance": "<luminous/healthy-glow/normal/dull>",
+      "healthyGlow": "<present/moderate/minimal/absent>"
+    }
   },
-  "overallVisualSummary": "<2 sentences max describing key visual observations>"
+  "vitalityAndHealthIndicators": {
+    "eyeAreaAssessment": {
+      "eyeBrightness": "<bright/normal/dull/tired>",
+      "underEyeCondition": "<clear/slight-darkness/dark-circles/severe>",
+      "eyePuffiness": "<none/minimal/moderate/significant>"
+    },
+    "facialVitality": {
+      "facialFullness": "<healthy-fullness/normal/slightly-gaunt/gaunt>",
+      "muscleTone": "<excellent/good/moderate/poor>",
+      "facialSymmetry": "<excellent/good/moderate/asymmetrical>"
+    },
+    "circulationAndOxygenation": {
+      "skinColor": "<healthy-pink/normal/pale/flushed/grayish>",
+      "overallOxygenation": "<excellent/good/moderate/poor>"
+    }
+  },
+  "stressAndLifestyleIndicators": {
+    "stressMarkers": {
+      "tensionLines": "<none/minimal/moderate/significant>",
+      "overallFacialTension": "<relaxed/normal/tense/very-tense>"
+    },
+    "sleepQualityIndicators": {
+      "eyeArea": "<well-rested/normal/slightly-tired/tired/exhausted>",
+      "alertness": "<very-alert/alert/normal/drowsy>"
+    },
+    "emotionalWellbeing": {
+      "facialExpression": "<content/peaceful/neutral/worried/stressed>",
+      "eyeExpression": "<bright-engaged/normal/distant/vacant>"
+    },
+    "lifestyleClues": {
+      "hydrationStatus": "<well-hydrated/adequate/dehydrated>",
+      "nutritionalIndicators": "<excellent/good/adequate/poor>",
+      "sunProtectionHabits": "<excellent/good/moderate/poor>"
+    }
+  },
+  "overallWellnessAssessment": {
+    "biologicalAge": "<younger-than-chronological/age-appropriate/older-than-chronological>",
+    "vitalityLevel": "<very-high/high/moderate/low>",
+    "healthImpression": "<vibrant/healthy/average/concerning>",
+    "wellnessPriorities": [
+      "<top 2-3 areas for improvement>"
+    ]
+  },
+  "analysisMetadata": {
+    "imageQuality": "<excellent/good/fair/poor>",
+    "analysisConfidence": "<very-high/high/moderate/low>",
+    "limitingFactors": "<any factors limiting analysis accuracy>"
+  }
 }
 
-Be objective, concise, and accurate. Output only JSON."""
+Important guidelines:
+- Be specific and objective
+- Use the exact categories provided
+- If something is unclear, use descriptive terms rather than null
+- Focus on observable wellness indicators
+- Estimate age range based on visible facial features
+- Provide realistic assessments based on what you can actually see."""
 
             response = await self.client.chat.completions.create(
-                model=self.deployment_name,  # Use deployment name for Azure OpenAI
+                model=self.deployment_name,
                 messages=[
-                    {"role": "system", "content": "You are a visual analysis expert. Return only valid JSON with exact schema."},
+                    {"role": "system", "content": "You are an expert wellness assessment specialist analyzing facial photos for health indicators. Focus on objective, observable features that correlate with wellness. Return structured JSON only."},
                     {
                         "role": "user",
                         "content": [
@@ -101,8 +171,8 @@ Be objective, concise, and accurate. Output only JSON."""
                         ],
                     },
                 ],
-                max_tokens=600,  # Reduced from 1024 for faster response
-                temperature=0.2,  # Lower temperature for faster, more consistent results
+                max_tokens=800,  # Increased for more comprehensive analysis
+                temperature=0.2,  # Lower temperature for consistent health assessments
                 response_format={"type": "json_object"},
             )
             
@@ -134,7 +204,8 @@ Be objective, concise, and accurate. Output only JSON."""
 
     def analyze_photo(self, photo_url: str) -> Optional[Dict[str, Any]]:
         """
-        Analyzes a base64-encoded photo and returns structured JSON insights.
+        Analyzes a photo and returns comprehensive wellness insights.
+        Enhanced with medical and dermatological expertise.
         """
         try:
             # Accept both data URLs ("data:image/...;base64,<data>") and regular http(s) URLs.
@@ -154,7 +225,7 @@ Be objective, concise, and accurate. Output only JSON."""
             response = self.sync_client.chat.completions.create(
                 model=self.deployment_name,  # Use deployment name for Azure OpenAI
                 messages=[
-                    {"role": "system", "content": "You are a highly precise visual analysis expert. Your sole purpose is to observe and describe visual attributes objectively and return structured JSON. Adhere strictly to the provided schema and instructions."},
+                    {"role": "system", "content": "You are a highly specialized wellness assessment expert with deep knowledge in dermatology, facial analysis, and health indicator recognition. Your analysis will inform personalized wellness recommendations. Provide objective, detailed observations based on established medical and wellness science."},
                     {
                         "role": "user",
                         "content": [
@@ -166,8 +237,8 @@ Be objective, concise, and accurate. Output only JSON."""
                         ],
                     },
                 ],
-                max_tokens=1024,
-                temperature=0.4,
+                max_tokens=1500,  # Increased for comprehensive analysis
+                temperature=0.3,  # Slightly higher for nuanced health insights
                 response_format={"type": "json_object"},
             )
             print(f"Raw PhotoAnalyzer (Azure) LLM response: {response.choices[0].message.content}")
@@ -177,58 +248,399 @@ Be objective, concise, and accurate. Output only JSON."""
             print(f"PhotoAnalyzerGPT4o (Azure) error: {e}")
             return None
 
+    async def analyze_photo_fast(self, photo_url: str) -> Optional[Dict[str, Any]]:
+        """
+        ULTRA-FAST photo analysis with optimized prompt and reduced complexity.
+        Uses compressed prompts and minimal required fields.
+        """
+        try:
+            print("[LangGraph] 📸⚡ Processing photo (speed mode)")
+
+            # Handle data URLs and remote URLs properly
+            if photo_url.startswith("data:"):
+                header, encoded = photo_url.split(',', 1)
+                mime_type = header.split(';')[0].split(':')[1]
+            else:
+                # For remote URLs, use basic encoding
+                encoded = self._encode_image(photo_url)
+                if not encoded:
+                    print("PhotoAnalyzer FAST: Could not encode image")
+                    return self._get_fallback_photo_response()
+                mime_type = "image/jpeg"  # Default mime type for remote URLs
+                
+            # Use the ultra-compressed fast prompt
+            prompt = PromptOptimizer.build_fast_photo_prompt()
+
+            response = await self.client.chat.completions.create(
+                model=self.deployment_name,
+                messages=[
+                    {"role": "system", "content": "You are a wellness assessment specialist. Analyze facial photos quickly for health indicators. Return structured JSON only."},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{encoded}"},
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=800,  # Increased from 300 to handle JSON properly
+                temperature=0.05, # Even lower for maximum speed
+                response_format={"type": "json_object"},
+            )
+            
+            if not response or not response.choices or len(response.choices) == 0:
+                print("PhotoAnalyzer FAST: Empty response from API")
+                return self._get_fallback_photo_response()
+                
+            content = response.choices[0].message.content
+            if content is None:
+                print("PhotoAnalyzer FAST: Response content is None")
+                return self._get_fallback_photo_response()
+                
+            print(f"PhotoAnalyzer FAST response: {content}")
+            
+            # Try to parse the response
+            parsed_result = self._parse_response(response)
+            if parsed_result is None:
+                print("PhotoAnalyzer FAST: Failed to parse response, using fallback")
+                return self._get_fallback_photo_response()
+                
+            return parsed_result
+
+        except Exception as e:
+            print(f"PhotoAnalyzer FAST error: {e}")
+            return self._get_fallback_photo_response()
+
     def _get_analysis_prompt(self) -> str:
         return """
-        Critically analyze the provided photo of a person's face. Your output MUST be a JSON object, strictly adhering to the specified schema. Focus exclusively on directly observable visual characteristics. If a specific characteristic is not clearly visible or discernible, state "not discernible" or "no clear indicators" for that field, rather than omitting the field or speculating.
+        You are conducting a comprehensive wellness assessment of a facial photograph. Your analysis will inform personalized health and beauty recommendations. Focus on objective, observable characteristics that correlate with health, wellness, and biological age.
 
-        Schema and Desired Output Details:
+        **CRITICAL INSTRUCTIONS:**
+        - Analyze ONLY visible, objective features
+        - Avoid medical diagnoses or definitive health claims
+        - Focus on wellness indicators, not medical conditions
+        - Use established dermatological and health assessment principles
+        - If something is not clearly visible, state "not clearly discernible"
+        - Provide specific, actionable observations
+
+        **OUTPUT SCHEMA - Return ONLY this JSON structure:**
+
         {
+            "ageAssessment": {
             "estimatedAgeRange": {
-                "lower": <integer, estimated minimum age, e.g., 20>,
-                "upper": <integer, estimated maximum age, e.g., 30>,
-                "justification": "<string, concise visual cues supporting the age estimate, e.g., 'Absence of deep wrinkles, youthful skin texture, clear jawline.'>"
+                    "lower": <integer, minimum estimated age>,
+                    "upper": <integer, maximum estimated age>,
+                    "primaryIndicators": "<key facial features used for age estimation>"
+                },
+                "biologicalVsChronological": "<assessment of whether person appears younger, older, or age-appropriate>",
+                "youthfulnessMarkers": [
+                    "<specific features suggesting biological youth, e.g., 'firm skin elasticity', 'minimal periorbital wrinkles'>"
+                ],
+                "maturityIndicators": [
+                    "<specific features suggesting biological maturity/aging, e.g., 'slight nasolabial lines', 'skin texture changes'>"
+                ]
             },
-            "skinAnalysis": {
-                "overallComplexion": "<string, e.g., 'fair', 'medium', 'dark', 'pale', 'flushed'>",
-                "rednessOrErythema": "<string, precise description of any redness, including distribution (e.g., 'diffuse across cheeks', 'localized around nose'), intensity (e.g., 'mild', 'moderate', 'pronounced'), and nature (e.g., 'blotchy', 'uniform blush'). If none, state 'none discernible'.>",
-                "shineOrOiliness": "<string, detailed description of any shine or oiliness, including location (e.g., 'T-zone', 'forehead'), and degree (e.g., 'slight sheen', 'moderate oiliness', 'greasy appearance'). If none, state 'none discernible'.>",
-                "texture": "<string, describe the predominant skin texture (e.g., 'smooth', 'fine lines present', 'some roughness', 'uneven'). Comment on pore visibility (e.g., 'pores appear small', 'pores visibly enlarged'). Note any flaking or dryness (e.g., 'slight flaking on chin', 'dry patches').>",
-                "blemishesOrIrregularities": "<string, itemize specific blemishes or irregularities such as 'small pimple on chin', 'freckles', 'hyperpigmentation spots on forehead', 'uneven skin tone'. If none, state 'none discernible'.>",
-                "visibleCapillariesOrVascularity": "<string, describe any visible broken capillaries or prominent blood vessels, including location and extent. If none, state 'none discernible'.>"
+            
+            "comprehensiveSkinAnalysis": {
+                "overallSkinHealth": "<excellent/very-good/good/fair/poor - overall impression>",
+                "skinType": {
+                    "complexion": "<very-fair/fair/light-medium/medium/olive/dark/very-dark>",
+                    "undertone": "<cool/warm/neutral/mixed - if discernible>",
+                    "skinThickness": "<thin/normal/thick - based on visible characteristics>"
+                },
+                "skinQualityMetrics": {
+                    "texture": "<smooth/fine-textured/slightly-rough/rough/very-rough>",
+                    "poreVisibility": "<minimal/small/moderate/enlarged/very-enlarged>",
+                    "skinToneEvenness": "<very-even/mostly-even/somewhat-uneven/patchy/very-uneven>",
+                    "elasticity": "<excellent/good/moderate/poor - based on visible firmness>",
+                    "hydrationLevel": "<well-hydrated/adequately-hydrated/slightly-dry/dry/very-dry>"
+                },
+                "skinConcerns": {
+                    "acneAndBlemishes": "<clear/occasional-blemishes/active-breakouts/severe-acne/post-acne-scarring>",
+                    "hyperpigmentation": "<none/mild-spots/moderate-discoloration/significant-pigmentation>",
+                    "redness": "<none/slight-flush/moderate-redness/significant-erythema/rosacea-like>",
+                    "visibleDamage": "<none/early-photodamage/moderate-sun-damage/significant-damage>",
+                    "skinBarrierHealth": "<intact/slightly-compromised/compromised - based on visible irritation>"
+                },
+                "skinLuminosity": {
+                    "radiance": "<luminous/healthy-glow/normal/dull/very-dull>",
+                    "skinClarity": "<very-clear/clear/slightly-cloudy/dull/muddy>",
+                    "healthyGlow": "<present/moderate/minimal/absent>"
+                }
             },
-            "stressAndTirednessIndicators": {
-                "eyes": "<string, specific observations regarding the eyes: 'slight puffiness under eyes', 'pronounced dark circles', 'redness in sclera', 'visible fine lines around eyes'. If none, state 'none discernible'.>",
-                "skinToneAndLuster": "<string, describe any sallow appearance, dullness, or lack of luminosity. Be specific (e.g., 'skin appears slightly sallow', 'dullness primarily on cheeks', 'lack of natural glow'). If none, state 'none discernible'.>",
-                "facialExpressionCues": "<string, note any lines or muscle tension indicative of fatigue or stress (e.g., 'furrowed brow', 'tension around mouth', 'subtle lines between eyebrows'). If none, state 'none discernible'.>"
+
+            "vitalityAndHealthIndicators": {
+                "eyeAreaAssessment": {
+                    "eyeBrightness": "<very-bright/bright/normal/dull/very-dull>",
+                    "scleraHealth": "<clear-white/slightly-yellow/red-veined/bloodshot>",
+                    "underEyeCondition": "<clear/slight-darkness/dark-circles/severe-circles>",
+                    "eyePuffiness": "<none/minimal/moderate/significant>",
+                    "eyeAreaSkin": "<firm/normal/slightly-loose/crepey>",
+                    "expressionLines": "<none/minimal/moderate/pronounced>"
+                },
+                "facialVitality": {
+                    "facialFullness": "<youthful-fullness/healthy-fullness/normal/slightly-gaunt/gaunt>",
+                    "muscleTone": "<excellent/good/moderate/poor - facial muscle firmness>",
+                    "facialSymmetry": "<excellent/good/moderate/asymmetrical>",
+                    "boneDensity": "<strong-structure/normal/delicate - based on visible bone prominence>"
+                },
+                "circulationAndOxygenation": {
+                    "skinColor": "<healthy-pink/normal/pale/flushed/grayish/yellowish>",
+                    "lipColor": "<healthy-pink/normal/pale/dark/bluish-tinge>",
+                    "overallOxygenation": "<excellent/good/moderate/poor - based on color indicators>"
+                }
             },
-            "overallVisualSummary": "<string, a highly concise, objective summary of the most striking and prominent visual observations related to the person's facial appearance, synthesizing key points from the above sections. Max 2-3 sentences.>"
+
+            "stressAndLifestyleIndicators": {
+                "stressMarkers": {
+                    "tensionLines": "<none/minimal/moderate/significant - forehead, between brows>",
+                    "jawTension": "<relaxed/slight-tension/clenched/very-tense>",
+                    "overallFacialTension": "<relaxed/normal/tense/very-tense>"
+                },
+                "sleepQualityIndicators": {
+                    "eyeArea": "<well-rested/normal/slightly-tired/tired/exhausted>",
+                    "skinRecovery": "<excellent/good/moderate/poor - overnight repair signs>",
+                    "alertness": "<very-alert/alert/normal/drowsy/very-drowsy>"
+                },
+                "emotionalWellbeing": {
+                    "facialExpression": "<content/peaceful/neutral/worried/stressed>",
+                    "eyeExpression": "<bright-engaged/normal/distant/vacant>",
+                    "mouthArea": "<relaxed/neutral/tense/downturned>"
+                },
+                "lifestyleClues": {
+                    "hydrationStatus": "<well-hydrated/adequate/dehydrated - skin plumpness, lip condition>",
+                    "nutritionalIndicators": "<excellent/good/adequate/poor - skin quality, hair visible at edges>",
+                    "sunProtectionHabits": "<excellent/good/moderate/poor - based on damage patterns>",
+                    "skinCareRoutine": "<excellent/good/basic/minimal - based on skin condition>"
+                }
+            },
+
+            "environmentalAndLifestyleImpact": {
+                "environmentalExposure": {
+                    "sunDamage": "<none/minimal/moderate/significant>",
+                    "pollutionEffects": "<none/minimal/moderate/significant - dullness, congestion>",
+                    "weatherExposure": "<protected/normal/excessive - wind, cold damage>"
+                },
+                "lifestyleReflection": {
+                    "exerciseIndicators": "<active/moderate/sedentary - circulation, muscle tone>",
+                    "stressLevel": "<low/moderate/high - based on visible stress markers>",
+                    "healthHabits": "<excellent/good/fair/poor - overall impression>"
+                }
+            },
+
+            "overallWellnessAssessment": {
+                "biologicalAge": "<younger-than-chronological/age-appropriate/older-than-chronological>",
+                "vitalityLevel": "<very-high/high/moderate/low/very-low>",
+                "skinAge": "<younger/appropriate/older - compared to estimated chronological age>",
+                "healthImpression": "<vibrant/healthy/average/concerning>",
+                "wellnessPriorities": [
+                    "<top 2-3 areas that could benefit from attention based on visual assessment>"
+                ]
+            },
+
+            "detailedObservations": {
+                "positiveFindings": [
+                    "<specific positive health/wellness indicators observed>"
+                ],
+                "areasForImprovement": [
+                    "<specific areas where enhancement could benefit overall wellness>"
+                ],
+                "noteworthy": [
+                    "<any particularly notable features, positive or concerning>"
+                ]
+            },
+
+            "analysisMetadata": {
+                "imageQuality": "<excellent/good/fair/poor>",
+                "visibilityFactors": "<good-lighting/adequate/poor, clear-angle/angled, high-resolution/low-resolution>",
+                "analysisConfidence": "<very-high/high/moderate/low>",
+                "limitingFactors": "<any factors that limited the analysis accuracy>"
+            }
         }
 
-        Strict Rules:
-        1. Respond ONLY with the JSON object. No preambles, explanations, or conversational text.
-        2. Ensure all keys in the schema are present in the output JSON.
-        3. For fields where nothing is observed, use specific phrases like "none discernible", "no clear indicators", or "not applicable" as appropriate for the context, but do NOT omit the key.
-        4. Do NOT interpret or make subjective judgments (e.g., "looks healthy", "appears sad"). Stick to objective visual descriptions.
-        5. Do NOT make medical diagnoses or speculate on health conditions.
-        6. Provide specific, detailed visual observations for each field, avoiding vague terms. Quantify or qualify where possible (e.g., "slight", "moderate", "pronounced", "diffuse", "localized").
-        7. Ensure age range justification is based purely on visible features, not assumptions.
-        8. The 'overallVisualSummary' should be a true summary, not a re-listing of details.
+        **ANALYSIS GUIDELINES:**
+
+        1. **Age Assessment:** Consider multiple factors: skin elasticity, fine lines, facial volume, bone prominence, hair (if visible at edges), overall facial structure maturity.
+
+        2. **Skin Health:** Assess using dermatological principles - barrier function, hydration, inflammation, pigmentation, texture, and signs of aging or damage.
+
+        3. **Vitality Indicators:** Focus on circulation, hydration, muscle tone, and signs of systemic health reflected in facial appearance.
+
+        4. **Lifestyle Reflection:** Identify patterns that suggest exercise habits, sun protection, stress levels, sleep quality, and general self-care.
+
+        5. **Wellness Priorities:** Based on observations, suggest the most impactful areas for improvement.
+
+        **IMPORTANT CONSTRAINTS:**
+        - NO medical diagnoses or disease identification
+        - Focus on wellness optimization, not pathology
+        - Acknowledge limitations of photo-based assessment
+        - Provide actionable insights for wellness improvement
+        - Use "not clearly discernible" for unclear features
         """
 
     def _parse_response(self, response) -> Optional[Dict[str, Any]]:
-        """Parses the JSON response from the OpenAI API."""
+        """Parses the JSON response from the OpenAI API with enhanced validation and error recovery."""
         try:
             content = response.choices[0].message.content
-            # It's good practice to add a validation step here
-            parsed_json = json.loads(content)
-            # You might want to add schema validation using a library like Pydantic or jsonschema
-            # For now, a basic check:
-            expected_top_keys = ["estimatedAgeRange", "skinAnalysis", "stressAndTirednessIndicators", "overallVisualSummary"]
-            if not all(key in parsed_json for key in expected_top_keys):
-                print(f"Parsed JSON missing expected top-level keys: {parsed_json.keys()}")
+            if not content:
+                print("Photo analysis: Empty content received")
                 return None
-            return parsed_json
-        except (json.JSONDecodeError, IndexError, KeyError) as e:
-            print(f"Error parsing photo analysis response: {e}")
-            print(f"Problematic content: {response.choices[0].message.content if response.choices else 'No content'}")
+                
+            # Handle potential JSON markdown blocks
+            if "```json" in content:
+                import re
+                match = re.search(r'```json\s*(\{.*?\})\s*```', content, re.DOTALL)
+                if match:
+                    content = match.group(1)
+            
+            # Check for truncated JSON and attempt basic repair
+            if not content.strip().endswith('}'):
+                print("Photo analysis: Detected truncated JSON, attempting repair...")
+                # Find the last complete field and close the JSON
+                content = content.rstrip()
+                if content.endswith(','):
+                    content = content[:-1]  # Remove trailing comma
+                if not content.endswith('}'):
+                    content += '}'
+                print(f"Photo analysis: Attempted JSON repair")
+            
+            parsed_json = json.loads(content)
+            
+            # Basic validation for essential fields
+            if not isinstance(parsed_json, dict):
+                print("Photo analysis: Response is not a valid JSON object")
+                return None
+            
+            # If we have some data, return it even if not complete
+            if parsed_json:
+                print("Photo analysis: Successfully parsed JSON response")
+                return parsed_json
+            else:
+                print("Photo analysis: Empty JSON object received")
+                return None
+                
+        except json.JSONDecodeError as e:
+            print(f"Photo analysis JSON decode error: {e}")
+            print(f"Problematic content (first 500 chars): {content[:500] if content else 'None'}")
+            
+            # Attempt aggressive JSON repair
+            try:
+                if content:
+                    # Remove everything after the last complete quote-colon-value pattern
+                    import re
+                    # Find the last properly closed field
+                    content_clean = re.sub(r',\s*[^"]*$', '', content)  # Remove incomplete trailing field
+                    if not content_clean.strip().endswith('}'):
+                        content_clean += '}'
+                    
+                    parsed_json = json.loads(content_clean)
+                    print("Photo analysis: Successfully repaired and parsed JSON")
+                    return parsed_json
+            except:
+                print("Photo analysis: JSON repair failed")
+            
             return None
+            
+        except (IndexError, KeyError, AttributeError) as e:
+            print(f"Photo analysis parsing error: {e}")
+            return None
+
+    def _get_fallback_photo_response(self) -> Dict[str, Any]:
+        """Returns a basic fallback response when photo analysis fails."""
+        return {
+            "ageAssessment": {
+                "estimatedRange": {
+                    "lower": 20,
+                    "upper": 35
+                },
+                "biologicalAgeIndicators": "Photo analysis unavailable"
+            },
+            "comprehensiveSkinAnalysis": {
+                "overallSkinHealth": "Unable to assess from photo",
+                "skinQualityMetrics": {
+                    "texture": "Analysis unavailable",
+                    "evenness": "Analysis unavailable",
+                    "radiance": "Analysis unavailable"
+                },
+                "skinConcerns": {
+                    "acne": "Unable to assess",
+                    "redness": "Unable to assess",
+                    "damage": "Unable to assess"
+                }
+            },
+            "vitalityAndHealthIndicators": {
+                "eyeAreaAssessment": {
+                    "brightness": "Unable to assess",
+                    "underEye": "Unable to assess",
+                    "puffiness": "Unable to assess"
+                },
+                "facialVitality": {
+                    "fullness": "Unable to assess",
+                    "muscleTone": "Unable to assess"
+                }
+            },
+            "stressAndLifestyleIndicators": {
+                "stressMarkers": {
+                    "tensionLines": "Unable to assess",
+                    "facialTension": "Unable to assess"
+                },
+                "sleepQuality": {
+                    "eyeArea": "Unable to assess",
+                    "alertness": "Unable to assess"
+                }
+            },
+            "overallWellnessAssessment": {
+                "biologicalAge": "Analysis unavailable",
+                "vitalityLevel": "Unable to determine",
+                "healthImpression": "Photo analysis needed"
+            },
+            "analysisMetadata": {
+                "imageQuality": "Unable to process",
+                "analysisConfidence": "low",
+                "limitingFactors": "Photo processing or analysis failure"
+            }
+        }
+
+    def _encode_image(self, photo_url: str) -> Optional[str]:
+        """Helper method to encode image from URL or data URI."""
+        try:
+            # Handle data URLs and remote URLs
+            if photo_url.startswith("data:"):
+                header, encoded = photo_url.split(',', 1)
+                return encoded
+            else:
+                # For remote URLs, we need to fetch them
+                # This is a sync version for the sync methods
+                import requests
+                response = requests.get(photo_url, timeout=10)
+                response.raise_for_status()
+                img_bytes = response.content
+                encoded = base64.b64encode(img_bytes).decode()
+                return encoded
+        except Exception as e:
+            print(f"Photo encoding error: {e}")
+            return None
+
+    async def _encode_image_async(self, photo_url: str) -> Optional[tuple]:
+        """Async helper method to encode image from URL or data URI."""
+        try:
+            # Handle data URLs and remote URLs
+            if photo_url.startswith("data:"):
+                header, encoded = photo_url.split(',', 1)
+                mime_type = header.split(';')[0].split(':')[1]
+                return encoded, mime_type
+            else:
+                # Use async HTTP client for better performance
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(photo_url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                        response.raise_for_status()
+                        img_bytes = await response.read()
+                        mime_type = response.headers.get("Content-Type") or "image/jpeg"
+                        encoded = base64.b64encode(img_bytes).decode()
+                        return encoded, mime_type
+        except Exception as e:
+            print(f"Async photo encoding error: {e}")
+            return None, None

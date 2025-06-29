@@ -24,8 +24,19 @@ class Settings:
     # Azure OpenAI Configuration
     AZURE_OPENAI_API_KEY: str = os.getenv("AZURE_OPENAI_API_KEY", "")
     AZURE_OPENAI_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "")
-    AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME", "gpt-4o")
     AZURE_OPENAI_API_VERSION: str = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+    
+    # Separate deployments for different models (Azure OpenAI requires separate deployment names)
+    AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME", "gpt-4o")
+    AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME", "gpt-4o-mini")
+    
+    # Optional: Separate deployment versions for different models
+    AZURE_OPENAI_GPT4O_DEPLOYMENT_VERSION: str = os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_VERSION", "2024-05-13")
+    AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_VERSION: str = os.getenv("AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_VERSION", "2024-07-18")
+    
+    # Optional: Separate deployment capacity settings (in K TPM)
+    AZURE_OPENAI_GPT4O_DEPLOYMENT_CAPACITY: int = int(os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_CAPACITY", "30"))
+    AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_CAPACITY: int = int(os.getenv("AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_CAPACITY", "30"))
     
     # Server Configuration
     HOST: str = "0.0.0.0"
