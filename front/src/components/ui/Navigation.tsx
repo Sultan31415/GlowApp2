@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Logo } from './Logo';
 
 interface NavigationProps {
   onStartTest: () => void;
@@ -140,9 +141,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       {isExpanded ? (
         /* Expanded header: logo left, collapse button right */
         <div className="flex items-center justify-between px-4 mb-6">
-          <div className="flex items-center space-x-2">
-            <img src="/icon.png" alt="GlowApp" className="w-8 h-8" />
-            {isExpanded && <span className="text-lg font-bold text-gray-800">GlowApp</span>}
+          <div className="flex items-center space-x-3">
+            <Logo size={40} scale={2.5} className="" />
+            {isExpanded && (
+              <span className="text-lg font-bold text-gray-800 whitespace-nowrap">GlowApp</span>
+            )}
           </div>
           <button
             onClick={() => setIsExpanded(false)}
@@ -156,15 +159,18 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
         /* Collapsed: show logo, reveal expand icon on hover */
         <button
           onClick={() => { setIsExpanded(true); setHoveredItem(null); }}
-          className="relative mx-auto mb-6 flex items-center justify-center focus:outline-none"
+          className="relative mx-auto mb-4 flex items-center justify-center focus:outline-none group"
           onMouseEnter={() => setHoveredItem('logo')}
           onMouseLeave={() => setHoveredItem(null)}
         >
-          <div className={`transition-all duration-300 ease-out ${(hoveredItem === 'logo' || isSidebarHovered) ? 'scale-125' : ''}`}>
+          {/* Container ensures consistent visual weight whether showing the logo or the expand icon */}
+          <div className={`flex h-12 w-12 items-center justify-center transition-all duration-300 ease-out ${
+              (hoveredItem === 'logo' || isSidebarHovered) ? 'scale-110' : ''
+            }`}>
             {(hoveredItem === 'logo' || isSidebarHovered) ? (
-              <PanelLeftOpen className="w-8 h-8 text-gray-800" />
+              <PanelLeftOpen className="w-6 h-6 text-gray-800" />
             ) : (
-              <img src="/icon.png" alt="GlowApp" className="w-8 h-8" />
+              <Logo size={40} scale={2.5} />
             )}
           </div>
           {!isExpanded && (hoveredItem === 'logo') && (

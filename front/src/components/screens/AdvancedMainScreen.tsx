@@ -146,13 +146,13 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               navCompressed ? "py-0.5" : "py-1"
             }`}
           >
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center -space-x-1">
               <img 
-                src="/icon.png" 
+                src="/icon.svg" 
                 alt="GlowApp" 
-                className={`transition-all duration-300 ${navCompressed ? "w-6 h-6" : "w-8 h-8"} rounded-lg`} 
+                className={`transition-all duration-300 ${navCompressed ? "h-10" : "h-16"} rounded-lg`} 
               />
-              <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"}`}>GlowApp</span>
+              <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"} ml-1`}>GlowApp</span>
             </div>
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center space-x-6">
