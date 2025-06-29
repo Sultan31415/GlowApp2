@@ -50,7 +50,7 @@ if (typeof document !== 'undefined' && !document.querySelector('#logo-animation-
       100% { transform: scale(var(--logo-scale)) rotate(360deg); }
     }
     .animate-logo-roll {
-      animation: logoRoll 15s linear infinite;
+      animation: logoRoll 23s linear infinite;
     }
   `;
   document.head.appendChild(style);

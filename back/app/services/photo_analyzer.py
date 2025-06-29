@@ -7,23 +7,43 @@ import json
 import aiohttp
 import asyncio
 from typing import Optional, Dict, Any
-# Assuming app.config.settings exists and is correctly configured
-# from app.config.settings import settings
+from app.config.settings import settings
 
-# Placeholder for settings for standalone testing
-class MockSettings:
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "YOUR_OPENAI_API_KEY_HERE")
-
-settings = MockSettings()
+# Note: Using Azure OpenAI instead of standard OpenAI
+# Make sure to configure these in your .env file:
+# AZURE_OPENAI_API_KEY=your_azure_openai_key
+# AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+# AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=gpt-4o  # Your deployment name
 
 
 class PhotoAnalyzerGPT4o:
-    """Agent for analyzing photos using OpenAI GPT-4o Vision API."""
+    """Agent for analyzing photos using Azure OpenAI GPT-4o Vision API."""
 
     def __init__(self):
-        openai.api_key = settings.OPENAI_API_KEY
-        self.model = "gpt-4o"
-        self.client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        # Check if Azure OpenAI is configured, otherwise fall back to OpenAI
+        if settings.AZURE_OPENAI_API_KEY and settings.AZURE_OPENAI_ENDPOINT:
+            # Initialize Azure OpenAI client
+            self.deployment_name = settings.AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME
+            self.client = openai.AsyncAzureOpenAI(
+                api_key=settings.AZURE_OPENAI_API_KEY,
+                api_version=settings.AZURE_OPENAI_API_VERSION,
+                azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
+            )
+            # For sync client (used in analyze_photo method)
+            self.sync_client = openai.AzureOpenAI(
+                api_key=settings.AZURE_OPENAI_API_KEY,
+                api_version=settings.AZURE_OPENAI_API_VERSION,
+                azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
+            )
+            self.use_azure = True
+            print(f"[PhotoAnalyzer] Using Azure OpenAI with deployment: {self.deployment_name}")
+        else:
+            # Fallback to regular OpenAI
+            self.deployment_name = "gpt-4o"
+            self.client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+            self.sync_client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+            self.use_azure = False
+            print(f"[PhotoAnalyzer] Using OpenAI with model: {self.deployment_name}")
 
     async def analyze_photo_async(self, photo_url: str) -> Optional[Dict[str, Any]]:
         """
@@ -67,7 +87,7 @@ class PhotoAnalyzerGPT4o:
 Be objective, concise, and accurate. Output only JSON."""
 
             response = await self.client.chat.completions.create(
-                model=self.model,
+                model=self.deployment_name,  # Use deployment name for Azure OpenAI
                 messages=[
                     {"role": "system", "content": "You are a visual analysis expert. Return only valid JSON with exact schema."},
                     {
@@ -88,28 +108,28 @@ Be objective, concise, and accurate. Output only JSON."""
             
             # FIXED: Proper response validation before parsing
             if not response or not response.choices or len(response.choices) == 0:
-                print("PhotoAnalyzer ASYNC: Empty response from OpenAI API")
+                print("PhotoAnalyzer ASYNC (Azure): Empty response from Azure OpenAI API")
                 return None
                 
             content = response.choices[0].message.content
             if content is None:
-                print("PhotoAnalyzer ASYNC: Response content is None")
+                print("PhotoAnalyzer ASYNC (Azure): Response content is None")
                 return None
                 
-            print(f"Raw PhotoAnalyzer ASYNC LLM response: {content}")
+            print(f"Raw PhotoAnalyzer ASYNC (Azure) LLM response: {content}")
             return self._parse_response(response)
 
         except openai.APIConnectionError as e:
-            print(f"PhotoAnalyzer ASYNC: API connection error - {e}")
+            print(f"PhotoAnalyzer ASYNC (Azure): API connection error - {e}")
             return None
         except openai.RateLimitError as e:
-            print(f"PhotoAnalyzer ASYNC: Rate limit exceeded - {e}")
+            print(f"PhotoAnalyzer ASYNC (Azure): Rate limit exceeded - {e}")
             return None
         except openai.APIStatusError as e:
-            print(f"PhotoAnalyzer ASYNC: API status error - {e.status_code}: {e.response}")
+            print(f"PhotoAnalyzer ASYNC (Azure): API status error - {e.status_code}: {e.response}")
             return None
         except Exception as e:
-            print(f"PhotoAnalyzerGPT4o ASYNC error: {e}")
+            print(f"PhotoAnalyzerGPT4o ASYNC (Azure) error: {e}")
             return None
 
     def analyze_photo(self, photo_url: str) -> Optional[Dict[str, Any]]:
@@ -131,8 +151,8 @@ Be objective, concise, and accurate. Output only JSON."""
 
             prompt = self._get_analysis_prompt()
 
-            response = openai.chat.completions.create(
-                model=self.model,
+            response = self.sync_client.chat.completions.create(
+                model=self.deployment_name,  # Use deployment name for Azure OpenAI
                 messages=[
                     {"role": "system", "content": "You are a highly precise visual analysis expert. Your sole purpose is to observe and describe visual attributes objectively and return structured JSON. Adhere strictly to the provided schema and instructions."},
                     {
@@ -150,11 +170,11 @@ Be objective, concise, and accurate. Output only JSON."""
                 temperature=0.4,
                 response_format={"type": "json_object"},
             )
-            print(f"Raw PhotoAnalyzer LLM response: {response.choices[0].message.content}")
+            print(f"Raw PhotoAnalyzer (Azure) LLM response: {response.choices[0].message.content}")
             return self._parse_response(response)
 
         except Exception as e:
-            print(f"PhotoAnalyzerGPT4o error: {e}")
+            print(f"PhotoAnalyzerGPT4o (Azure) error: {e}")
             return None
 
     def _get_analysis_prompt(self) -> str:

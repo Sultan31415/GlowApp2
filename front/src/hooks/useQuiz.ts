@@ -77,6 +77,8 @@ export const useQuiz = () => {
              (!currentQuestion.max || value <= currentQuestion.max);
     } else if (currentQuestion.type === 'text-input') {
       return answer?.value !== undefined && (answer.value as string).trim().length > 0;
+    } else if (currentQuestion.type === 'select-country') {
+      return answer?.value !== undefined && answer.value !== '';
     }
     
     return false;

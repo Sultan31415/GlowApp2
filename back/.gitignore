@@ -12,14 +12,14 @@ build/
 # Virtual environments
 venv/
 ENV/
-env/
+# env/
 .venv/
 
 # Logs
 *.log
 
 # Environment variables
-.env
+# .env
 
 # OS files
 .DS_Store

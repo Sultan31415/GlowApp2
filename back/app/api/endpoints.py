@@ -2,7 +2,7 @@ import traceback
 from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Request
 from app.models.schemas import AssessmentRequest, AssessmentResponse, UserAssessmentCreate, UserAssessmentResponse
-from app.services.scoring_service import ScoringService
+from app.services.scoring_service import ScoringService, AdvancedScoringService
 from app.services.ai_service import AIService
 from app.data.quiz_data import quiz_data
 from app.utils.auth import get_current_user
@@ -31,24 +31,41 @@ async def assess_results(
     db: Session = Depends(get_db)
 ) -> AssessmentResponse:
     """Analyze quiz results and return assessment. Requires authentication. Also saves the assessment to the database."""
-    logger.debug("[DEBUG] User info received from Clerk: %s", user)
     try:
         db_user = get_or_create_user(db, user)  # Should update info if changed
-        logger.debug(f"[DEBUG] Saving assessment for user_id: {db_user.id}, clerk_user_id: {user.get('user_id')}")
-        # Calculate base scores
-        base_scores = ScoringService.calculate_base_scores(request.answers)
-
-        # Extract additional data for AI analysis context
-        additional_data = ScoringService.extract_additional_data(request.answers)
         
-        # Override chronological age if provided directly in the request
-        if request.chronological_age is not None:
-            additional_data['chronologicalAge'] = request.chronological_age
+        # Initialize advanced scoring service
+        scoring_service = AdvancedScoringService()
+        
+        # Extract demographic data for advanced scoring
+        demographics = scoring_service._extract_demographics(request.answers)
+        chronological_age = request.chronological_age or demographics.get("age", 30)
+        
+        # Calculate advanced scores with demographic normalization
+        advanced_scores = scoring_service.calculate_advanced_scores(
+            answers=request.answers,
+            age=chronological_age,
+            gender=demographics.get("gender"),
+            country=demographics.get("country")
+        )
+        
+        # Calculate overall glow score and biological age estimates
+        overall_glow_score = scoring_service.calculate_overall_glow_score(advanced_scores)
+        biological_age = scoring_service.estimate_biological_age(
+            advanced_scores, chronological_age, request.answers
+        )
 
-        # Get AI analysis
+        # Extract additional data for AI analysis context (backward compatibility)
+        additional_data = ScoringService.extract_additional_data(request.answers)
+        additional_data['chronologicalAge'] = chronological_age
+        additional_data['advancedScores'] = advanced_scores
+        additional_data['calculatedGlowScore'] = overall_glow_score
+        additional_data['calculatedBiologicalAge'] = biological_age
+
+        # Get AI analysis with enhanced data
         assessment = ai_service.get_ai_analysis(
             answers=request.answers, 
-            base_scores=base_scores, 
+            base_scores=advanced_scores,  # Use advanced scores instead of basic ones
             additional_data=additional_data, 
             photo_url=request.photo_url
         )
@@ -104,7 +121,6 @@ async def get_latest_results(
 ):
     """Fetch the latest saved assessment for the authenticated user, formatted for dashboard display."""
     db_user = get_or_create_user(db, user)
-    logger.debug(f"[DEBUG] Fetching assessment for user_id: {db_user.id}, clerk_user_id: {user.get('user_id')}")
     assessment = get_latest_user_assessment(db, db_user.id)
     if not assessment:
         raise HTTPException(status_code=404, detail="No assessment found for user.")
@@ -143,9 +159,6 @@ async def refresh_user_data(
     db: Session = Depends(get_db)
 ):
     """Force refresh user data from Clerk. Useful for updating users with null email/name data."""
-    logger.debug(f"[DEBUG] Refreshing user data for user_id: {user.get('user_id')}")
-    logger.debug(f"[DEBUG] User data from Clerk: {user}")
-    
     db_user = get_or_create_user(db, user)
     
     return {
@@ -157,5 +170,112 @@ async def refresh_user_data(
             "first_name": db_user.first_name,
             "last_name": db_user.last_name,
             "created_at": db_user.created_at,
+        }
+    }
+
+@router.post("/scoring-analysis")
+async def get_detailed_scoring_analysis(
+    request: AssessmentRequest,
+    user=Depends(get_current_user)
+):
+    """
+    Get detailed scoring analysis without AI processing.
+    Useful for understanding how the new scoring system works.
+    """
+    try:
+        scoring_service = AdvancedScoringService()
+        
+        # Extract demographics
+        demographics = scoring_service._extract_demographics(request.answers)
+        chronological_age = request.chronological_age or demographics.get("age", 30)
+        
+        # Calculate raw scores (before demographic adjustments)
+        raw_scores = scoring_service._calculate_raw_scores(request.answers)
+        
+        # Calculate advanced scores (with demographic adjustments)
+        advanced_scores = scoring_service.calculate_advanced_scores(
+            answers=request.answers,
+            age=chronological_age,
+            gender=demographics.get("gender"),
+            country=demographics.get("country")
+        )
+        
+        # Calculate overall metrics
+        overall_glow_score = scoring_service.calculate_overall_glow_score(advanced_scores)
+        biological_age = scoring_service.estimate_biological_age(
+            advanced_scores, chronological_age, request.answers
+        )
+        
+        # Get country modifiers used
+        country_mods = scoring_service.COUNTRY_HEALTH_MODIFIERS.get(
+            demographics.get("country", "OTHER"), 
+            scoring_service.COUNTRY_HEALTH_MODIFIERS["OTHER"]
+        )
+        
+        # Age adjustments
+        age_adjustments = scoring_service._calculate_age_adjustment(chronological_age)
+        
+        return {
+            "demographics": demographics,
+            "chronological_age": chronological_age,
+            "raw_scores": raw_scores,
+            "advanced_scores": advanced_scores,
+            "overall_glow_score": overall_glow_score,
+            "biological_age": biological_age,
+            "adjustments_applied": {
+                "country_modifiers": country_mods,
+                "age_adjustments": age_adjustments,
+                "gender": demographics.get("gender", "other")
+            },
+            "score_improvements": {
+                "physical_vitality": round(advanced_scores["physicalVitality"] - raw_scores["physicalVitality"], 2),
+                "emotional_health": round(advanced_scores["emotionalHealth"] - raw_scores["emotionalHealth"], 2),
+                "visual_appearance": round(advanced_scores["visualAppearance"] - raw_scores["visualAppearance"], 2)
+            }
+        }
+        
+    except Exception as e:
+        logger.error("[ERROR] Exception in /scoring-analysis endpoint: %s", e)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/scoring-system-info")
+async def get_scoring_system_info():
+    """
+    Get information about the advanced scoring system.
+    Useful for understanding the methodology and improvements.
+    """
+    scoring_service = AdvancedScoringService()
+    
+    return {
+        "system_overview": {
+            "name": "Advanced Evidence-Based Scoring System",
+            "version": "2.0",
+            "total_questions": 17,
+            "scored_questions": 14,
+            "demographic_questions": 3
+        },
+        "key_improvements": [
+            "Country-specific health baseline adjustments",
+            "Age-normalized scoring with exponential decay curves",
+            "Gender-specific health factor adjustments", 
+            "Impact-weighted question scoring",
+            "Non-linear scoring curves for high-impact questions",
+            "Advanced biological age estimation",
+            "Sophisticated alcohol scoring with J-curve",
+            "Exponential tobacco health impact scoring"
+        ],
+        "category_weights": {
+            "overall_glow_score": {
+                "physicalVitality": 0.40,
+                "emotionalHealth": 0.35,
+                "visualAppearance": 0.25
+            }
+        },
+        "supported_countries": list(scoring_service.COUNTRY_HEALTH_MODIFIERS.keys()),
+        "age_decline_rates": scoring_service.AGE_DECLINE_RATES,
+        "question_categories": {
+            qid: {"category": mapping["category"], "weight": mapping["base_weight"]}
+            for qid, mapping in scoring_service.CATEGORY_MAPPING.items()
         }
     } 

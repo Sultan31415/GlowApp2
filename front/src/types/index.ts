@@ -14,7 +14,7 @@ export interface QuizSection {
 export interface Question {
   id: string;
   text: string;
-  type: 'single-choice' | 'number-input' | 'text-input';
+  type: 'single-choice' | 'number-input' | 'text-input' | 'select-country';
   options?: Option[];
   min?: number;
   max?: number;

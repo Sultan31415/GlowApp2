@@ -1,6 +1,6 @@
 # GlowApp Backend API
 
-A FastAPI-based backend for the GlowApp wellness assessment platform with AI-powered analysis using Google's Gemini AI.
+A FastAPI-based backend for the GlowApp wellness assessment platform with AI-powered analysis using Google's Gemini AI and Azure OpenAI.
 
 ## Project Structure
 
@@ -47,7 +47,21 @@ The application follows a clean architecture pattern with clear separation of co
 2. **Set up environment variables**:
    Create a `.env` file in the `back/` directory with:
    ```
+   # Gemini AI (for quiz analysis and orchestration)
    GEMINI_API_KEY=your_gemini_api_key_here
+   
+   # Azure OpenAI (for photo analysis)
+   AZURE_OPENAI_API_KEY=your_azure_openai_api_key_here
+   AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+   AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=gpt-4o
+   AZURE_OPENAI_API_VERSION=2024-02-15-preview
+   
+   # Database
+   DATABASE_URL=postgresql://glowuser:glowpassword@localhost:5433/glowdb
+   
+   # Clerk Authentication
+   CLERK_SECRET_KEY=your_clerk_secret_key
+   JWT_KEY=your_jwt_key
    ```
 
 3. **Test photo processing** (optional):
@@ -120,9 +134,9 @@ Response:
 ## Features
 
 - **Quiz Scoring**: Automated calculation of wellness scores across three categories
-- **AI Analysis**: Integration with Google Gemini AI for personalized insights
-- **Photo Analysis**: Support for image upload and analysis with fallback handling
-- **Age Estimation**: Biological and emotional age estimation
+- **AI Analysis**: Integration with Google Gemini AI for personalized insights and quiz analysis
+- **Photo Analysis**: Azure OpenAI GPT-4o Vision for advanced facial image analysis with fallback handling
+- **Age Estimation**: Biological and emotional age estimation using multi-modal AI
 - **Personalized Recommendations**: AI-generated micro-habits and archetypes
 
 ## Recent Fixes
@@ -146,13 +160,23 @@ The codebase is organized for easy maintenance and extension:
 
 ### Photo Processing Issues
 If you encounter photo processing errors:
-1. Check that your Gemini API key is valid
-2. Ensure the photo is in a supported format (JPEG, PNG)
-3. Verify the base64 encoding is correct
-4. Run `python3 test_photo_processing.py` to test the functionality
+1. Check that your Azure OpenAI API key and endpoint are valid
+2. Ensure your GPT-4o deployment is properly configured in Azure
+3. Verify the photo is in a supported format (JPEG, PNG, max 20MB)
+4. Check the base64 encoding is correct
+5. Run `python3 test_photo_processing.py` to test the functionality
 
 ### API Key Issues
-Make sure your `.env` file contains:
+Make sure your `.env` file contains all required keys:
 ```
-GEMINI_API_KEY=your_actual_api_key_here
+# Required for quiz analysis
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+
+# Required for photo analysis
+AZURE_OPENAI_API_KEY=your_actual_azure_openai_key_here
+AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com/
+AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME=your_deployment_name
+
+# Required for authentication
+CLERK_SECRET_KEY=your_clerk_secret_key
 ``` 

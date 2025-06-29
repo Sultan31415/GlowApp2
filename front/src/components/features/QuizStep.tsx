@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown } from 'lucide-react';
 import { Question, Option } from '../../types';
 
 interface QuizStepProps {
@@ -31,6 +31,11 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   const [numberInput, setNumberInput] = useState<string>('');
   const [isAnswered, setIsAnswered] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  
+  // Country selector state
+  const [countrySearch, setCountrySearch] = useState<string>('');
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [filteredCountries, setFilteredCountries] = useState<Option[]>([]);
 
   const percentage = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
   const estimatedTimeLeft = Math.max(1, Math.ceil((totalQuestions - currentQuestionIndex - 1) * 0.5));
@@ -39,6 +44,58 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     setIsAnswered(selectedAnswer !== undefined && selectedAnswer !== '');
   }, [selectedAnswer]);
 
+  // Filter countries based on search
+  useEffect(() => {
+    if (question.type === 'select-country' && question.options) {
+      const filtered = question.options.filter(country =>
+        country.label.toLowerCase().includes(countrySearch.toLowerCase())
+      );
+      setFilteredCountries(filtered);
+    }
+  }, [countrySearch, question.options, question.type]);
+
+  // Initialize filtered countries and set selected country
+  useEffect(() => {
+    if (question.type === 'select-country' && question.options) {
+      setFilteredCountries(question.options);
+      // If there's a selected answer, set it in the search
+      if (selectedAnswer) {
+        const selectedCountry = question.options.find(option => option.value === selectedAnswer);
+        if (selectedCountry) {
+          setCountrySearch(selectedCountry.label);
+        }
+      } else {
+        // Reset country search when no answer is selected
+        setCountrySearch('');
+      }
+      // Close dropdown when initializing
+      setShowCountryDropdown(false);
+    } else if (question.type !== 'select-country') {
+      // Reset country-specific state when not on country question
+      setCountrySearch('');
+      setShowCountryDropdown(false);
+      setFilteredCountries([]);
+    }
+  }, [question.type, question.options, selectedAnswer]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showCountryDropdown && event.target instanceof Element) {
+        const dropdown = document.getElementById('country-dropdown');
+        const input = document.getElementById('country-input');
+        if (dropdown && input && !dropdown.contains(event.target) && !input.contains(event.target)) {
+          setShowCountryDropdown(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCountryDropdown]);
+
   // Auto-advance with confirmation period and ability to change selection
   const [autoAdvanceTimer, setAutoAdvanceTimer] = useState<number | null>(null);
   const [showAutoAdvanceCountdown, setShowAutoAdvanceCountdown] = useState(false);
@@ -46,7 +103,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
 
   useEffect(() => {
-    if (selectedAnswer && question.type === 'single-choice' && autoAdvanceEnabled) {
+    if (selectedAnswer && (question.type === 'single-choice' || question.type === 'select-country') && autoAdvanceEnabled) {
       // Clear any existing timer
       if (autoAdvanceTimer) {
         clearTimeout(autoAdvanceTimer);
@@ -115,6 +172,36 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     if (value) {
       onAnswerSelect(Number(value), value);
     }
+  };
+
+  const handleCountrySearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCountrySearch(value);
+    setShowCountryDropdown(true);
+    
+    // If search is cleared, reset the selected answer
+    if (!value.trim()) {
+      onAnswerSelect('', '');
+    } else {
+      // Check for exact match to auto-select
+      const exactMatch = question.options?.find(option => 
+        option.label.toLowerCase() === value.toLowerCase()
+      );
+      if (exactMatch) {
+        onAnswerSelect(exactMatch.value, exactMatch.label);
+        setShowCountryDropdown(false);
+      }
+    }
+  };
+
+  const handleCountrySelect = (country: Option) => {
+    setCountrySearch(country.label);
+    setShowCountryDropdown(false);
+    onAnswerSelect(country.value, country.label);
+  };
+
+  const toggleCountryDropdown = () => {
+    setShowCountryDropdown(!showCountryDropdown);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -296,6 +383,63 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                 Please enter a number between {question.min} and {question.max}
               </p>
             )}
+          </div>
+        );
+
+      case 'select-country':
+        return (
+          <div className="mb-8">
+            <div className="relative">
+              <div className="relative">
+                <input
+                  id="country-input"
+                  type="text"
+                  value={countrySearch}
+                  onChange={handleCountrySearch}
+                  onKeyPress={handleKeyPress}
+                  onClick={toggleCountryDropdown}
+                  placeholder={question.placeholder}
+                  className="w-full p-5 sm:p-6 rounded-3xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-300 text-base sm:text-lg bg-white/95 backdrop-blur-sm shadow-xl shadow-gray-500/10 placeholder-gray-400 min-h-[3.5rem] pr-16"
+                  autoFocus
+                />
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-2">
+                  {countrySearch && (
+                    <CheckCircle className="w-6 h-6 text-green-500" fill="currentColor" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={toggleCountryDropdown}
+                    className="p-2 hover:bg-gray-100 rounded-xl transition-colors duration-200"
+                  >
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${showCountryDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Country Dropdown */}
+              {showCountryDropdown && (
+                <div id="country-dropdown" className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-gray-200 rounded-2xl shadow-xl shadow-gray-500/10 z-10 max-h-60 overflow-y-auto">
+                  {filteredCountries.length > 0 ? (
+                    filteredCountries.map((country, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleCountrySelect(country)}
+                        className="w-full text-left px-4 py-3 hover:bg-indigo-50 transition-colors duration-200 first:rounded-t-2xl last:rounded-b-2xl border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="font-medium text-gray-900">{country.label}</div>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-gray-500 text-center">
+                      No countries found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 mt-3 text-center">
+              Type to search or click the dropdown arrow to select your country
+            </p>
           </div>
         );
 
