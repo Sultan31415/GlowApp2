@@ -41,7 +41,7 @@ JSON:
 "overallGlowScore":<0-100>,
 "adjustedCategoryScores":{{"physicalVitality":<0-100>,"emotionalHealth":<0-100>,"visualAppearance":<0-100>}},
 "biologicalAge":<number>,"emotionalAge":<number>,"chronologicalAge":{age},
-"glowUpArchetype":{{"name":"<archetype>","description":"<100 words>"}},
+"glowUpArchetype":{{"name":"<create unique archetype: 'The [Energy Adjective] [Identity Noun]' where Energy=photo vitality (Radiant/Gentle/Resilient/Fierce/Balanced) + Identity=quiz focus (Seeker/Guardian/Alchemist/Navigator/Architect). Use ACTUAL data to synthesize.>","description":"<140-160 words: [Essence] + [Photo traits as metaphors] + [Quiz lifestyle] + [Challenge reframe] + [Superpower] + [Transformation potential] + [Wellness destiny]. Write like personalized wellness mythology grounded in their real data.>"}},
 "microHabits":["<habit1>","<habit2>","<habit3>","<habit4>","<habit5>"],
 "analysisSummary":"<100 words>"
 }}"""

@@ -214,8 +214,8 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
       "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health, but also consider facial expression cues from the photo. Justify in the analysisSummary.>,
       "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
       "glowUpArchetype": {{
-        "name": "<string, create an inspiring archetype name that reflects the user's integrated profile (e.g., 'The Resilient Artist', 'The Mindful Innovator')>",
-        "description": "<string, 150-250 words. A detailed, empathetic description synthesizing insights from both the photo (e.g., 'a thoughtful expression') and the quiz (e.g., 'a strong sense of community').>"
+        "name": "<string, GENERATE a unique archetype name based on their SPECIFIC wellness profile analysis. CREATION PROCESS: 1) Identify their PRIMARY wellness signature from photo (energy level, stress markers, vitality) 2) Cross-reference with quiz dominant themes (main challenges, lifestyle patterns, values) 3) Synthesize into format 'The [Energy Adjective] [Identity Noun]'. Energy adjectives should reflect their photo-revealed energy state: Radiant/Luminous (high vitality), Gentle/Quiet (calm energy), Resilient/Phoenix (overcoming challenges), Fierce/Bold (strong determination), Balanced/Centered (harmonious). Identity nouns should reflect their quiz-revealed role: Seeker (growth-focused), Guardian (protective/nurturing), Alchemist (transformation-focused), Navigator (direction-seeking), Architect (structure-building). Examples: 'The Gentle Alchemist' (calm photo energy + transformation-focused quiz), 'The Radiant Navigator' (high vitality photo + direction-seeking quiz). Make it feel like their personal wellness archetype based on ACTUAL data synthesis.>",
+        "description": "<string, 170-190 words. STRUCTURE: [Opening essence sentence] + [Photo-based physical/visual traits] + [Quiz-based lifestyle/values traits] + [Challenge acknowledgment with reframe] + [Unique superpower identification] + [Transformation potential] + [Wellness destiny/calling]. Write like a personalized wellness mythology. START with their core essence combining visual energy (from photo) and inner drive (from quiz). WEAVE IN specific photo findings (skin health, stress markers, vitality signs) as metaphors for their inner state. INTEGRATE quiz insights (lifestyle choices, values, focus areas) as their chosen path. ACKNOWLEDGE their challenges empathetically but frame as part of their heroic arc. IDENTIFY their unique wellness superpower - the specific combination of strengths only they possess. PAINT their transformation potential using vivid, aspirational language that feels both mystical and achievable. END with their wellness destiny - what they're called to become/contribute. Use nature metaphors, light/energy imagery, and transformation symbolism. Make it feel like discovering their secret wellness identity written in the stars but grounded in their real data.>"
       }},
       "microHabits": [
         "<1. Specific, Actionable Habit: Connect this directly to a specific finding from EITHER the photo or quiz, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
@@ -245,7 +245,7 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. Your role is to intelligently combine insights from multiple specialized AI agents (photo analysis, quiz analysis) into a cohesive, actionable wellness assessment. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. Always return valid JSON."
+                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. Your role is to intelligently combine insights from multiple specialized AI agents (photo analysis, quiz analysis) into a cohesive, actionable wellness assessment. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. IMPORTANT: Generate personalized archetype names based on the user's specific analysis data - do not use generic examples. Always return valid JSON."
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -533,12 +533,12 @@ PHOTO ANALYSIS SUMMARY:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a wellness synthesizer. Combine photo and quiz insights quickly. Return structured JSON only."
+                    "content": "You are a wellness synthesizer. Combine photo and quiz insights quickly. Generate personalized archetype names from the specific analysis data. Return structured JSON only."
                 },
                 {"role": "user", "content": synthesis_prompt}
             ],
             temperature=0.05, # Even lower for maximum speed
-            max_tokens=400,   # Even more reduced for maximum speed
+            max_tokens=800,   # Increased for enhanced archetype generation
             response_format={"type": "json_object"}
         )
         
@@ -559,7 +559,7 @@ PHOTO ANALYSIS SUMMARY:
                 temperature=0.1,  # Faster
                 top_p=0.7,        # Faster  
                 candidate_count=1,
-                max_output_tokens=600  # Much faster
+                max_output_tokens=1000  # Increased for enhanced archetype generation
             )
             fallback_response = await asyncio.to_thread(
                 fallback_orchestrator.generate_content,
@@ -627,8 +627,8 @@ PHOTO ANALYSIS SUMMARY:
         # Ensure required fields exist
         if not final_analysis.get("glowUpArchetype"):
             final_analysis["glowUpArchetype"] = {
-                "name": "The Resilient Explorer",
-                "description": "You're on a journey of wellness discovery with great potential for growth."
+                "name": "The Balanced Navigator",
+                "description": "You embody the essence of a thoughtful wellness explorer, naturally drawn to finding harmony between all aspects of life. Your inner compass points toward sustainable growth, and there's a quiet strength in how you approach challenges with both curiosity and wisdom. Like a skilled navigator reading the stars, you intuitively understand that true wellness comes from listening to your body's signals and honoring your emotional needs. Your superpower lies in your ability to adapt and find balance even in uncertainty. You're destined to become a guide for others seeking their own path to authentic wellness, showing them that transformation happens through gentle, consistent steps rather than dramatic changes."
             }
             
         if not final_analysis.get("microHabits"):
@@ -662,8 +662,8 @@ PHOTO ANALYSIS SUMMARY:
             "emotionalAge": int(user_age) if isinstance(user_age, (int, float)) else 25,
             "chronologicalAge": int(user_age) if isinstance(user_age, (int, float)) else 25,
             "glowUpArchetype": {
-                "name": "The Resilient Explorer",
-                "description": "You're on a journey of wellness discovery with great potential for growth."
+                "name": "The Resilient Alchemist",
+                "description": "Like a master alchemist, you possess the rare gift of transforming life's challenges into wisdom and strength. Your wellness journey is marked by an intuitive understanding that true healing happens from within, and you approach each setback as raw material for your personal transformation. There's a quiet power in your resilience—you don't just bounce back, you evolve forward. Your superpower lies in your ability to find the hidden lessons in every experience and transmute them into greater vitality. You're destined to become a beacon of authentic transformation, showing others that wellness isn't about perfection, but about the beautiful alchemy of turning wounds into wisdom and obstacles into opportunities for growth."
             },
             "microHabits": [
                 "Drink an extra glass of water each morning",

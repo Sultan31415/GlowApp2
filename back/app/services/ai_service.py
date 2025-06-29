@@ -92,7 +92,7 @@ class AIService:
                 messages=[
                     {
                         "role": "system", 
-                        "content": "You are a wellness synthesizer. Combine insights quickly. Return JSON only."
+                        "content": "You are a wellness synthesizer. Combine insights quickly. Generate personalized archetype names from specific user analysis. Return JSON only."
                     },
                     {"role": "user", "content": prompt}
                 ],
@@ -218,8 +218,8 @@ class AIService:
           "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health. Justify in the analysisSummary.>,
           "chronologicalAge": {chronological_age},
           "glowUpArchetype": {{
-            "name": "<string, create an inspiring archetype name that reflects the user's integrated profile (e.g., 'The Resilient Artist', 'The Mindful Innovator')>",
-            "description": "<string, 150-250 words. A detailed, empathetic description synthesizing insights from both the photo (e.g., 'a thoughtful expression') and the quiz (e.g., 'a strong sense of community').>"
+            "name": "<string, GENERATE a personalized archetype name based on their specific analysis. Study their photo insights (energy, vitality, stress patterns) and quiz data (lifestyle, challenges, strengths) to create a unique title. Use 'The [Descriptive Adjective] [Meaningful Noun]' format where the adjective captures their wellness energy/approach and the noun represents their transformation role. Make it their personal wellness identity, not a generic example.>",
+            "description": "<string, 170-290 words (15% longer than typical). Write an engaging, personality-rich description that reads like a wellness horoscope. Start with their core essence, weave in specific traits from BOTH photo and quiz analysis, describe their wellness journey style, acknowledge challenges with empathy, highlight unique strengths, and paint their transformation potential with vivid, aspirational language. Make it feel personal and slightly mystical while grounded in data.>"
           }},
           "microHabits": [
             "<1. Specific, Actionable Habit: Connect this directly to a specific finding, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
