@@ -10,6 +10,7 @@ import { AuroraBackground } from '../ui/AuroraBackground';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
+import { Logo } from '../ui/Logo';
 
 interface AdvancedMainScreenProps {
   onStartTest: () => void;
@@ -147,10 +148,11 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
             }`}
           >
             <div className="flex items-center -space-x-1">
-              <img 
-                src="/icon.svg" 
-                alt="GlowApp" 
-                className={`transition-all duration-300 ${navCompressed ? "h-10" : "h-16"} rounded-lg`} 
+              <Logo 
+                size={navCompressed ? 40 : 64}
+                scale={1.9}
+                animate={true}
+                className="transition-all duration-300 rounded-lg" 
               />
               <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"} ml-1`}>GlowApp</span>
             </div>
