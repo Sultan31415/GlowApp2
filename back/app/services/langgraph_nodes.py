@@ -204,17 +204,17 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     --- Final JSON Schema ---
     {{
-      "overallGlowScore": <number, 0-100. Holistically assessed based on all integrated insights and final adjusted category scores. Justify in the analysisSummary.>,
+      "overallGlowScore": <number, 30-85. BE REALISTIC: Most humans 60-75, Good health 75-80, Exceptional 80-85. Consider age, unknowns, limitations. Justify conservatively in analysisSummary.>,
       "adjustedCategoryScores": {{
-          "physicalVitality": <number, 0-100. Start with the quiz's adjusted score and **significantly adjust based on photo visual vitality cues (e.g., skin luster, eye appearance)**. Explicitly state how photo influenced this.>,
-          "emotionalHealth": <number, 0-100. Start with the quiz's adjusted score and **moderately adjust based on photo facial expression cues (e.g., tension, calmness)**. Explicitly state how photo influenced this.>,
-          "visualAppearance": <number, 0-100. **This is the most critical adjustment.** Start with the quiz's adjusted score and **drastically modify it based on the photo analysis's detailed skin and stress indicators (e.g., redness, texture, blemishes, dullness).** This score should predominantly reflect the visual evidence. Explicitly state how photo influenced this.>
+          "physicalVitality": <number, 40-85. Start with quiz baseline. Moderate photo influence from vitality cues. BE CONSERVATIVE - perfect scores extremely rare, most people 60-80.>,
+          "emotionalHealth": <number, 40-85. Start with quiz baseline. Subtle photo influence from stress markers. REALISTIC - everyone has challenges, most people 60-80.>,
+          "visualAppearance": <number, 35-85. START with quiz baseline, then HEAVILY adjust based on photo evidence. Good photo analysis = significant up/down adjustment. Poor photo quality = conservative estimate. Most people 55-75.>
       }},
       "biologicalAge": <number, estimate based on all available data. Primarily use photo 'estimatedAgeRange' as a visual anchor and refine with quiz 'keyRisks' and 'keyStrengths'. Justify in the analysisSummary.>,
       "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health, but also consider facial expression cues from the photo. Justify in the analysisSummary.>,
       "chronologicalAge": {additional_data.get('chronologicalAge', 'null')},
       "glowUpArchetype": {{
-        "name": "<string, GENERATE a unique archetype name based on their SPECIFIC wellness profile analysis. CREATION PROCESS: 1) Identify their PRIMARY wellness signature from photo (energy level, stress markers, vitality) 2) Cross-reference with quiz dominant themes (main challenges, lifestyle patterns, values) 3) Synthesize into format 'The [Energy Adjective] [Identity Noun]'. Energy adjectives should reflect their photo-revealed energy state: Radiant/Luminous (high vitality), Gentle/Quiet (calm energy), Resilient/Phoenix (overcoming challenges), Fierce/Bold (strong determination), Balanced/Centered (harmonious). Identity nouns should reflect their quiz-revealed role: Seeker (growth-focused), Guardian (protective/nurturing), Alchemist (transformation-focused), Navigator (direction-seeking), Architect (structure-building). Examples: 'The Gentle Alchemist' (calm photo energy + transformation-focused quiz), 'The Radiant Navigator' (high vitality photo + direction-seeking quiz). Make it feel like their personal wellness archetype based on ACTUAL data synthesis.>",
+        "name": "<string, GENERATE a completely unique and personalized archetype name based on their SPECIFIC wellness profile analysis. CREATION PROCESS: 1) Deep dive into their photo insights (energy levels, vitality signs, stress markers, skin health, overall wellness impression) 2) Cross-reference with quiz lifestyle patterns (values, challenges, strengths, transformation focus) 3) Synthesize into format 'The [Creative Energy Descriptor] [Unique Identity Role]'. For Energy Descriptors, be creative and authentic to their actual photo data - could be nature-based (Ocean, Mountain, Forest, Aurora), cosmic (Stellar, Luna, Nova), elemental (Ember, Crystal, Storm), or abstract (Luminous, Whispering, Ascending, etc.). For Identity Roles, reflect their true transformation path from quiz data - could be mystical (Weaver, Keeper, Oracle), heroic (Phoenix, Catalyst, Guardian), or aspirational (Visionary, Builder, Sage, etc.). Examples of creative combinations: 'The Ocean Weaver' (flowing, calm energy + interconnected approach), 'The Ember Phoenix' (warm, transforming energy + rebirth focus), 'The Crystal Sage' (clear, structured energy + wisdom-seeking). Make it their personal wellness mythology.>",
         "description": "<string, 170-190 words. STRUCTURE: [Opening essence sentence] + [Photo-based physical/visual traits] + [Quiz-based lifestyle/values traits] + [Challenge acknowledgment with reframe] + [Unique superpower identification] + [Transformation potential] + [Wellness destiny/calling]. Write like a personalized wellness mythology. START with their core essence combining visual energy (from photo) and inner drive (from quiz). WEAVE IN specific photo findings (skin health, stress markers, vitality signs) as metaphors for their inner state. INTEGRATE quiz insights (lifestyle choices, values, focus areas) as their chosen path. ACKNOWLEDGE their challenges empathetically but frame as part of their heroic arc. IDENTIFY their unique wellness superpower - the specific combination of strengths only they possess. PAINT their transformation potential using vivid, aspirational language that feels both mystical and achievable. END with their wellness destiny - what they're called to become/contribute. Use nature metaphors, light/energy imagery, and transformation symbolism. Make it feel like discovering their secret wellness identity written in the stars but grounded in their real data.>"
       }},
       "microHabits": [
@@ -245,7 +245,7 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. Your role is to intelligently combine insights from multiple specialized AI agents (photo analysis, quiz analysis) into a cohesive, actionable wellness assessment. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. IMPORTANT: Generate personalized archetype names based on the user's specific analysis data - do not use generic examples. Always return valid JSON."
+                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. CRITICAL: BE REALISTIC - humans are not perfect, most score 60-80 range. Photo analysis MUST significantly impact visual appearance scores when quality is good. Apply conservative scoring with humility about limitations. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. Generate personalized archetype names based on user's specific analysis data. Always return valid JSON."
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -325,21 +325,53 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
 async def photo_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
     """
-    ULTRA-FAST: Async photo analysis node with speed-optimized processing.
-    Expected 70-80% faster than previous version.
+    LangGraph node: CONFIGURABLE async photo analysis with multiple analysis modes.
+    Uses settings.PHOTO_ANALYSIS_MODE to determine analysis approach.
     """
     import time
+    from app.config.settings import settings
+    
     start_time = time.time()
-    print("[LangGraph] 📸⚡ ULTRA-FAST photo analysis started")
+    analysis_mode = settings.PHOTO_ANALYSIS_MODE
+    print(f"[LangGraph] 📸 Photo analysis started - Mode: {analysis_mode.upper()}")
     
     photo_url = state.get("photo_url")
     if photo_url:
-        print(f"[LangGraph] 📸⚡ Processing photo (speed mode)")
-        # Use FAST photo analyzer with optimized prompts and reduced tokens
-        insights = await photo_analyzer.analyze_photo_fast(photo_url)
-        print(f"[LangGraph] 📸⚡ ULTRA-FAST photo analysis completed in {time.time() - start_time:.2f}s")
+        print(f"[LangGraph] 📸 Processing photo URL: {photo_url[:50]}...")
+        
+        try:
+            # Select analysis method based on configuration
+            if analysis_mode == "dermatological":
+                print("[LangGraph] 📸🔬 Using DERMATOLOGICAL analysis for maximum skin accuracy")
+                insights = await photo_analyzer.analyze_photo_dermatological(photo_url)
+            elif analysis_mode == "comprehensive":
+                print("[LangGraph] 📸📋 Using COMPREHENSIVE analysis for balanced assessment")
+                insights = await photo_analyzer.analyze_photo_async(photo_url)
+            elif analysis_mode == "fast":
+                print("[LangGraph] 📸⚡ Using FAST analysis for speed optimization")
+                insights = await photo_analyzer.analyze_photo_fast(photo_url)
+            else:
+                print(f"[LangGraph] 📸❓ Unknown analysis mode '{analysis_mode}', defaulting to comprehensive")
+                insights = await photo_analyzer.analyze_photo_async(photo_url)
+            
+            analysis_time = time.time() - start_time
+            print(f"[LangGraph] 📸✅ Photo analysis ({analysis_mode}) completed in {analysis_time:.2f}s")
+            
+            # Log analysis quality for debugging
+            if insights:
+                skin_health = insights.get('comprehensiveSkinAnalysis', {}).get('overallSkinHealth', 'unknown')
+                redness = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('redness', 'unknown')
+                acne = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('acne', 'unknown')
+                print(f"[LangGraph] 📸🔍 Analysis results - Skin: {skin_health}, Redness: {redness}, Acne: {acne}")
+            else:
+                print("[LangGraph] 📸❌ Photo analysis returned None - may indicate processing issue")
+            
+        except Exception as e:
+            print(f"[LangGraph] 📸❌ Photo analysis error: {e}")
+            insights = None
+            
     else:
-        print("[LangGraph] 📸 No photo URL provided, skipping")
+        print("[LangGraph] 📸 No photo URL provided, skipping photo analysis")
         insights = None
         
     return {**state, "photo_insights": insights}
@@ -533,12 +565,12 @@ PHOTO ANALYSIS SUMMARY:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a wellness synthesizer. Combine photo and quiz insights quickly. Generate personalized archetype names from the specific analysis data. Return structured JSON only."
+                    "content": "You are an expert wellness synthesis specialist with deep knowledge of health assessment, psychology, and cultural factors. CRITICAL INSTRUCTIONS: (1) BE REALISTIC - most humans score 60-80 range, scores above 85 require exceptional evidence; (2) FOLLOW PHOTO GUIDANCE EXACTLY - apply specified photo score adjustments to visual appearance; (3) USE EVIDENCE-BASED REASONING - ground all assessments in actual data provided; (4) ACKNOWLEDGE LIMITATIONS - be conservative when data is uncertain. Always return valid JSON only."
                 },
                 {"role": "user", "content": synthesis_prompt}
             ],
-            temperature=0.05, # Even lower for maximum speed
-            max_tokens=800,   # Increased for enhanced archetype generation
+            temperature=0.02, # Ultra-low for maximum consistency with Context7 best practices
+            max_tokens=1200,  # Increased for comprehensive Context7 enhanced responses
             response_format={"type": "json_object"}
         )
         
@@ -611,9 +643,9 @@ PHOTO ANALYSIS SUMMARY:
             # Calculate fallback from base scores
             if isinstance(base_scores, dict):
                 scores = [v for v in base_scores.values() if isinstance(v, (int, float))]
-                final_analysis["overallGlowScore"] = int(sum(scores) / len(scores)) if scores else 70
+                final_analysis["overallGlowScore"] = int(sum(scores) / len(scores)) if scores else 65
             else:
-                final_analysis["overallGlowScore"] = 70
+                final_analysis["overallGlowScore"] = 65
         
         # Ensure adjustedCategoryScores exist and are valid
         if not isinstance(final_analysis.get("adjustedCategoryScores"), dict):
@@ -622,7 +654,7 @@ PHOTO ANALYSIS SUMMARY:
             # Validate each score
             for category in ["physicalVitality", "emotionalHealth", "visualAppearance"]:
                 if not isinstance(final_analysis["adjustedCategoryScores"].get(category), (int, float)):
-                    final_analysis["adjustedCategoryScores"][category] = base_scores.get(category, 70)
+                    final_analysis["adjustedCategoryScores"][category] = base_scores.get(category, 65)
         
         # Ensure required fields exist
         if not final_analysis.get("glowUpArchetype"):
@@ -656,7 +688,7 @@ PHOTO ANALYSIS SUMMARY:
         print(f"[LangGraph] ❌ Error parsing orchestrator JSON: {parse_e}")
         print(f"Raw response: {clean_response}")
         fallback_analysis = {
-            "overallGlowScore": base_scores.get("overall", 70) if isinstance(base_scores, dict) else 70,
+            "overallGlowScore": base_scores.get("overall", 65) if isinstance(base_scores, dict) else 65,
             "adjustedCategoryScores": base_scores,
             "biologicalAge": int(user_age) if isinstance(user_age, (int, float)) else 25,
             "emotionalAge": int(user_age) if isinstance(user_age, (int, float)) else 25,

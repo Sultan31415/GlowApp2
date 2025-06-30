@@ -92,12 +92,12 @@ class AIService:
                 messages=[
                     {
                         "role": "system", 
-                        "content": "You are a wellness synthesizer. Combine insights quickly. Generate personalized archetype names from specific user analysis. Return JSON only."
+                        "content": "You are an expert wellness synthesis specialist with deep knowledge of health assessment, psychology, and cultural factors. Apply Context7 best practices: use evidence-based reasoning, be realistic with scoring (most humans 60-80 range), follow photo guidance exactly, and acknowledge limitations. Always return valid JSON only."
                     },
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.05,  # Maximum speed
-                max_tokens=400,    # Maximum speed
+                temperature=0.02,  # Ultra-low for Context7 consistency
+                max_tokens=1200,   # Increased for comprehensive responses
                 response_format={"type": "json_object"}
             )
             
@@ -208,17 +208,17 @@ class AIService:
 
         Generate a JSON object with the following schema:
         {{
-          "overallGlowScore": <number, 0-100. Holistically assess and combine all insights. This should be a weighted average of the final adjustedCategoryScores. Justify in the analysisSummary.>,
+          "overallGlowScore": <number, 30-85. BE REALISTIC: Most humans 60-75, Good health 75-80, Exceptional 80-85. Consider age, unknowns, limitations. Justify conservatively.>,
           "adjustedCategoryScores": {{
-              "physicalVitality": <number, from country-adjusted scores, with minimal changes unless photo strongly contradicts>,
-              "emotionalHealth": <number, from country-adjusted scores, with minimal changes unless photo strongly contradicts>,
-              "visualAppearance": <number, **This is the critical adjustment**. Start with the country-adjusted score and significantly modify it based on the photo analysis.>
+              "physicalVitality": <number, 40-85. Start with quiz baseline. Moderate photo influence. BE CONSERVATIVE - most people 60-80.>,
+              "emotionalHealth": <number, 40-85. Start with quiz baseline. Subtle photo influence. REALISTIC - everyone has challenges, most people 60-80.>,
+              "visualAppearance": <number, 35-85. START with quiz baseline, then HEAVILY adjust based on photo evidence. Good photo = significant boost/reduction. Poor photo quality = conservative estimate.>
           }},
           "biologicalAge": <number, estimate based on all available data. Use photo 'estimatedAgeRange' as a primary visual cue and quiz 'keyRisks' (e.g., smoking, diet) to adjust. Justify in the analysisSummary.>,
           "emotionalAge": <number, estimate primarily based on quiz 'keyStrengths' and 'keyRisks' related to emotional health. Justify in the analysisSummary.>,
           "chronologicalAge": {chronological_age},
           "glowUpArchetype": {{
-            "name": "<string, GENERATE a personalized archetype name based on their specific analysis. Study their photo insights (energy, vitality, stress patterns) and quiz data (lifestyle, challenges, strengths) to create a unique title. Use 'The [Descriptive Adjective] [Meaningful Noun]' format where the adjective captures their wellness energy/approach and the noun represents their transformation role. Make it their personal wellness identity, not a generic example.>",
+            "name": "<string, GENERATE a completely original and personalized archetype name based on their specific analysis. Deep dive into their photo insights (energy levels, vitality, stress patterns, skin health) and quiz data (lifestyle, values, challenges, strengths) to craft a truly unique wellness identity. Use 'The [Creative Energy Descriptor] [Unique Identity Role]' format. Energy Descriptors should be inspired by their actual photo data - think nature elements (Ocean, Mountain, Forest, Aurora), cosmic themes (Stellar, Luna, Nova), elemental forces (Ember, Crystal, Storm), or abstract concepts (Luminous, Whispering, Ascending). Identity Roles should reflect their transformation journey from quiz data - mystical (Weaver, Keeper, Oracle), heroic (Phoenix, Catalyst, Guardian), or aspirational (Visionary, Builder, Sage). Create their personal wellness mythology, not a generic label.>",
             "description": "<string, 170-290 words (15% longer than typical). Write an engaging, personality-rich description that reads like a wellness horoscope. Start with their core essence, weave in specific traits from BOTH photo and quiz analysis, describe their wellness journey style, acknowledge challenges with empathy, highlight unique strengths, and paint their transformation potential with vivid, aspirational language. Make it feel personal and slightly mystical while grounded in data.>"
           }},
           "microHabits": [

@@ -65,101 +65,17 @@ class PhotoAnalyzerGPT4o:
                         mime_type = response.headers.get("Content-Type") or "image/jpeg"
                         encoded = base64.b64encode(img_bytes).decode()
 
-            # ENHANCED: Comprehensive health-focused prompt optimized for speed
-            optimized_prompt = """Analyze this facial photo for wellness assessment. Return ONLY JSON:
-{
-  "ageAssessment": {
-    "estimatedRange": {"lower": <int>, "upper": <int>},
-    "biologicalAgeIndicators": "<brief description of key age-related features>",
-    "youthfulnessMarkers": "<positive aging indicators or 'none observed'>",
-    "agingConcerns": "<visible aging signs or 'none observed'>"
-  },
-  "comprehensiveSkinAnalysis": {
-    "overallSkinHealth": "<excellent/good/fair/poor>",
-    "skinType": {
-      "complexion": "<fair/medium/dark/olive>",
-      "undertone": "<cool/warm/neutral or 'not discernible'>",
-      "skinThickness": "<thin/normal/thick>"
-    },
-    "skinQualityMetrics": {
-      "texture": "<smooth/fine-textured/slightly-rough/rough>",
-      "poreVisibility": "<minimal/small/moderate/enlarged>",
-      "skinToneEvenness": "<very-even/mostly-even/somewhat-uneven/patchy>",
-      "elasticity": "<excellent/good/moderate/poor>",
-      "hydrationLevel": "<well-hydrated/adequately-hydrated/slightly-dry/dry>"
-    },
-    "skinConcerns": {
-      "acneAndBlemishes": "<clear/occasional-blemishes/active-breakouts/scarring>",
-      "redness": "<none/slight-flush/moderate-redness/significant>",
-      "visibleDamage": "<none/early-photodamage/moderate-sun-damage/significant>"
-    },
-    "skinLuminosity": {
-      "radiance": "<luminous/healthy-glow/normal/dull>",
-      "healthyGlow": "<present/moderate/minimal/absent>"
-    }
-  },
-  "vitalityAndHealthIndicators": {
-    "eyeAreaAssessment": {
-      "eyeBrightness": "<bright/normal/dull/tired>",
-      "underEyeCondition": "<clear/slight-darkness/dark-circles/severe>",
-      "eyePuffiness": "<none/minimal/moderate/significant>"
-    },
-    "facialVitality": {
-      "facialFullness": "<healthy-fullness/normal/slightly-gaunt/gaunt>",
-      "muscleTone": "<excellent/good/moderate/poor>",
-      "facialSymmetry": "<excellent/good/moderate/asymmetrical>"
-    },
-    "circulationAndOxygenation": {
-      "skinColor": "<healthy-pink/normal/pale/flushed/grayish>",
-      "overallOxygenation": "<excellent/good/moderate/poor>"
-    }
-  },
-  "stressAndLifestyleIndicators": {
-    "stressMarkers": {
-      "tensionLines": "<none/minimal/moderate/significant>",
-      "overallFacialTension": "<relaxed/normal/tense/very-tense>"
-    },
-    "sleepQualityIndicators": {
-      "eyeArea": "<well-rested/normal/slightly-tired/tired/exhausted>",
-      "alertness": "<very-alert/alert/normal/drowsy>"
-    },
-    "emotionalWellbeing": {
-      "facialExpression": "<content/peaceful/neutral/worried/stressed>",
-      "eyeExpression": "<bright-engaged/normal/distant/vacant>"
-    },
-    "lifestyleClues": {
-      "hydrationStatus": "<well-hydrated/adequate/dehydrated>",
-      "nutritionalIndicators": "<excellent/good/adequate/poor>",
-      "sunProtectionHabits": "<excellent/good/moderate/poor>"
-    }
-  },
-  "overallWellnessAssessment": {
-    "biologicalAge": "<younger-than-chronological/age-appropriate/older-than-chronological>",
-    "vitalityLevel": "<very-high/high/moderate/low>",
-    "healthImpression": "<vibrant/healthy/average/concerning>",
-    "wellnessPriorities": [
-      "<top 2-3 areas for improvement>"
-    ]
-  },
-  "analysisMetadata": {
-    "imageQuality": "<excellent/good/fair/poor>",
-    "analysisConfidence": "<very-high/high/moderate/low>",
-    "limitingFactors": "<any factors limiting analysis accuracy>"
-  }
-}
-
-Important guidelines:
-- Be specific and objective
-- Use the exact categories provided
-- If something is unclear, use descriptive terms rather than null
-- Focus on observable wellness indicators
-- Estimate age range based on visible facial features
-- Provide realistic assessments based on what you can actually see."""
+            # ENHANCED: Using Context7 best practices optimized prompt
+            from app.services.prompt_optimizer import PromptOptimizer
+            optimized_prompt = PromptOptimizer.build_fast_photo_prompt()
 
             response = await self.client.chat.completions.create(
                 model=self.deployment_name,
                 messages=[
-                    {"role": "system", "content": "You are an expert wellness assessment specialist analyzing facial photos for health indicators. Focus on objective, observable features that correlate with wellness. Return structured JSON only."},
+                    {
+                        "role": "system", 
+                        "content": "You are an expert computer vision health analyst specializing in facial wellness assessment. Focus on objective, observable features that correlate with wellness. Provide specific, evidence-based assessments. Always return valid JSON only."
+                    },
                     {
                         "role": "user",
                         "content": [
@@ -171,8 +87,8 @@ Important guidelines:
                         ],
                     },
                 ],
-                max_tokens=800,  # Increased for more comprehensive analysis
-                temperature=0.2,  # Lower temperature for consistent health assessments
+                max_tokens=1000,  # Increased for Context7 enhanced prompts
+                temperature=0.1,   # Lower temperature for maximum consistency
                 response_format={"type": "json_object"},
             )
             
@@ -644,3 +560,139 @@ Important guidelines:
         except Exception as e:
             print(f"Async photo encoding error: {e}")
             return None, None
+
+    async def analyze_photo_dermatological(self, photo_url: str) -> Optional[Dict[str, Any]]:
+        """
+        DERMATOLOGICAL FOCUS: Specialized photo analysis with aggressive skin condition detection.
+        Uses medical-grade prompts specifically designed for accurate skin assessment.
+        This is an alternative approach if standard analysis misses obvious skin conditions.
+        """
+        try:
+            print("[PhotoAnalyzer] 🔬 DERMATOLOGICAL analysis started - specialized skin assessment")
+
+            # Handle data URLs and remote URLs
+            if photo_url.startswith("data:"):
+                header, encoded = photo_url.split(',', 1)
+                mime_type = header.split(';')[0].split(':')[1]
+            else:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(photo_url, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                        response.raise_for_status()
+                        img_bytes = await response.read()
+                        mime_type = response.headers.get("Content-Type") or "image/jpeg"
+                        encoded = base64.b64encode(img_bytes).decode()
+
+            # Aggressive dermatological assessment prompt
+            dermatological_prompt = """You are a specialized dermatological assessment AI with expertise in skin condition recognition. Your primary task is to identify and accurately assess visible skin conditions with medical precision.
+
+CRITICAL MISSION: Detect and accurately identify ANY visible skin conditions, redness, acne, or skin irregularities. Do NOT minimize or overlook obvious skin problems.
+
+SKIN ASSESSMENT PROTOCOL:
+
+1. REDNESS ANALYSIS (CRITICAL):
+   - Scan the entire facial area for ANY pink, red, or inflamed coloration
+   - Check cheeks, nose, chin, forehead, around mouth
+   - Look for flushing, irritation, inflammatory patterns
+   - Even subtle redness should be noted
+   - Rate precisely: none/slight/moderate/significant/severe
+
+2. ACNE AND BLEMISH DETECTION (CRITICAL):
+   - Identify ALL visible acne lesions: comedones, papules, pustules
+   - Look for active breakouts, whiteheads, blackheads
+   - Check for post-acne marks, scarring, or discoloration
+   - Assess severity and distribution accurately
+   - Rate precisely: clear/few-blemishes/moderate-acne/severe-acne
+
+3. SKIN TEXTURE ASSESSMENT:
+   - Evaluate surface texture: smooth vs. rough
+   - Identify enlarged pores, uneven texture
+   - Look for skin irregularities or bumps
+   - Rate: smooth/slightly-rough/rough/very-rough
+
+4. OVERALL SKIN HEALTH:
+   - Combine all findings for comprehensive assessment
+   - Be objective and clinically accurate
+   - Rate: excellent/good/fair/poor
+
+CRITICAL INSTRUCTIONS:
+- If you see redness, you MUST identify it as redness
+- If you see acne or blemishes, you MUST identify them as such
+- Do NOT be conservative or minimize obvious skin conditions
+- Be clinically accurate and objective
+- Focus on what is ACTUALLY VISIBLE
+
+Return assessment in this format:
+
+{{
+  "dermatologicalAssessment": {{
+    "skinConditions": {{
+      "redness": {{
+        "severity": "<none/slight/moderate/significant/severe>",
+        "distribution": "<facial areas affected>",
+        "characteristics": "<description of redness pattern>"
+      }},
+      "acne": {{
+        "severity": "<clear/few-blemishes/moderate-acne/severe-acne>",
+        "activeBreakouts": "<number/description of active lesions>",
+        "distribution": "<facial areas affected>"
+      }},
+      "texture": {{
+        "quality": "<smooth/slightly-rough/rough/very-rough>",
+        "poreVisibility": "<minimal/moderate/enlarged>",
+        "irregularities": "<description of texture issues>"
+      }}
+    }},
+    "overallSkinHealth": "<excellent/good/fair/poor>",
+    "clinicalObservations": [
+      "<specific visible findings>",
+      "<additional skin condition notes>"
+    ],
+    "recommendedFocus": [
+      "<areas needing attention based on visible conditions>"
+    ]
+  }},
+  "ageAssessment": {{
+    "estimatedRange": {{"lower": <age>, "upper": <age>}},
+    "skinAgeIndicators": "<visible aging signs>"
+  }},
+  "analysisConfidence": "<high/medium/low - based on image quality and visibility>"
+}}"""
+
+            response = await self.client.chat.completions.create(
+                model=self.deployment_name,
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "You are a specialized dermatological AI analyst. Your expertise is in accurate skin condition identification. Be precise, objective, and never minimize visible skin problems. Focus on clinical accuracy."
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": dermatological_prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime_type};base64,{encoded}"},
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=800,
+                temperature=0.05,  # Very low for maximum consistency and accuracy
+                response_format={"type": "json_object"},
+            )
+            
+            if not response or not response.choices or len(response.choices) == 0:
+                print("PhotoAnalyzer DERMATOLOGICAL: Empty response from API")
+                return None
+                
+            content = response.choices[0].message.content
+            if content is None:
+                print("PhotoAnalyzer DERMATOLOGICAL: Response content is None")
+                return None
+                
+            print(f"Raw PhotoAnalyzer DERMATOLOGICAL response: {content}")
+            return self._parse_response(response)
+
+        except Exception as e:
+            print(f"PhotoAnalyzer DERMATOLOGICAL error: {e}")
+            return None

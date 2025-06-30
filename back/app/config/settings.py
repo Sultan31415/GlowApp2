@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from pydantic import Field
 
 # Load environment variables
 load_dotenv()
@@ -49,6 +50,12 @@ class Settings:
 
     # Database Configuration
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://glowuser:glowpassword@localhost:5433/glowdb")
+
+    # Photo Analysis Configuration
+    PHOTO_ANALYSIS_MODE: str = Field(
+        default=os.getenv("PHOTO_ANALYSIS_MODE", "dermatological"),  # Options: "fast", "comprehensive", "dermatological"
+        description="Photo analysis mode: fast (speed), comprehensive (balanced), dermatological (accuracy)"
+    )
 
 # Create settings instance
 settings = Settings() 

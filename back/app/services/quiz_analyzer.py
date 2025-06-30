@@ -24,7 +24,12 @@ class QuizAnalyzerGemini:
             # Create async model in the current event loop context to avoid "different loop" errors
             async_model = genai.GenerativeModel(settings.GEMINI_MODEL)
             
-            prompt = self._build_optimized_prompt(answers, base_scores, additional_data, question_map)
+            from app.services.prompt_optimizer import PromptOptimizer
+            prompt = PromptOptimizer.build_fast_quiz_prompt(
+                answers, base_scores, 
+                additional_data.get('chronologicalAge', 30), 
+                additional_data.get('countryOfResidence', 'Global')
+            )
             
             # Optimized generation config for faster processing
             generation_config = genai.types.GenerationConfig(
@@ -51,7 +56,12 @@ class QuizAnalyzerGemini:
             print("[LangGraph] 📝⚡ Processing {} answers (speed mode) for {}".format(
                 len(answers), additional_data.get('countryOfResidence', 'Global')))
 
-            prompt = self._build_optimized_prompt(answers, base_scores, additional_data, question_map)
+            from app.services.prompt_optimizer import PromptOptimizer
+            prompt = PromptOptimizer.build_fast_quiz_prompt(
+                answers, base_scores, 
+                additional_data.get('chronologicalAge', 30), 
+                additional_data.get('countryOfResidence', 'Global')
+            )
 
             response = self.model.generate_content(
                 prompt,
@@ -79,7 +89,7 @@ class QuizAnalyzerGemini:
     def _build_optimized_prompt(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> str:
         """
         FIXED: Concise prompt that prevents JSON truncation while maintaining quality.
-        Optimized for speed and reliability.
+        Optimized for speed and reliability with REALISTIC SCORING CONSTRAINTS.
         """
         age = additional_data.get('chronologicalAge', 'Unknown')
         country = additional_data.get('countryOfResidence', 'Unknown')
@@ -94,21 +104,26 @@ class QuizAnalyzerGemini:
         
         answers_summary = " | ".join(key_answers[:12])  # Limit to prevent truncation
         
-        return f"""Analyze wellness data for user (Age: {age}, Country: {country}).
+        return f"""You are a wellness expert conducting a realistic health assessment. Analyze this data for a {age}-year-old from {country}.
 
 BASE SCORES: Physical={base_scores['physicalVitality']:.1f}, Emotional={base_scores['emotionalHealth']:.1f}, Visual={base_scores['visualAppearance']:.1f}
 
 KEY ANSWERS: {answers_summary}
 
-Apply {country}-specific health context and cultural factors. Be concise but thorough.
+CRITICAL SCORING GUIDELINES:
+- MOST PEOPLE score 55-75 (normal human range)
+- GOOD HEALTH scores 75-85 (above average but realistic)  
+- EXCEPTIONAL scores 85+ (rare, requires outstanding evidence)
+- PERFECT scores 95+ (virtually impossible - no human is perfect)
+- Consider {country} cultural factors and health patterns
 
 Return ONLY JSON (no extra text):
 {{
   "chronologicalAge": {age},
   "adjustedScores": {{
-    "physicalVitality": <0-100, adjust base score considering exercise, sleep, diet, and {country} health norms>,
-    "emotionalHealth": <0-100, adjust base score considering stress, social support, and {country} cultural factors>,
-    "visualAppearance": <0-100, adjust base score considering self-perception and {country} appearance standards>
+    "physicalVitality": <35-85, realistically adjust base considering exercise, sleep, diet. Remember: 75+ = very good health, 85+ = exceptional>,
+    "emotionalHealth": <35-85, realistically adjust base considering stress, support, wellness. Remember: everyone has challenges, 85+ = exceptional>,
+    "visualAppearance": <35-85, realistically adjust base considering self-care, confidence. Remember: 75+ = very good, 85+ = exceptional>
   }},
   "healthAssessment": {{
     "physicalRisks": ["<top 2 health risks>"],
@@ -129,10 +144,10 @@ Return ONLY JSON (no extra text):
     "emotionalHealth": "<targeted wellness strategy>",
     "visualAppearance": "<appearance-related guidance>"
   }},
-  "summary": "<100 words integrating all factors with encouraging tone>"
+  "summary": "<100 words integrating all factors with encouraging but realistic tone>"
 }}
 
-Keep responses concise to prevent truncation. Focus on key insights and actionable recommendations."""
+Keep responses concise. Be encouraging but REALISTIC - perfect health doesn't exist."""
 
     def analyze_quiz(self, answers: List[QuizAnswer], base_scores: Dict[str, float], additional_data: Dict[str, Any], question_map: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """

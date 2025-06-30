@@ -3,7 +3,7 @@ from app.models.schemas import QuizAnswer
 import json
 
 class PromptOptimizer:
-    """Optimized prompts for maximum speed while maintaining quality"""
+    """Enhanced prompt engineering using Context7 best practices for maximum accuracy and reliability"""
     
     @staticmethod
     def build_fast_orchestrator_prompt(
@@ -13,50 +13,310 @@ class PromptOptimizer:
         country: str,
         base_scores: Dict[str, float]
     ) -> str:
-        """ULTRA-FAST orchestrator prompt - 80% shorter, same quality"""
+        """
+        ENHANCED orchestrator prompt using Context7 best practices:
+        - Clear task context and role definition
+        - Structured XML data organization  
+        - Chain-of-thought reasoning guidance
+        - Concrete examples for pattern learning
+        - Specific output format instructions
+        """
         
-        # Compress insights to key points only
-        quiz_summary = "No quiz data"
+        # Organize data with XML structure (Context7 best practice)
+        quiz_analysis = "No quiz analysis available"
         if quiz_insights:
-            quiz_summary = f"Scores: P{quiz_insights.get('adjustedScores', {}).get('physicalVitality', 0):.0f}/E{quiz_insights.get('adjustedScores', {}).get('emotionalHealth', 0):.0f}/V{quiz_insights.get('adjustedScores', {}).get('visualAppearance', 0):.0f}"
-            if quiz_insights.get('keyStrengths'):
-                quiz_summary += f" | Strengths: {', '.join(quiz_insights['keyStrengths'][:2])}"
-            if quiz_insights.get('priorityAreas'):
-                quiz_summary += f" | Priorities: {', '.join(quiz_insights['priorityAreas'][:2])}"
+            quiz_analysis = f"""
+<quiz_analysis>
+  <wellness_scores>
+    <physical_vitality>{quiz_insights.get('adjustedScores', {}).get('physicalVitality', 0):.0f}</physical_vitality>
+    <emotional_health>{quiz_insights.get('adjustedScores', {}).get('emotionalHealth', 0):.0f}</emotional_health>
+    <visual_appearance>{quiz_insights.get('adjustedScores', {}).get('visualAppearance', 0):.0f}</visual_appearance>
+  </wellness_scores>
+  <key_strengths>{', '.join(quiz_insights.get('keyStrengths', [])[:2])}</key_strengths>
+  <priority_areas>{', '.join(quiz_insights.get('priorityAreas', [])[:2])}</priority_areas>
+  <cultural_context>{quiz_insights.get('culturalContext', 'No cultural context')}</cultural_context>
+</quiz_analysis>"""
         
-        photo_summary = "No photo"
+        photo_analysis = "No photo analysis available"
+        photo_score_guidance = "Conservative estimate - no visual data"
         if photo_insights:
-            overall_health = photo_insights.get('overallWellnessAssessment', {}).get('healthImpression', 'average')
-            age_range = photo_insights.get('ageAssessment', {}).get('estimatedRange', {})
             skin_health = photo_insights.get('comprehensiveSkinAnalysis', {}).get('overallSkinHealth', 'fair')
-            photo_summary = f"Health: {overall_health} | Age: {age_range.get('lower', age)}-{age_range.get('upper', age)} | Skin: {skin_health}"
+            acne_status = photo_insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('acne', 'unclear')
+            vitality_level = photo_insights.get('overallWellnessAssessment', {}).get('vitalityLevel', 'moderate')
+            health_impression = photo_insights.get('overallWellnessAssessment', {}).get('healthImpression', 'average')
+            
+            photo_analysis = f"""
+<photo_analysis>
+  <skin_health>{skin_health}</skin_health>
+  <acne_condition>{acne_status}</acne_condition>
+  <vitality_level>{vitality_level}</vitality_level>
+  <overall_health>{health_impression}</overall_health>
+</photo_analysis>"""
+            
+            # Generate CONSERVATIVE reasoning guidance based on photo evidence
+            if skin_health == 'excellent' and acne_status in ['clear', 'few-blemishes']:
+                photo_score_guidance = "Strong positive visual evidence: Increase Visual Appearance by 4-8 points from quiz baseline (max 85)"
+            elif skin_health in ['good'] and acne_status in ['clear', 'few-blemishes']:
+                photo_score_guidance = "Moderate positive visual evidence: Increase Visual Appearance by 2-5 points from quiz baseline (max 85)"
+            elif acne_status in ['moderate-acne', 'severe-acne']:
+                photo_score_guidance = "Negative visual evidence: Decrease Visual Appearance by 5-12 points from quiz baseline"
+            elif skin_health in ['poor', 'fair']:
+                photo_score_guidance = "Poor skin health evidence: Decrease Visual Appearance by 3-10 points from quiz baseline"
+            else:
+                photo_score_guidance = "Neutral visual evidence: Minor adjustments (+/- 2-3 points) from quiz baseline"
         
-        return f"""Wellness assessment {age}yo {country}:
-QUIZ: {quiz_summary}
-PHOTO: {photo_summary}
-BASE: P{base_scores.get('physicalVitality', 0):.0f}/E{base_scores.get('emotionalHealth', 0):.0f}/V{base_scores.get('visualAppearance', 0):.0f}
+        baseline_scores = f"""
+<baseline_scores>
+  <physical_vitality>{base_scores.get('physicalVitality', 0):.0f}</physical_vitality>
+  <emotional_health>{base_scores.get('emotionalHealth', 0):.0f}</emotional_health>
+  <visual_appearance>{base_scores.get('visualAppearance', 0):.0f}</visual_appearance>
+</baseline_scores>"""
 
-JSON:
+        return f"""You are an expert wellness synthesis specialist with deep knowledge of health assessment, psychology, and cultural factors. Your task is to create a comprehensive, personalized wellness analysis by intelligently combining quiz insights and photo analysis.
+
+<task_context>
+You must synthesize multiple data sources into a holistic wellness assessment for a {age}-year-old individual from {country}. The quiz analysis provides culturally-adjusted behavioral and lifestyle insights, while the photo analysis offers objective visual health indicators. Your role is to create a balanced, evidence-based assessment that reflects realistic human wellness patterns.
+</task_context>
+
+<input_data>
+{quiz_analysis}
+
+{photo_analysis}
+
+{baseline_scores}
+
+<scoring_guidance>
+Photo Evidence Impact: {photo_score_guidance}
+</scoring_guidance>
+</input_data>
+
+<reasoning_instructions>
+Think through this analysis step by step:
+
+1. ASSESS QUIZ INSIGHTS: What do the behavioral patterns, lifestyle choices, and cultural context tell us about this person's wellness?
+
+2. EVALUATE PHOTO EVIDENCE: How do the visual health indicators (skin quality, vitality signs, acne condition) support or contradict the quiz findings?
+
+3. SYNTHESIZE SCORES: Start with quiz baseline scores, then adjust based on photo evidence using the guidance above. Remember:
+   - Most people score 60-80 range (be realistic)
+   - Scores above 85 require exceptional evidence
+   - Visual evidence strongly influences Visual Appearance scores
+   - Physical and emotional scores primarily from quiz, with photo providing subtle adjustments
+
+4. CREATE PERSONALIZED ARCHETYPE: Analyze their SPECIFIC combination of visual energy (from photo) and lifestyle patterns (from quiz) to generate a unique archetype name.
+</reasoning_instructions>
+
+<examples>
+<example>
+Input: 25yo with excellent skin health, clear complexion, high vitality + quiz showing regular exercise, good sleep
+Reasoning: Photo shows exceptional visual health (skin excellent, acne clear) supporting quiz lifestyle. High vitality aligns with good habits.
+Output: Visual Appearance: 82 (quiz 70 + 12 for excellent photo evidence), Physical Vitality: 78, Overall: 77
+Archetype: "The Luminous Athlete" (radiant visual energy + active lifestyle focus)
+</example>
+
+<example>
+Input: 35yo with fair skin, moderate acne, normal vitality + quiz showing stress, poor sleep, sedentary
+Reasoning: Photo shows skin challenges (fair health, moderate acne) aligning with quiz stress indicators. Consistent evidence of wellness struggles.
+Output: Visual Appearance: 58 (quiz 65 - 7 for skin issues), Physical Vitality: 52, Overall: 58
+Archetype: "The Gentle Transformer" (moderate energy + focus on overcoming challenges)
+</example>
+</examples>
+
+CRITICAL SCORING CONSTRAINTS:
+- NO scores above 85 regardless of evidence quality
+- Most healthy young adults score 70-80 range
+- Perfect scores (95+) are impossible - humans have limitations
+- Photo adjustments should be conservative (+/-5 points max)
+- Visual Appearance cannot exceed 85 even with excellent photo evidence
+
+Based on the above analysis, provide your assessment in this exact JSON format:
+
 {{
-"overallGlowScore":<0-100>,
-"adjustedCategoryScores":{{"physicalVitality":<0-100>,"emotionalHealth":<0-100>,"visualAppearance":<0-100>}},
-"biologicalAge":<number>,"emotionalAge":<number>,"chronologicalAge":{age},
-"glowUpArchetype":{{"name":"<create unique archetype: 'The [Energy Adjective] [Identity Noun]' where Energy=photo vitality (Radiant/Gentle/Resilient/Fierce/Balanced) + Identity=quiz focus (Seeker/Guardian/Alchemist/Navigator/Architect). Use ACTUAL data to synthesize.>","description":"<140-160 words: [Essence] + [Photo traits as metaphors] + [Quiz lifestyle] + [Challenge reframe] + [Superpower] + [Transformation potential] + [Wellness destiny]. Write like personalized wellness mythology grounded in their real data.>"}},
-"microHabits":["<habit1>","<habit2>","<habit3>","<habit4>","<habit5>"],
-"analysisSummary":"<100 words>"
+  "overallGlowScore": <30-85 realistic range. HARD CAP: Most humans 60-75, good health 75-80, exceptional 80-85. NEVER exceed 85>,
+  "adjustedCategoryScores": {{
+    "physicalVitality": <40-85 HARD CAP at 85. Start with quiz baseline, adjust +/-3 for photo vitality cues. NEVER exceed 85>,
+    "emotionalHealth": <40-85 HARD CAP at 85. Primarily quiz-based, subtle photo stress marker adjustments. NEVER exceed 85>,
+    "visualAppearance": <35-85 HARD CAP at 85. Apply photo scoring guidance. NEVER exceed 85 regardless of photo quality>
+  }},
+  "biologicalAge": <realistic estimate considering lifestyle + photo aging indicators>,
+  "emotionalAge": <based on quiz maturity patterns>,
+  "chronologicalAge": {age},
+  "glowUpArchetype": {{
+    "name": "<Create unique archetype: 'The [Visual Energy Descriptor] [Transformation Role]' based on their specific photo energy state and quiz lifestyle patterns>",
+    "description": "<140-160 words grounded in ACTUAL data. Acknowledge strengths AND growth areas. Be aspirational but honest about human complexity.>"
+  }},
+  "microHabits": [
+    "<habit1: specific to their priority areas>",
+    "<habit2: addressing key challenges>",
+    "<habit3: building on strengths>",
+    "<habit4: supporting visual appearance goals>",
+    "<habit5: culturally appropriate for {country}>"
+  ],
+  "analysisSummary": "<100 words: realistic assessment acknowledging data limitations, evidence quality, and synthesis confidence level>"
 }}"""
 
     @staticmethod
     def build_fast_photo_prompt() -> str:
-        """Optimized photo analysis prompt - 70% shorter"""
-        return """Photo wellness analysis. JSON:
-{
-"ageAssessment":{"estimatedRange":{"lower":<int>,"upper":<int>},"biologicalAgeIndicators":"<key features>"},
-"comprehensiveSkinAnalysis":{"overallSkinHealth":"<excellent/good/fair/poor>","skinQualityMetrics":{"texture":"<smooth/rough>","evenness":"<even/uneven>","radiance":"<bright/dull>"},"skinConcerns":{"acne":"<clear/active>","redness":"<none/moderate/significant>","damage":"<none/moderate/significant>"}},
-"vitalityAndHealthIndicators":{"eyeAreaAssessment":{"brightness":"<bright/tired>","underEye":"<clear/dark-circles>","puffiness":"<none/significant>"},"facialVitality":{"fullness":"<healthy/gaunt>","muscleTone":"<good/poor>"}},
-"stressAndLifestyleIndicators":{"stressMarkers":{"tensionLines":"<none/significant>","facialTension":"<relaxed/tense>"},"sleepQuality":{"eyeArea":"<rested/tired>","alertness":"<alert/drowsy>"}},
-"overallWellnessAssessment":{"vitalityLevel":"<high/low>","healthImpression":"<vibrant/concerning>"}
-}"""
+        """
+        ENHANCED photo analysis prompt using Context7 best practices:
+        - Clear expert role definition with dermatological focus
+        - Specific task context for skin condition detection
+        - Detailed examples including problematic skin cases
+        - Structured output format with mandatory assessments
+        - Explicit bias against "Unable to assess" responses
+        """
+        return """You are an expert dermatological health analyst specializing in facial skin assessment. Your task is to analyze facial photographs for objective health indicators, with particular expertise in detecting skin conditions, redness, acne, and wellness markers.
+
+<task_context>
+Analyze this facial photograph to extract skin health indicators including:
+- Skin condition assessment (acne, redness, texture, damage)
+- Age estimation based on skin quality and facial features
+- Vitality and wellness indicators from facial appearance
+- Stress and lifestyle markers visible in facial features
+
+YOU MUST PROVIDE SPECIFIC ASSESSMENTS. Only use "Unable to assess" if the image is completely unusable (blurry beyond recognition, extremely dark, or not showing a face).
+</task_context>
+
+<analysis_approach>
+Think through your assessment systematically:
+
+1. SKIN CONDITION FOCUS: Look specifically for:
+   - Redness (flush, irritation, inflammation on cheeks, nose, chin)
+   - Acne (active breakouts, blemishes, comedones, cysts)
+   - Texture issues (roughness, enlarged pores, uneven surface)
+   - Tone evenness (discoloration, patches, spots)
+
+2. AGE INDICATORS: Assess visible aging markers:
+   - Skin elasticity and firmness
+   - Fine lines and wrinkles
+   - Facial volume and structure
+   - Overall maturity of features
+
+3. VITALITY ASSESSMENT: Evaluate energy and health signs:
+   - Eye brightness and alertness
+   - Skin radiance and glow
+   - Facial fullness and muscle tone
+   - Overall wellness impression
+
+4. WORK WITH AVAILABLE DATA: Even if image quality isn't perfect, extract observable information
+</analysis_approach>
+
+<enhanced_examples>
+<example_clear_skin>
+Photo: Close-up selfie with good lighting, young adult
+Analysis: Clear skin with minimal blemishes, even skin tone, healthy glow, no visible redness
+Assessment: Excellent skin health, high vitality
+Output: "acne": "clear", "redness": "none", "overallSkinHealth": "excellent"
+</example_clear_skin>
+
+<example_acne_and_redness>
+Photo: Selfie showing facial redness and some acne spots
+Analysis: Visible redness on cheeks and nose area, several active blemishes on face, some texture irregularities
+Assessment: Moderate skin concerns requiring attention
+Output: "acne": "moderate-acne", "redness": "moderate", "overallSkinHealth": "fair"
+</example_acne_and_redness>
+
+<example_outdoor_photo>
+Photo: Outdoor photo with natural lighting, person in natural setting
+Analysis: Can observe general skin condition, some facial features visible, assess overall health impression
+Assessment: Work with available visual data to provide meaningful analysis
+Output: Provide best assessment based on visible features, note any limitations in confidence
+</example_outdoor_photo>
+
+<example_poor_quality>
+Photo: Slightly blurred or distant shot but face still visible
+Analysis: Age appears 20-30 based on facial structure, general skin appearance seems healthy though details limited
+Assessment: Provide general assessment noting limitations
+Output: Give reasonable estimates, mention "limited detail" in descriptions rather than "Unable to assess"
+</example_poor_quality>
+</enhanced_examples>
+
+<critical_skin_assessment_instructions>
+PAY SPECIAL ATTENTION TO:
+
+1. REDNESS DETECTION:
+   - Look for pink/red coloration on cheeks, nose, chin, forehead
+   - Distinguish between healthy flush vs. irritation/inflammation
+   - Check for uneven red patches or widespread redness
+   - Rate: none/slight/moderate/significant
+
+2. ACNE ASSESSMENT:
+   - Scan for active pimples, whiteheads, blackheads
+   - Look for post-acne marks or scarring
+   - Assess severity and distribution
+   - Rate: clear/few-blemishes/moderate-acne/severe-acne
+
+3. SKIN TEXTURE:
+   - Evaluate smoothness vs. roughness
+   - Check for enlarged pores
+   - Assess overall skin surface quality
+   - Rate: smooth/slightly-rough/rough
+
+4. OVERALL HEALTH:
+   - Combine all factors for holistic assessment
+   - Consider age-appropriate expectations
+   - Rate: excellent/good/fair/poor
+
+IMPORTANT: Be objective and specific. If you see redness, call it redness. If you see acne, identify it as acne. Don't minimize obvious skin conditions.
+</critical_skin_assessment_instructions>
+
+<mandatory_assessment_requirement>
+You MUST provide assessments for all categories unless the image is completely unusable. 
+- For good quality images: Provide detailed, specific assessments
+- For fair quality images: Provide general assessments with noted limitations
+- For poor quality images: Provide basic assessments (age range, general impression)
+- Only use "Unable to assess" for images that are completely dark, extremely blurred, or don't show a face
+
+WORK WITH WHAT YOU CAN SEE - Most photos provide enough information for meaningful analysis.
+</mandatory_assessment_requirement>
+
+Return your analysis in this exact JSON format:
+
+{{
+  "ageAssessment": {{
+    "estimatedRange": {{"lower": <16-65>, "upper": <16-65>}},
+    "biologicalAgeIndicators": "<specific observable features or general assessment if limited detail>"
+  }},
+  "comprehensiveSkinAnalysis": {{
+    "overallSkinHealth": "<excellent/good/fair/poor - provide assessment based on visible evidence>",
+    "skinQualityMetrics": {{
+      "texture": "<smooth/slightly-rough/rough - actual visible texture>",
+      "evenness": "<very-even/mostly-even/uneven - observable skin tone>",
+      "radiance": "<luminous/healthy/normal/dull - visible skin glow>"
+    }},
+    "skinConcerns": {{
+      "acne": "<clear/few-blemishes/moderate-acne/severe-acne - what you actually see>",
+      "redness": "<none/slight/moderate/significant - visible redness level>",
+      "damage": "<none/minimal/moderate/significant - sun damage, spots>"
+    }}
+  }},
+  "vitalityAndHealthIndicators": {{
+    "eyeAreaAssessment": {{
+      "brightness": "<bright/normal/dull/tired - eye appearance>",
+      "underEye": "<clear/slight-darkness/dark-circles/severe - under-eye area>",
+      "puffiness": "<none/minimal/moderate/significant - eye puffiness>"
+    }},
+    "facialVitality": {{
+      "fullness": "<healthy/normal/slightly-gaunt/gaunt - facial volume>",
+      "muscleTone": "<excellent/good/moderate/poor - muscle definition>"
+    }}
+  }},
+  "stressAndLifestyleIndicators": {{
+    "stressMarkers": {{
+      "tensionLines": "<none/minimal/moderate/significant - forehead/brow lines>",
+      "facialTension": "<relaxed/normal/tense/very-tense - overall tension>"
+    }},
+    "sleepQuality": {{
+      "eyeArea": "<well-rested/normal/slightly-tired/tired - sleep indicators>",
+      "alertness": "<alert/normal/drowsy - expression alertness>"
+    }}
+  }},
+  "overallWellnessAssessment": {{
+    "vitalityLevel": "<very-high/high/moderate/low - overall energy impression>",
+    "healthImpression": "<vibrant/healthy/average/concerning - general health>"
+  }},
+  "imageQualityNote": "<excellent/good/fair/poor - note any limitations that affected analysis confidence>"
+}}"""
 
     @staticmethod  
     def build_fast_quiz_prompt(
@@ -65,18 +325,115 @@ JSON:
         age: int,
         country: str
     ) -> str:
-        """Optimized quiz analysis prompt - 60% shorter"""
+        """
+        ENHANCED quiz analysis prompt using Context7 best practices:
+        - Clear expert role and cultural context
+        - Structured data presentation with XML tags
+        - Chain-of-thought reasoning for cultural factors
+        - Specific examples for score adjustment patterns
+        - Evidence-based recommendations framework
+        """
         
-        # Extract only key answers for speed
-        key_answers = []
-        for ans in answers[:10]:  # Limit to first 10 for speed
-            key_answers.append(f"Q{ans.questionId}:{ans.label or ans.value}")
+        # Organize answer data systematically
+        answer_summary = []
+        for i, ans in enumerate(answers[:12]):  # Limit for focus
+            answer_summary.append(f"Q{ans.questionId}: {ans.label or str(ans.value)}")
         
-        answers_str = " | ".join(key_answers)
+        answers_data = " | ".join(answer_summary)
         
-        return f"""Wellness {age}yo {country}:
-{answers_str}
-BASE: P{base_scores.get('physicalVitality', 0):.0f}/E{base_scores.get('emotionalHealth', 0):.0f}/V{base_scores.get('visualAppearance', 0):.0f}
+        return f"""You are an expert wellness psychologist specializing in cross-cultural health assessment. Your task is to analyze lifestyle and behavioral patterns while applying {country}-specific cultural health contexts.
 
-JSON:
-{{"chronologicalAge":{age},"adjustedScores":{{"physicalVitality":<0-100>,"emotionalHealth":<0-100>,"visualAppearance":<0-100>}},"keyStrengths":["<strength1>","<strength2>"],"priorityAreas":["<priority1>","<priority2>"],"culturalContext":"<{country} insight>","recommendations":{{"physicalVitality":"<advice>","emotionalHealth":"<strategy>","visualAppearance":"<guidance>"}},"summary":"<60 words>"}}""" 
+<task_context>
+Analyze wellness questionnaire responses for a {age}-year-old individual residing in {country}. You must:
+1. Assess lifestyle patterns and health behaviors
+2. Apply cultural health norms and context for {country}
+3. Identify key strengths and priority improvement areas
+4. Provide culturally-appropriate, evidence-based recommendations
+5. Adjust baseline scores based on behavioral evidence and cultural factors
+</task_context>
+
+<cultural_context>
+Consider {country}-specific factors:
+- Healthcare accessibility and preventive care norms
+- Cultural attitudes toward mental health and stress management
+- Traditional dietary patterns and nutrition standards
+- Social support systems and community wellness practices
+- Work-life balance expectations and lifestyle pressures
+</cultural_context>
+
+<input_data>
+<user_profile>
+  <age>{age}</age>
+  <country>{country}</country>
+</user_profile>
+
+<baseline_scores>
+  <physical_vitality>{base_scores.get('physicalVitality', 0):.1f}</physical_vitality>
+  <emotional_health>{base_scores.get('emotionalHealth', 0):.1f}</emotional_health>
+  <visual_appearance>{base_scores.get('visualAppearance', 0):.1f}</visual_appearance>
+</baseline_scores>
+
+<questionnaire_responses>
+{answers_data}
+</questionnaire_responses>
+</input_data>
+
+<analysis_framework>
+Think through this assessment step by step:
+
+1. BEHAVIORAL PATTERNS: What do the responses reveal about lifestyle choices, health habits, and wellness priorities?
+
+2. CULTURAL ADJUSTMENT: How do {country}'s health norms and cultural factors influence the interpretation of these behaviors?
+
+3. SCORE CALIBRATION: How should baseline scores be adjusted based on:
+   - Actual behavior vs cultural expectations
+   - Risk factors vs protective factors
+   - Short-term vs long-term health implications
+
+4. STRENGTH IDENTIFICATION: What positive patterns deserve recognition and reinforcement?
+
+5. PRIORITY AREAS: What challenges need immediate attention based on health impact and cultural feasibility?
+</analysis_framework>
+
+<scoring_examples>
+<example>
+Scenario: Regular exercise, good sleep, but high stress in high-pressure culture
+Adjustment: Physical +5-10 (good habits), Emotional -5-10 (stress impact), consider cultural work pressure norms
+</example>
+
+<example>
+Scenario: Poor diet, smoking, but strong social support in community-oriented culture
+Adjustment: Physical -10-20 (major risk factors), Emotional +5 (social support buffer), Visual -5-15 (smoking impact)
+</example>
+</scoring_examples>
+
+Provide your analysis in this exact JSON format:
+
+{{
+  "chronologicalAge": {age},
+  "adjustedScores": {{
+    "physicalVitality": <0-100: adjust baseline considering exercise, sleep, diet, substance use, and {country} health standards>,
+    "emotionalHealth": <0-100: adjust baseline considering stress management, social support, mental wellness, and {country} cultural factors>,
+    "visualAppearance": <0-100: adjust baseline considering self-care habits, confidence levels, and {country} appearance/beauty standards>
+  }},
+  "healthAssessment": {{
+    "physicalRisks": ["<top 2 specific health risk factors with evidence>"],
+    "mentalWellness": ["<top 2 emotional/psychological patterns observed>"],
+    "lifestyleFactors": ["<top 2 lifestyle elements impacting overall wellness>"]
+  }},
+  "keyStrengths": [
+    "<specific strength 1 with supporting evidence from responses>",
+    "<specific strength 2 with supporting evidence from responses>"
+  ],
+  "priorityAreas": [
+    "<specific priority 1 with actionable focus area>",
+    "<specific priority 2 with actionable focus area>"
+  ],
+  "culturalContext": "<2-3 sentences: specific {country} health insight relevant to this individual's patterns>",
+  "recommendations": {{
+    "physicalVitality": "<specific, culturally-appropriate actionable advice>",
+    "emotionalHealth": "<targeted wellness strategy considering {country} mental health context>",
+    "visualAppearance": "<appearance/self-care guidance appropriate for {country} standards>"
+  }},
+  "summary": "<100 words: integrate behavioral patterns, cultural factors, and evidence-based wellness outlook with encouraging, realistic tone>"
+}}""" 
