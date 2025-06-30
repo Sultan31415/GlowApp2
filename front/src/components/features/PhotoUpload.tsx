@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Upload, Image, X, ChevronLeft, Camera, Sparkles, Shield, CheckCircle, AlertCircle, Info } from 'lucide-react';
+import { Upload, Image, X, ChevronLeft, Camera, Sparkles, Shield, CheckCircle, AlertCircle, Info, CameraOff } from 'lucide-react';
 
 interface PhotoUploadProps {
   onPhotoUpload: (file: File) => void;
@@ -20,35 +20,75 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
 }) => {
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Camera capture states
+  const [mode, setMode] = useState<'upload' | 'capture'>('upload');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (uploadedPhoto) {
       const url = URL.createObjectURL(uploadedPhoto);
       setPreviewUrl(url);
       setValidationError(null);
-      // Simulate upload progress for better UX - reduced frequency
-      setUploadProgress(0);
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            return 100;
-          }
-          return prev + 20; // Increased increment to compensate for slower interval
-        });
-      }, 200); // Changed from 50ms to 200ms (4x less frequent)
+
       return () => {
         URL.revokeObjectURL(url);
-        clearInterval(progressInterval);
       };
     } else {
       setPreviewUrl(null);
-      setUploadProgress(0);
     }
   }, [uploadedPhoto]);
+
+  // Initialize / cleanup camera stream when in capture mode
+  React.useEffect(() => {
+    if (mode === 'capture' && !previewUrl) {
+      const enableStream = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          streamRef.current = stream;
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            await videoRef.current.play();
+          }
+          setCameraError(null);
+        } catch (err) {
+          console.error(err);
+          setCameraError('Unable to access camera. Please allow camera permissions or upload a photo instead.');
+        }
+      };
+      enableStream();
+
+      return () => {
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
+      };
+    }
+  }, [mode, previewUrl]);
+
+  const handleCapture = useCallback(() => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        if (blob) {
+          const file = new File([blob], 'captured_photo.png', { type: 'image/png' });
+          onPhotoUpload(file);
+          setMode('capture'); // remain in capture mode to allow retake
+        }
+      }, 'image/png');
+    }
+  }, [onPhotoUpload]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -106,10 +146,13 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl(null);
-    setUploadProgress(0);
     onPhotoUpload(null as any);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
   }, [previewUrl, onPhotoUpload]);
 
@@ -118,268 +161,281 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/50">
-      {/* Progress indicator */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/80 shadow-sm">
-        <div className="w-full bg-gray-200 h-1.5">
-          <div 
-            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-1.5 transition-all duration-300"
-            style={{ width: '90%' }}
-          />
-        </div>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div className="min-h-screen aurora-bg">
+      {/* Clean Header */}
+      <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Camera className="w-5 h-5 text-white" />
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4 border border-gray-200/50">
+                <Camera className="w-5 h-5 text-slate-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 text-base">Photo Upload</h3>
-                <p className="text-sm text-gray-600">Almost done - last step!</p>
+                <h1 className="text-lg lg:text-xl font-medium text-slate-700">Photo Upload</h1>
+                <p className="text-slate-500 text-sm">Final step - let's capture your glow</p>
               </div>
             </div>
-            <div className="text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-200">Step 2 of 2</div>
+            <div className="text-sm font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200">
+              Step 2 of 2
+            </div>
           </div>
         </div>
       </div>
 
-             <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12">
-         <div className="max-w-3xl mx-auto">
-           {/* Header */}
-           <div className="text-center mb-12">
-             <div className="inline-flex items-center justify-center mb-8">
-               <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-3xl flex items-center justify-center shadow-xl shadow-indigo-500/30">
-                 <Camera className="w-10 h-10 text-white" />
-               </div>
-             </div>
-             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
-               Upload Your Photo
-             </h1>
-             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-               Upload a clear, recent photo for AI-powered analysis and personalized avatar generation.
-             </p>
-           </div>
-
-                     {/* Privacy Notice */}
-           <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 mb-10">
-             <div className="flex items-start space-x-4">
-               <Shield className="w-6 h-6 text-indigo-600 mt-0.5 flex-shrink-0" />
-               <div>
-                 <h4 className="font-semibold text-indigo-900 mb-2 text-base">Your Privacy Matters</h4>
-                 <p className="text-sm sm:text-base text-indigo-700">
-                   Your photo is processed securely and used only for analysis. We don't store or share your images.
-                 </p>
-               </div>
-             </div>
-           </div>
-
-           {/* Upload Area */}
-           <div className="bg-white/85 backdrop-blur-md rounded-3xl p-8 sm:p-10 lg:p-12 shadow-2xl shadow-gray-500/15 border border-gray-200/60 mb-10">
-            {!previewUrl ? (
-                               <div
-                   className={`relative border-2 border-dashed rounded-3xl p-12 sm:p-16 text-center transition-all duration-300 cursor-pointer ${
-                     dragOver
-                       ? 'border-indigo-500 bg-indigo-50/50 scale-[1.02]'
-                       : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50/50'
-                   }`}
-                   onDragOver={handleDragOver}
-                   onDragLeave={handleDragLeave}
-                   onDrop={handleDrop}
-                   onClick={openFileDialog}
-                   role="button"
-                   tabIndex={0}
-                   onKeyDown={(e) => {
-                     if (e.key === 'Enter' || e.key === ' ') {
-                       e.preventDefault();
-                       openFileDialog();
-                     }
-                   }}
-                   aria-label="Click to upload photo or drag and drop"
-                 >
-                   {/* Upload animation */}
-                   <div className={`w-20 h-20 mx-auto mb-8 rounded-3xl flex items-center justify-center transition-all duration-500 ${
-                     dragOver 
-                       ? 'bg-indigo-500 text-white scale-110 rotate-12' 
-                       : 'bg-gray-100 text-gray-400 hover:bg-indigo-100 hover:text-indigo-500'
-                   }`}>
-                     <Upload className={`w-10 h-10 transition-all duration-300 ${dragOver ? 'scale-110' : ''}`} />
-                   </div>
-                   
-                   <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
-                     {dragOver ? 'Drop your photo here!' : 'Choose your photo'}
-                   </h3>
-                   
-                   <p className="text-gray-600 mb-8 text-base sm:text-lg">
-                     Drag and drop your photo here, or click to browse
-                   </p>
-                   
-                   <div className="space-y-6">
-                     <button
-                       type="button"
-                       className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-4 px-10 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:scale-105 text-base"
-                     >
-                       Select Photo
-                     </button>
-                     
-                     <div className="flex items-center justify-center space-x-6 text-sm sm:text-base text-gray-500">
-                       <span className="flex items-center">
-                         <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                         PNG, JPG, WebP
-                       </span>
-                       <span className="flex items-center">
-                         <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                         Up to 10MB
-                       </span>
-                     </div>
-                   </div>
-                   
-                   {/* Decorative elements */}
-                   <div className="absolute top-6 right-6 w-3 h-3 bg-indigo-200 rounded-full animate-pulse"></div>
-                   <div className="absolute bottom-6 left-6 w-4 h-4 bg-purple-200 rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
-                 </div>
-            ) : (
-              <div className="text-center">
-                {/* Upload Progress */}
-                {uploadProgress < 100 && (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-center mb-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-2 border-indigo-200 border-t-indigo-500"></div>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                      <div 
-                        className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </div>
-                    <p className="text-sm text-gray-600">Processing... {uploadProgress}%</p>
-                  </div>
-                )}
-
-                {/* Photo Preview */}
-                {uploadProgress === 100 && (
-                  <div className="relative inline-block mb-6">
-                    <div className="relative group">
-                      <img
-                        src={previewUrl}
-                        alt="Uploaded photo preview"
-                        className="max-w-full max-h-64 rounded-2xl shadow-xl shadow-gray-500/20 ring-4 ring-white"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent rounded-2xl"></div>
-                      
-                      {/* Remove button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removePhoto();
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg shadow-red-500/30 transition-all duration-300 hover:scale-110 z-10"
-                        aria-label="Remove photo"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      
-                      {/* Success indicator */}
-                      <div className="absolute -bottom-2 -left-2 bg-green-500 text-white rounded-full p-2 shadow-lg shadow-green-500/30">
-                        <CheckCircle className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Success message */}
-                {uploadProgress === 100 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200 mb-6">
-                    <div className="flex items-center justify-center mb-3">
-                      <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
-                      <h3 className="text-lg font-bold text-gray-900">Perfect!</h3>
-                    </div>
-                    <p className="text-gray-600">
-                      Your photo looks great and is ready for analysis. Let's generate your personalized results!
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/jpg,image/webp"
-              onChange={handleFileSelect}
-              className="hidden"
-              aria-label="File upload input"
-            />
-            
-            {/* Validation Error */}
-            {validationError && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-red-800 mb-1">Upload Error</h4>
-                  <p className="text-red-700 text-sm">{validationError}</p>
-                </div>
-              </div>
-            )}
-
-            {/* API Error */}
-            {error && (
-              <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold text-red-800 mb-1">Processing Error</h4>
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Tips */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
-            <div className="flex items-start space-x-3">
-              <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="font-semibold text-blue-900 mb-2">Tips for the best results:</h4>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Use a clear, well-lit photo of your face</li>
-                  <li>• Avoid sunglasses or heavy filters</li>
-                  <li>• Face the camera directly for accurate analysis</li>
-                </ul>
-              </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
+        
+        {/* Privacy Notice */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6 mb-6">
+          <div className="flex items-start space-x-4">
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Shield className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-1">Your Privacy Matters</h3>
+              <p className="text-gray-600 text-sm">
+                Your photo is processed securely and used only for analysis. We don't store or share your images.
+              </p>
             </div>
           </div>
+        </div>
 
-                     {/* Navigation */}
-           <div className="flex flex-col sm:flex-row justify-between items-center gap-6 pt-8">
-             <button
-               onClick={onBack}
-               className="flex items-center px-6 py-4 rounded-xl font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-md transition-all duration-300 min-h-[3rem]"
-             >
-               <ChevronLeft className="w-5 h-5 mr-2" />
-               Back to Quiz
-             </button>
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 p-1 shadow-lg">
+            <button
+              type="button"
+              onClick={() => setMode('upload')}
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                mode === 'upload' 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Upload Photo
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('capture')}
+              className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-200 ${
+                mode === 'capture' 
+                  ? 'bg-indigo-600 text-white shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Take Photo
+            </button>
+          </div>
+        </div>
 
-             <button
-               onClick={onSubmit}
-               disabled={!uploadedPhoto || isSubmitting || uploadProgress < 100}
-               className={`flex items-center px-10 py-4 rounded-xl font-semibold transition-all duration-300 min-h-[3rem] text-base ${
-                 uploadedPhoto && !isSubmitting && uploadProgress === 100
-                   ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transform hover:scale-105'
-                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-               }`}
-             >
-               {isSubmitting ? (
-                 <>
-                   <div className="animate-spin rounded-full h-6 w-6 border-2 border-white/30 border-t-white mr-3"></div>
-                   Generating Results...
-                 </>
-               ) : (
-                 <>
-                   <Sparkles className="w-6 h-6 mr-3" />
-                   Generate My Results
-                 </>
-               )}
-             </button>
-           </div>
+        {/* Upload Area */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-8 mb-8">
+          {!previewUrl ? (
+            mode === 'upload' ? (
+              <div
+                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 cursor-pointer ${
+                  dragOver
+                    ? 'border-indigo-400 bg-indigo-50/50'
+                    : 'border-gray-300 hover:border-indigo-300 hover:bg-gray-50/50'
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={openFileDialog}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openFileDialog();
+                  }
+                }}
+                aria-label="Click to upload photo or drag and drop"
+              >
+                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  dragOver 
+                    ? 'bg-indigo-500 text-white scale-110' 
+                    : 'bg-gray-100 text-gray-400 hover:bg-indigo-100 hover:text-indigo-500'
+                }`}>
+                  <Upload className="w-8 h-8" />
+                </div>
+                
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {dragOver ? 'Drop your photo here!' : 'Upload your photo'}
+                </h3>
+                
+                <p className="text-gray-600 mb-8">
+                  Drag and drop your photo here, or click to browse
+                </p>
+                
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Select Photo
+                  </button>
+                  
+                  <div className="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                    <span className="flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                      PNG, JPG, WebP
+                    </span>
+                    <span className="flex items-center">
+                      <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+                      Up to 10MB
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                {cameraError ? (
+                  <div className="p-6 bg-red-50 border border-red-200 rounded-2xl flex items-center space-x-3">
+                    <CameraOff className="w-6 h-6 text-red-500" />
+                    <p className="text-sm text-red-700">{cameraError}</p>
+                  </div>
+                ) : (
+                  <>
+                    <video
+                      ref={videoRef}
+                      className="w-full max-w-md mx-auto rounded-2xl shadow-xl mb-6 scale-x-[-1]"
+                      playsInline
+                      muted
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCapture}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      Capture Photo
+                    </button>
+                  </>
+                )}
+              </div>
+            )
+          ) : (
+            <div className="text-center">
+              <div className="relative inline-block mb-6">
+                <div className="relative group">
+                  <img
+                    src={previewUrl}
+                    alt="Uploaded photo preview"
+                    className="max-w-full max-h-64 rounded-2xl shadow-xl ring-4 ring-white"
+                  />
+                  
+                  {/* Remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePhoto();
+                    }}
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg transition-all duration-200 hover:scale-110"
+                    aria-label="Remove photo"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Success indicator */}
+                  <div className="absolute -bottom-2 -left-2 bg-green-500 text-white rounded-full p-2 shadow-lg">
+                    <CheckCircle className="w-4 h-4" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Success message */}
+              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <div className="flex items-center justify-center mb-2">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                  <h3 className="font-semibold text-gray-900">Perfect!</h3>
+                </div>
+                <p className="text-gray-600 text-sm">
+                  Your photo looks great and is ready for analysis.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            onChange={handleFileSelect}
+            className="hidden"
+            aria-label="File upload input"
+          />
+          
+          {/* Validation Error */}
+          {validationError && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-red-800 mb-1">Upload Error</h4>
+                <p className="text-red-700 text-sm">{validationError}</p>
+              </div>
+            </div>
+          )}
+
+          {/* API Error */}
+          {error && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-red-800 mb-1">Processing Error</h4>
+                <p className="text-red-700 text-sm">{error}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Tips */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-6 mb-8">
+          <div className="flex items-start space-x-4">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Info className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2">Tips for best results:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Use a clear, well-lit photo of your face</li>
+                <li>• Avoid sunglasses or heavy filters</li>
+                <li>• Face the camera directly for accurate analysis</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <button
+            onClick={onBack}
+            className="flex items-center px-6 py-3 rounded-xl font-medium text-gray-600 hover:text-gray-900 hover:bg-white/50 transition-all duration-200"
+          >
+            <ChevronLeft className="w-5 h-5 mr-2" />
+            Back to Quiz
+          </button>
+
+          <button
+            onClick={onSubmit}
+            disabled={!uploadedPhoto || isSubmitting}
+            className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              uploadedPhoto && !isSubmitting
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-3"></div>
+                Generating Results...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-5 h-5 mr-3" />
+                Generate My Results
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
