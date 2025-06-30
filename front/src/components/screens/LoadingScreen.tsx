@@ -56,13 +56,45 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   currentStep = 'score',
   steps,
 }) => {
+  // --------------------------------------------------
+  // Auto-progression state
+  // --------------------------------------------------
+  const [autoCurrentStep, setAutoCurrentStep] = React.useState<string>('quiz');
+  const [isAutoProgressing, setIsAutoProgressing] = React.useState<boolean>(true);
+
+  // Use auto-progression step if enabled, otherwise use prop
+  const effectiveCurrentStep = isAutoProgressing ? autoCurrentStep : currentStep;
+
+  // --------------------------------------------------
+  // Auto-progression effect
+  // --------------------------------------------------
+  React.useEffect(() => {
+    if (!isAutoProgressing || !isLoading) return;
+
+    const baseSteps = steps ?? DEFAULT_STEPS;
+    const currentStepIndex = baseSteps.findIndex(s => s.id === autoCurrentStep);
+    
+    // Progress to next step after a delay, even for the last step initially
+    const timer = setTimeout(() => {
+      const nextStep = baseSteps[currentStepIndex + 1];
+      if (nextStep) {
+        setAutoCurrentStep(nextStep.id);
+      } else {
+        // We've reached beyond the last step, stop auto-progression
+        setIsAutoProgressing(false);
+      }
+    }, 3000); // 3 seconds per step
+
+    return () => clearTimeout(timer);
+  }, [autoCurrentStep, isAutoProgressing, isLoading, steps]);
+
   /* -----------------------------------------------------------------
    * Derive loading state.
    * ----------------------------------------------------------------- */
   const loadingSteps = React.useMemo(() => {
     const baseSteps = steps ?? DEFAULT_STEPS;
 
-    const currentIdx = baseSteps.findIndex((s) => s.id === currentStep);
+    const currentIdx = baseSteps.findIndex((s) => s.id === effectiveCurrentStep);
 
     return baseSteps.map((step, idx) => {
       let status: 'pending' | 'active' | 'completed' = 'pending';
@@ -72,7 +104,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
       return { ...step, status } as LoadingStep;
     });
-  }, [steps, currentStep]);
+  }, [steps, effectiveCurrentStep]);
 
   const activeStep = loadingSteps.find((step) => step.status === 'active');
 
