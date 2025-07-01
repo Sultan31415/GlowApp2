@@ -1,6 +1,7 @@
 services:
   backend:
-    build: ./back
+    # build: ./back  # Comment out for production
+    image: ${DOCKER_USERNAME:-yourname}/glowapp-backend:${IMAGE_TAG:-latest}
     container_name: glowapp-backend
     env_file:
       - ./back/.env
@@ -13,7 +14,8 @@ services:
       - glowapp-net
 
   frontend:
-    build: ./front
+    # build: ./front  # Comment out for production
+    image: ${DOCKER_USERNAME:-yourname}/glowapp-frontend:${IMAGE_TAG:-latest}
     container_name: glowapp-frontend
     depends_on:
       - backend
