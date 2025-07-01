@@ -3,6 +3,7 @@ fastapi==0.104.1
 
 # Data validation
 pydantic==2.11.2
+pydantic_settings==2.6.1
 
 # Environment variables
 python-dotenv==1.0.0

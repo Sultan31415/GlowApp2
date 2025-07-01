@@ -359,10 +359,33 @@ async def photo_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
             
             # Log analysis quality for debugging
             if insights:
-                skin_health = insights.get('comprehensiveSkinAnalysis', {}).get('overallSkinHealth', 'unknown')
-                redness = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('redness', 'unknown')
-                acne = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('acne', 'unknown')
-                print(f"[LangGraph] 📸🔍 Analysis results - Skin: {skin_health}, Redness: {redness}, Acne: {acne}")
+                # Enhanced logging for dermatological assessment
+                if 'dermatologicalAssessment' in insights:
+                    derm = insights['dermatologicalAssessment']
+                    skin_health = derm.get('overallSkinHealth', 'unknown')
+                    redness = derm.get('skinConditions', {}).get('redness', {}).get('severity', 'unknown')
+                    acne = derm.get('skinConditions', {}).get('acne', {}).get('severity', 'unknown')
+                    texture = derm.get('skinConditions', {}).get('texture', {}).get('quality', 'unknown')
+                    confidence = derm.get('analysisConfidence', 'unknown')
+                    
+                    print(f"[LangGraph] 📸🔬 DERMATOLOGICAL ANALYSIS DETAILED:")
+                    print(f"   Overall Skin Health: {skin_health}")
+                    print(f"   Redness Severity: {redness}")
+                    print(f"   Acne Severity: {acne}")
+                    print(f"   Texture Quality: {texture}")
+                    print(f"   Analysis Confidence: {confidence}")
+                    
+                    # Show clinical observations if available
+                    clinical_obs = derm.get('clinicalObservations', [])
+                    if clinical_obs:
+                        print(f"   Clinical Observations: {clinical_obs[:2]}")  # Show first 2
+                        
+                else:
+                    # Fallback for other analysis types
+                    skin_health = insights.get('comprehensiveSkinAnalysis', {}).get('overallSkinHealth', 'unknown')
+                    redness = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('redness', 'unknown')
+                    acne = insights.get('comprehensiveSkinAnalysis', {}).get('skinConcerns', {}).get('acne', 'unknown')
+                    print(f"[LangGraph] 📸🔍 Analysis results - Skin: {skin_health}, Redness: {redness}, Acne: {acne}")
             else:
                 print("[LangGraph] 📸❌ Photo analysis returned None - may indicate processing issue")
             
@@ -424,14 +447,64 @@ async def orchestrator_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
     answers = state["answers"]
     question_map = state["question_map"]
     
+    # Extract key data points FIRST
+    user_age = additional_data.get('chronologicalAge', 'Not provided')
+    user_country = additional_data.get('countryOfResidence', 'Not provided')
+
     # Log what data was received
     has_photo = photo_insights is not None
     has_quiz = quiz_insights is not None
     print(f"[LangGraph] 🎯 ASYNC synthesis inputs: Photo={'✅' if has_photo else '❌'}, Quiz={'✅' if has_quiz else '❌'}")
-
-    # Extract key data points
-    user_age = additional_data.get('chronologicalAge', 'Not provided')
-    user_country = additional_data.get('countryOfResidence', 'Not provided')
+    
+    # 🔍 DETAILED DATA INSPECTION
+    print(f"\n{'='*80}")
+    print(f"🧪 DETAILED ORCHESTRATOR DATA ANALYSIS")
+    print(f"{'='*80}")
+    
+    print(f"📊 USER CONTEXT:")
+    print(f"   Age: {user_age}")
+    print(f"   Country: {user_country}")
+    print(f"   Base Scores: {base_scores}")
+    
+    if has_photo:
+        print(f"\n📸 PHOTO ANALYSIS RECEIVED:")
+        print(f"   Full Photo Data Keys: {list(photo_insights.keys())}")
+        # Show the most relevant extracted data
+        if 'dermatologicalAssessment' in photo_insights:
+            derm = photo_insights['dermatologicalAssessment']
+            print(f"   🔬 Dermatological Assessment:")
+            print(f"      Overall Skin Health: {derm.get('overallSkinHealth', 'N/A')}")
+            print(f"      Redness: {derm.get('skinConditions', {}).get('redness', {}).get('severity', 'N/A')}")
+            print(f"      Acne: {derm.get('skinConditions', {}).get('acne', {}).get('severity', 'N/A')}")
+            print(f"      Confidence: {derm.get('analysisConfidence', 'N/A')}")
+        if 'ageAssessment' in photo_insights:
+            age_assess = photo_insights['ageAssessment']
+            print(f"   👤 Age Assessment: {age_assess.get('estimatedRange', 'N/A')}")
+    else:
+        print(f"\n📸 NO PHOTO ANALYSIS RECEIVED")
+    
+    if has_quiz:
+        print(f"\n📝 QUIZ ANALYSIS RECEIVED:")
+        print(f"   Full Quiz Data Keys: {list(quiz_insights.keys())}")
+        if 'adjustedScores' in quiz_insights:
+            scores = quiz_insights['adjustedScores']
+            print(f"   📊 Adjusted Scores:")
+            print(f"      Physical Vitality: {scores.get('physicalVitality', 'N/A')}")
+            print(f"      Emotional Health: {scores.get('emotionalHealth', 'N/A')}")
+            print(f"      Visual Appearance: {scores.get('visualAppearance', 'N/A')}")
+        if 'keyStrengths' in quiz_insights:
+            strengths = quiz_insights['keyStrengths'][:2]  # Show first 2
+            print(f"   💪 Key Strengths: {strengths}")
+        if 'priorityAreas' in quiz_insights:
+            priorities = quiz_insights['priorityAreas'][:2]  # Show first 2
+            print(f"   🎯 Priority Areas: {priorities}")
+        if 'culturalContext' in quiz_insights:
+            context = quiz_insights['culturalContext'][:100] + "..." if len(quiz_insights['culturalContext']) > 100 else quiz_insights['culturalContext']
+            print(f"   🌍 Cultural Context: {context}")
+    else:
+        print(f"\n📝 NO QUIZ ANALYSIS RECEIVED")
+    
+    print(f"{'='*80}\n")
     
     # Extract key photo insights for focused analysis
     photo_summary = "No photo analysis available."
@@ -559,6 +632,19 @@ PHOTO ANALYSIS SUMMARY:
 
     # Use Azure OpenAI GPT-4o mini for orchestration
     print("[LangGraph] 🎯⚡ ULTRA-FAST orchestrator with optimized prompt")
+    
+    # 🔍 SHOW ORCHESTRATOR PROMPT DETAILS
+    print(f"\n{'='*80}")
+    print(f"🤖 ORCHESTRATOR LLM INPUT")
+    print(f"{'='*80}")
+    print(f"📝 Prompt Length: {len(synthesis_prompt)} characters")
+    print(f"🏥 Model: Azure OpenAI {orchestrator_model}")
+    print(f"🌡️ Temperature: 0.02 (ultra-low for consistency)")
+    print(f"📏 Max Tokens: 1200")
+    print(f"\n🎯 SYNTHESIS TASK:")
+    print(f"   Combining photo + quiz data for {user_country} user aged {user_age}")
+    print(f"   Base scores as starting point: {base_scores}")
+    print(f"{'='*80}\n")
     try:
         response = await azure_openai_async_client.chat.completions.create(
             model=orchestrator_model,
@@ -580,6 +666,36 @@ PHOTO ANALYSIS SUMMARY:
             
         print(f"Raw Azure OpenAI GPT-4o Mini orchestrator ASYNC response: {content}")
         clean_response = content.strip()
+        
+        # 🔍 ANALYZE ORCHESTRATOR OUTPUT
+        print(f"\n{'='*80}")
+        print(f"🎭 ORCHESTRATOR LLM OUTPUT ANALYSIS")
+        print(f"{'='*80}")
+        print(f"📏 Response Length: {len(content)} characters")
+        print(f"✅ Response Status: Received successfully")
+        
+        # Try to preview key data from the JSON
+        try:
+            preview_data = json.loads(clean_response)
+            print(f"📊 KEY SYNTHESIS RESULTS:")
+            print(f"   Overall Glow Score: {preview_data.get('overallGlowScore', 'N/A')}")
+            
+            scores = preview_data.get('adjustedCategoryScores', {})
+            print(f"   Adjusted Scores:")
+            print(f"      Physical: {scores.get('physicalVitality', 'N/A')}")
+            print(f"      Emotional: {scores.get('emotionalHealth', 'N/A')}")
+            print(f"      Visual: {scores.get('visualAppearance', 'N/A')}")
+            
+            archetype = preview_data.get('glowUpArchetype', {})
+            print(f"   🎭 Archetype: {archetype.get('name', 'N/A')}")
+            
+            ages = f"Bio:{preview_data.get('biologicalAge', 'N/A')} | Emo:{preview_data.get('emotionalAge', 'N/A')} | Chrono:{preview_data.get('chronologicalAge', 'N/A')}"
+            print(f"   👤 Ages: {ages}")
+            
+        except:
+            print(f"⚠️ Could not parse JSON for preview (will attempt full parse next)")
+        
+        print(f"{'='*80}\n")
         
     except Exception as inner_e:
         print(f"[LangGraph] 🎯 Azure OpenAI orchestrator failed: {inner_e}")
@@ -683,6 +799,29 @@ PHOTO ANALYSIS SUMMARY:
             }
         
         print(f"[LangGraph] 🎯 ASYNC orchestrator synthesis completed in {time.time() - start_time:.2f}s")
+        
+        # 🔍 FINAL RESULT SUMMARY
+        print(f"\n{'='*80}")
+        print(f"🎉 FINAL SYNTHESIS RESULT")
+        print(f"{'='*80}")
+        print(f"✅ Processing: Successful")
+        print(f"⏱️ Total Time: {time.time() - start_time:.2f}s")
+        print(f"📊 Final Glow Score: {final_analysis.get('overallGlowScore')}")
+        
+        final_scores = final_analysis.get('adjustedCategoryScores', {})
+        print(f"📈 Final Category Scores:")
+        print(f"   Physical Vitality: {final_scores.get('physicalVitality')}")
+        print(f"   Emotional Health: {final_scores.get('emotionalHealth')}")
+        print(f"   Visual Appearance: {final_scores.get('visualAppearance')}")
+        
+        archetype = final_analysis.get('glowUpArchetype', {})
+        print(f"🎭 Generated Archetype: {archetype.get('name', 'N/A')}")
+        
+        habits = final_analysis.get('microHabits', [])
+        print(f"🔄 Micro-Habits Generated: {len(habits)} habits")
+        
+        print(f"{'='*80}\n")
+        
         return {**state, "ai_analysis": final_analysis}
     except Exception as parse_e:
         print(f"[LangGraph] ❌ Error parsing orchestrator JSON: {parse_e}")

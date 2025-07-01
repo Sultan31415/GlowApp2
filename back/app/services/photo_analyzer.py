@@ -621,7 +621,7 @@ CRITICAL INSTRUCTIONS:
 - Be clinically accurate and objective
 - Focus on what is ACTUALLY VISIBLE
 
-Return assessment in this format:
+Return assessment in JSON format:
 
 {{
   "dermatologicalAssessment": {{
@@ -663,7 +663,7 @@ Return assessment in this format:
                 messages=[
                     {
                         "role": "system", 
-                        "content": "You are a specialized dermatological AI analyst. Your expertise is in accurate skin condition identification. Be precise, objective, and never minimize visible skin problems. Focus on clinical accuracy."
+                        "content": "You are a specialized dermatological AI analyst. Your expertise is in accurate skin condition identification. Be precise, objective, and never minimize visible skin problems. Focus on clinical accuracy. Always return your analysis in JSON format."
                     },
                     {
                         "role": "user",
