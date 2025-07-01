@@ -242,6 +242,21 @@ function App() {
 
         <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
 
+        <Route
+          path="/test"
+          element={
+            <>
+              <SignedIn>
+                {/* The actual assessment UI is rendered via <TestModal> outside of <Routes>. */}
+                <></>
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
+          }
+        />
+
         {/* Catch-all for unknown routes */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
