@@ -91,7 +91,10 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       id: 'assessment',
       label: 'Take Assessment',
       icon: Camera,
-      onClick: onStartTest,
+      onClick: () => {
+        console.log('Navigation - Assessment button clicked');
+        onStartTest();
+      },
       isAvailable: true,
       tooltip: 'Take Assessment',
       description: 'Quiz + Photo Analysis',

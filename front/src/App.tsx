@@ -93,6 +93,10 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Debug logging
+  console.log('App - Current location:', location.pathname);
+  console.log('App - TestModal should be open:', location.pathname === '/test');
+  
   // Custom hooks
   const quiz = useQuiz();
   const assessment = useAssessment();

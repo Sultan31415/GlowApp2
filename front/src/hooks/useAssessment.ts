@@ -68,10 +68,14 @@ export const useAssessment = () => {
   };
 
   const handleStartTest = () => {
+    console.log('useAssessment - handleStartTest called');
+    console.log('useAssessment - Current location before navigate:', window.location.pathname);
     setCurrentTestStep('quiz');
     setUploadedPhoto(null);
     setError(null);
+    console.log('useAssessment - About to navigate to /test');
     navigate('/test');
+    console.log('useAssessment - Navigate to /test called');
   };
 
   const handleBackToQuiz = () => {
