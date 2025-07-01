@@ -13,7 +13,8 @@ export const useApi = () => {
             },
         };
 
-        const response = await fetch(`http://localhost:8000/api/${endpoint}`, {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://164.90.175.148:8000';
+        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
             ...defaultOptions,
             ...options,
             headers: {
