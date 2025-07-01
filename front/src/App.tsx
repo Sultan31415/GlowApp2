@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
 
 // Custom Hooks
@@ -91,6 +91,7 @@ const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoadin
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Custom hooks
   const quiz = useQuiz();
@@ -159,38 +160,6 @@ function App() {
         } />
 
         {/* Protected Routes */}
-        <Route
-          path="/test"
-          element={
-            <>
-              <SignedIn>
-                <TestModal
-                  isOpen={true}
-                  onClose={() => navigate('/')}
-                  currentStep={assessment.currentTestStep}
-                  currentQuestionIndex={quiz.currentQuestionIndex}
-                  allQuestions={quiz.allQuestions}
-                  answers={quiz.answers}
-                  uploadedPhoto={assessment.uploadedPhoto}
-                  onAnswerSelect={quiz.handleAnswerSelect}
-                  onNext={handleNext}
-                  onPrevious={quiz.handlePrevious}
-                  onPhotoUpload={assessment.handlePhotoUpload}
-                  onBackToQuiz={handleBackToQuiz}
-                  onSubmitAssessment={handleSubmitAssessment}
-                  canGoBack={quiz.canGoBack}
-                  canGoNext={quiz.canGoNext}
-                  getCurrentAnswer={quiz.getCurrentAnswer}
-                  isSubmitting={assessment.isSubmitting}
-                  error={assessment.error}
-                />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
         
         <Route
           path="/dashboard"
@@ -254,10 +223,7 @@ function App() {
             <>
               <SignedIn>
                 {assessment.results ? (
-                  <MicroHabitsScreen
-                    microHabits={assessment.results.microHabits}
-                    onBack={() => navigate('/dashboard')}
-                  />
+                  <MicroHabitsScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
                 ) : (
                   <Navigate to="/" />
                 )}
@@ -267,44 +233,38 @@ function App() {
               </SignedOut>
             </>
           }
-        />
-        
-        <Route
-          path="/progress"
-          element={
-            <>
-              <SignedIn>
-                {assessment.results ? (
-                  <div>Progress Tracker Page</div>
-                ) : (
-                  <Navigate to="/" />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
+        /> 
         */}
-        
-        <Route
-          path="/error"
-          element={
-            <>
-              <SignedIn>
-                <ErrorScreen error={assessment.error} onRetry={handleRetry} />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        
-        {/* Catch-all route */}
+
+        <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
+
+        {/* Catch-all for unknown routes */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      
+      {/* Test Modal - Rendered conditionally */}
+      <SignedIn>
+        <TestModal
+          isOpen={location.pathname === '/test'}
+          onClose={() => navigate('/')}
+          currentStep={assessment.currentTestStep}
+          currentQuestionIndex={quiz.currentQuestionIndex}
+          allQuestions={quiz.allQuestions}
+          answers={quiz.answers}
+          uploadedPhoto={assessment.uploadedPhoto}
+          onAnswerSelect={quiz.handleAnswerSelect}
+          onNext={handleNext}
+          onPrevious={quiz.handlePrevious}
+          onPhotoUpload={assessment.handlePhotoUpload}
+          onBackToQuiz={handleBackToQuiz}
+          onSubmitAssessment={handleSubmitAssessment}
+          canGoBack={quiz.canGoBack}
+          canGoNext={quiz.canGoNext}
+          getCurrentAnswer={quiz.getCurrentAnswer}
+          isSubmitting={assessment.isSubmitting}
+          error={assessment.error}
+        />
+      </SignedIn>
     </AppLayout>
   );
 }
