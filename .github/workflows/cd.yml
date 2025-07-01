@@ -65,8 +65,8 @@ jobs:
             cd ${{ secrets.REMOTE_APP_PATH }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
             export IMAGE_TAG=${{ github.sha }}
-            docker-compose pull
-            docker-compose up -d --remove-orphans
+            docker compose pull
+            docker compose up -d --remove-orphans
             docker system prune -f
 
       - name: Notify success
