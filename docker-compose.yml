@@ -2,8 +2,6 @@ services:
   backend:
     build: ./back
     container_name: glowapp-backend
-    ports:
-      - "8000:8000"
     env_file:
       - ./back/.env
     restart: unless-stopped
@@ -17,8 +15,6 @@ services:
   frontend:
     build: ./front
     container_name: glowapp-frontend
-    ports:
-      - "4173:4173"
     depends_on:
       - backend
     networks:
@@ -36,6 +32,23 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - glowapp-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: glowapp-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot
+    depends_on:
+      - frontend
+      - backend
     networks:
       - glowapp-net
 

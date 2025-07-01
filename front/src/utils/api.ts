@@ -1,7 +1,7 @@
 import { AssessmentResults, QuizAnswer, QuizSection } from '../types';
 import { useApi } from './useApi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://164.90.175.148:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://oylan.me/api';
 
 export const getQuizData = async (): Promise<QuizSection[]> => {
   try {

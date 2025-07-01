@@ -18,7 +18,9 @@ class Settings(BaseSettings):
         "http://localhost:5173",
         "http://localhost:4173", 
         "http://164.90.175.148:4173",
-        "https://164.90.175.148:4173"
+        "https://164.90.175.148:4173",
+        "https://oylan.me",
+        "https://www.oylan.me"
     ]  # Frontend URL
     
     # Gemini AI Configuration
