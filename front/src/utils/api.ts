@@ -1,11 +1,11 @@
 import { AssessmentResults, QuizAnswer, QuizSection } from '../types';
 import { useApi } from './useApi';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://oylan.me';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://oylan.me/api';
 
 export const getQuizData = async (): Promise<QuizSection[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/quiz`);
+    const response = await fetch(`${API_BASE_URL}/quiz`);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
