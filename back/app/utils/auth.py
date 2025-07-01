@@ -13,7 +13,12 @@ def get_current_user(request: Request):
         request_state = clerk_sdk.authenticate_request(
             request,
             AuthenticateRequestOptions(
-                authorized_parties=["http://localhost:5173", "http://localhost:4173"],
+                authorized_parties=[
+                    "http://localhost:5173", 
+                    "http://localhost:4173",
+                    "http://164.90.175.148:4173",
+                    "https://164.90.175.148:4173"
+                ],
                 jwt_key=os.getenv("JWT_KEY")
             )
         )
