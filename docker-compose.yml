@@ -13,7 +13,11 @@ services:
       - glowapp-net
 
   frontend:
-    build: ./front
+    build: 
+      context: ./front
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhY3QtbGl6YXJkLTUxLmNsZXJrLmFjY291bnRzLmRldiQ
+        VITE_API_URL: http://oylan.me/api
     container_name: glowapp-frontend
     depends_on:
       - backend
