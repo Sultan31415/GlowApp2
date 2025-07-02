@@ -184,15 +184,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           </div>
         </div>
 
-        {/* Floating CTA Button */}
-        <div className="fixed bottom-6 right-6 z-[90]">
-          <button 
-            onClick={() => navigate('/test')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-full shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-200 flex items-center font-semibold"
-          >
-            Get My Real Score
-          </button>
-        </div>
+        {/* Floating CTA Button is removed to reduce clutter */}
 
                           {/* Enhanced Header */}
          <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -mt-4">
@@ -203,8 +195,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                  <Activity className="w-6 h-6 text-slate-600" />
                </div>
                <div>
-                 <h1 className="text-lg lg:text-xl font-medium text-slate-700">Welcome back!</h1>
-                 <p className="text-slate-500 text-sm">Your wellness journey continues</p>
+                 <h1 className="text-lg lg:text-xl font-medium text-slate-700">Welcome, {userData?.first_name || 'Explorer'}!</h1>
+                 <p className="text-slate-500 text-sm">Here's a preview of your future dashboard.</p>
                </div>
              </div>
            </div>
@@ -212,6 +204,22 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6 relative z-10">
 
+            <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-6 mb-8 shadow-lg text-center">
+                <div className="flex justify-center items-center mb-4">
+                  <Bot className="w-8 h-8 text-purple-600 mr-3" />
+                  <h3 className="text-xl font-bold text-gray-900">This is a Preview Dashboard!</h3>
+                </div>
+                <p className="text-gray-700 max-w-2xl mx-auto mb-5">
+                  You're currently viewing a dashboard with sample data to show you what's possible. To see your own personalized scores, insights, and AI-powered recommendations, take our quick assessment.
+                </p>
+                <button 
+                  onClick={() => navigate('/test')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center mx-auto"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Get Your Real Score
+                </button>
+            </div>
                         {/* Main Content Grid */}
              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
                
