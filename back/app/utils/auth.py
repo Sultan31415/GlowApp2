@@ -19,7 +19,9 @@ def get_current_user(request: Request):
                     "http://164.90.175.148:4173",
                     "https://164.90.175.148:4173",
                     "http://oylan.me",
-                    "http://www.oylan.me"
+                    "http://www.oylan.me",
+                    "https://oylan.me",
+                    "https://www.oylan.me"
                 ],
                 jwt_key=os.getenv("JWT_KEY")
             )
