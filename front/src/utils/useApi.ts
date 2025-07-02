@@ -13,8 +13,8 @@ export const useApi = () => {
             },
         };
 
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://oylan.me/api';
-        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://oylan.me';
+        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
             ...defaultOptions,
             ...options,
             headers: {
