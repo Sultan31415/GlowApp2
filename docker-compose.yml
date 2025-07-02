@@ -3,8 +3,8 @@ services:
     build: ./back  # Uncomment for local build
     # image: ${DOCKER_USERNAME:-yourname}/glowapp-backend:${IMAGE_TAG:-latest}
     container_name: glowapp-backend
-    env_file:
-      - ./back/.env
+    # env_file:
+    #   - ./back/.env
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://glowuser:glowpassword@postgres:5432/glowdb
