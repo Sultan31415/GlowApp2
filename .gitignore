@@ -39,3 +39,6 @@ Thumbs.db
 front/.env
 front/dist
 front/node_modules
+
+# SSL certificates
+certs/
