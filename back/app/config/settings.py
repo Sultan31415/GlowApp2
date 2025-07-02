@@ -20,7 +20,9 @@ class Settings(BaseSettings):
         "http://164.90.175.148:4173",
         "https://164.90.175.148:4173",
         "http://oylan.me",
-        "http://www.oylan.me"
+        "http://www.oylan.me",
+        "https://oylan.me",
+        "https://www.oylan.me"
     ]  # Frontend URL
     
     # Gemini AI Configuration

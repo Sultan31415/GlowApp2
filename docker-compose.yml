@@ -14,8 +14,11 @@ services:
       - glowapp-net
 
   frontend:
-    build: ./front  # Uncomment for local build
-    # image: ${DOCKER_USERNAME:-yourname}/glowapp-frontend:${IMAGE_TAG:-latest}
+    build: 
+      context: ./front
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhY3QtbGl6YXJkLTUxLmNsZXJrLmFjY291bnRzLmRldiQ
+        VITE_API_URL: https://oylan.me
     container_name: glowapp-frontend
     depends_on:
       - backend
