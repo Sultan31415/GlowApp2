@@ -1,4 +1,4 @@
-# GlowApp Frontend
+# Oylan Frontend
 
 ## 📁 Project Structure
 

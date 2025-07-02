@@ -17,6 +17,7 @@ import { ErrorScreen } from './components/screens/ErrorScreen';
 import { MicroHabitsScreen } from './components/screens/MicroHabitsScreen';
 import { FutureScreen } from './components/screens/FutureScreen';
 import { AdvancedMainScreen } from './components/screens/AdvancedMainScreen';
+import { Logo } from './components/ui/Logo';
 
 // Home Screen Component
 const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoading: boolean; quizError: string | null }> = ({ 
@@ -52,7 +53,8 @@ const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoadin
 
   return (
     <div className="text-center py-12">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome back to GlowApp! ✨</h1>
+      <Logo size={80} scale={2} animate={true} className="mb-6" />
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome back to Oylan! ✨</h1>
       <p className="text-xl text-gray-600 mb-8">Ready to continue your transformation journey?</p>
       
       {results ? (

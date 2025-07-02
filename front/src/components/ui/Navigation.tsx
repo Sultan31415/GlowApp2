@@ -149,7 +149,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
           <div className="flex items-center space-x-3">
             <Logo size={40} scale={2.5} animate={true} className="" />
             {isExpanded && (
-              <span className="text-lg font-bold text-gray-800 whitespace-nowrap">GlowApp</span>
+              <span className="text-lg font-bold text-gray-800 whitespace-nowrap">Oylan</span>
             )}
           </div>
           <button

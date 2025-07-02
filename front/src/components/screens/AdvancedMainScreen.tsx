@@ -7,17 +7,11 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
+import { AuroraBackground } from '../ui/AuroraBackground';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Logo } from '../ui/Logo';
-
-// A placeholder for the background class used in DashboardScreen
-const AuroraBgWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-    {children}
-  </div>
-);
 
 interface AdvancedMainScreenProps {
   onStartTest: () => void;
@@ -108,62 +102,62 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
   }, []);
 
   return (
-    <AuroraBgWrapper>
+    <AuroraBackground>
       <div className="min-h-screen relative overflow-x-hidden">
         {/* Navigation */}
         <nav
-          className={`bg-white/80 backdrop-blur-xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out
+          className={`bg-white/20 backdrop-blur-2xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out px-0
             ${
               navCompressed
-                ? "top-4 mx-auto max-w-5xl left-0 right-0 rounded-2xl py-0"
-                : "top-6 mx-auto max-w-5xl left-0 right-0 rounded-full py-1"
+                ? "top-0 mx-auto max-w-4xl left-0 right-0 rounded-xl py-0.5"
+                : "top-4 mx-auto max-w-4xl left-0 right-0 rounded-full py-1"
             }
           `}
           style={{ transform: `scale(${navScale})`, transformOrigin: 'top center', willChange: 'transform' }}
         >
           <div
-            className={`mx-auto max-w-5xl px-6 flex items-center justify-between transition-all duration-300 ${
-              navCompressed ? "py-1.5" : "py-1"
+            className={`mx-auto max-w-4xl px-4 flex items-center justify-between transition-all duration-300 ${
+              navCompressed ? "py-0.5" : "py-1"
             }`}
           >
             <div className="flex items-center -space-x-1">
               <Logo 
-                size={navCompressed ? 36 : 48}
-                scale={1.8}
+                size={navCompressed ? 40 : 64}
+                scale={1.9}
                 animate={true}
-                className="transition-all duration-300" 
+                className="transition-all duration-300 rounded-lg" 
               />
               <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"} ml-1`}>Oylan</span>
             </div>
             {/* Desktop Nav */}
-            <div className="hidden md:flex items-center space-x-2">
+            <div className="hidden md:flex items-center space-x-6">
               {sections.slice(1).map((section) => (
                 <a
                   key={section.id}
                   href={`#${section.id}`}
                   onClick={(e) => scrollToSection(e, section.id)}
-                  className={`font-semibold text-sm px-3 py-1.5 rounded-lg transition-all duration-300 relative group
-                    ${activeSection === section.id ? "text-gray-900 bg-white/70" : "text-gray-600 hover:text-black"}
+                  className={`font-semibold text-base px-2 py-1 rounded-lg transition-all duration-300 relative group
+                    ${activeSection === section.id ? "text-gray-900" : "text-gray-700 hover:text-black"}
                   `}
                 >
                   {section.name}
                   {activeSection === section.id && (
-                    <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-gray-900 rounded-full" />
+                    <span className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-6 h-1 bg-gray-900 rounded-full opacity-80" />
                   )}
                 </a>
               ))}
               <Button 
                 onClick={handleGetStarted}
-                className="ml-4 px-5 py-2 rounded-full bg-black/90 text-white font-semibold shadow-md hover:bg-black transition-all duration-200 text-sm"
+                className="ml-2 px-4 py-1.5 rounded-full bg-black/90 text-white font-semibold shadow-md hover:bg-black transition-all duration-200 text-base"
               >
-                Get Started Free
+                Get Started
               </Button>
             </div>
             {/* Mobile Hamburger */}
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsVisible((v) => !v)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-black hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
                 aria-label="Open main menu"
               >
                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -176,7 +170,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
 
         {/* Mobile Nav Drawer */}
         {isVisible && (
-          <div className="md:hidden bg-white/90 backdrop-blur-2xl border border-gray-200/60 px-4 pt-4 pb-4 rounded-3xl shadow-xl animate-fade-in mx-4 fixed top-24 left-0 right-0 z-40">
+          <div className="md:hidden bg-white/80 backdrop-blur-2xl border border-gray-200/60 px-4 pt-2 pb-4 rounded-3xl shadow-xl animate-fade-in mx-2 mt-2">
             <div className="flex flex-col space-y-2">
               {sections.slice(1).map((section) => (
                 <a
@@ -186,8 +180,8 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                     scrollToSection(e, section.id);
                     setIsVisible(false);
                   }}
-                  className={`font-semibold text-lg px-4 py-3 rounded-xl transition-all duration-200
-                    ${activeSection === section.id ? "text-gray-900 bg-gray-100" : "text-gray-700 hover:text-black"}
+                  className={`font-semibold text-base px-3 py-2 rounded-lg transition-all duration-200
+                    ${activeSection === section.id ? "text-gray-900" : "text-gray-700 hover:text-black"}
                   `}
                 >
                   {section.name}
@@ -195,7 +189,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               ))}
               <Button 
                 onClick={handleGetStarted}
-                className="mt-4 px-6 py-4 rounded-xl bg-black text-white font-semibold shadow hover:bg-gray-900 transition-all duration-300 w-full text-lg"
+                className="mt-2 px-6 py-2 rounded-xl bg-black text-white font-semibold shadow hover:bg-gray-900 transition-all duration-300 w-full"
               >
                 Get Started
               </Button>
@@ -478,12 +472,12 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         <section className="py-24 px-4">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Join <span className="text-purple-600">12,847</span> people transforming their lives
+              Join <span className="text-purple-600">1000</span> people transforming their lives
             </h2>
             <p className="text-lg text-gray-600 mb-12">Trusted by a fast-growing community of life-optimizers.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center">
-                <div className="text-4xl font-bold text-purple-600 mb-1">1.2M+</div>
+                <div className="text-4xl font-bold text-purple-600 mb-1">90K+</div>
                 <div className="text-sm text-gray-600">Habits Completed</div>
               </div>
               <div className="text-center">
@@ -514,7 +508,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                   <MessageCircle className="w-6 h-6 text-purple-600" />
                   <div className="text-left">
                     <div className="font-semibold text-gray-900">Email Support</div>
-                    <a href="mailto:support@oylan.me" className="text-gray-600 text-sm hover:text-purple-600">support@oylan.me</a>
+                    <a href="mailto:sultanyermakhan@gmail.com" className="text-gray-600 text-sm hover:text-purple-600">sultanyermakhan@gmail.com</a>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -545,6 +539,6 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
             </div>
         </footer>
       </div>
-    </AuroraBgWrapper>
+    </AuroraBackground>
   );
 }; 
