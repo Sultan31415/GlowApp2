@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
-  Sparkles, Target, User, TrendingUp, Heart, ArrowRight, Star, MessageCircle, Camera, 
-  Check, Users, RefreshCw, Clock, BarChart3, Trophy, Eye, Play, Crown, Zap, 
-  CheckCircle, Facebook, Twitter, Instagram, Youtube, Linkedin, Brain
+  Sparkles, Target, ArrowRight, MessageCircle, Camera, 
+  Users, Clock, BarChart3, Zap, 
+  CheckCircle, Brain, Shield, TrendingUp, Star, Eye, Heart, 
+  Calendar, Trophy, Gamepad2, User, BookOpen, Dumbbell, Play, Activity
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@clerk/clerk-react';
-import { AuroraBackground } from '../ui/AuroraBackground';
 import { Button } from '../ui/Button';
 import { Card, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Logo } from '../ui/Logo';
+
+// A placeholder for the background class used in DashboardScreen
+const AuroraBgWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    {children}
+  </div>
+);
 
 interface AdvancedMainScreenProps {
   onStartTest: () => void;
@@ -22,15 +29,12 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
   const [isVisible, setIsVisible] = useState(false);
   const [navCompressed, setNavCompressed] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
-  const [currentAvatar, setCurrentAvatar] = useState(0);
-  const [sliderValue, setSliderValue] = useState([30]);
   const [navScale, setNavScale] = useState(1);
 
   const sections = [
     { id: 'hero', name: 'Home' },
-    { id: 'features', name: 'Features' },
+    { id: 'what-we-do', name: 'Platform' },
     { id: 'how-it-works', name: 'How It Works' },
-    { id: 'testimonials', name: 'Success Stories' },
     { id: 'contact', name: 'Contact' },
   ];
 
@@ -67,18 +71,15 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
   }, [sections, activeSection]);
 
   // Nav compress on scroll
-  const maxScroll = 300; // px after which nav stops shrinking further
-  const minScale = 0.95; // smallest horizontal scale
+  const maxScroll = 300;
+  const minScale = 0.95;
 
   const handleNavScroll = () => {
     const scrollY = window.scrollY;
-
-    // Gradual scale calculation
     const clampedScroll = Math.min(scrollY, maxScroll);
     const newScale = 1 - (clampedScroll / maxScroll) * (1 - minScale);
     setNavScale(newScale);
 
-    // Still toggle compressed class for other style tweaks
     if (scrollY > 120) {
       setNavCompressed(true);
     } else {
@@ -106,85 +107,63 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
     }
   }, []);
 
-  const archetypes = [
-    { name: "CEO", icon: Crown, color: "from-purple-500 to-pink-500" },
-    { name: "Fit", icon: Target, color: "from-green-500 to-blue-500" },
-    { name: "Romantic", icon: Heart, color: "from-pink-500 to-red-500" },
-    { name: "Calm", icon: Sparkles, color: "from-blue-500 to-cyan-500" },
-    { name: "Boss", icon: Zap, color: "from-yellow-500 to-orange-500" },
-    { name: "Healing", icon: Star, color: "from-green-400 to-emerald-500" },
-  ];
-
-  const habits = [
-    { habit: "+30 min sleep", impact: "Better skin & energy" },
-    { habit: "Drink 1L water", impact: "Clearer complexion" },
-    { habit: "10 min walk", impact: "Improved posture" },
-    { habit: "Morning meditation", impact: "Reduced stress lines" },
-  ];
-
-  const testimonials = [
-    { name: "Sarah M.", score: 8.2, improvement: "+2.1", image: "/placeholder.svg?height=60&width=60" },
-    { name: "Alex K.", score: 9.1, improvement: "+1.8", image: "/placeholder.svg?height=60&width=60" },
-    { name: "Maya L.", score: 8.7, improvement: "+2.3", image: "/placeholder.svg?height=60&width=60" },
-  ];
-
   return (
-    <AuroraBackground>
-      <div className="min-h-screen">
+    <AuroraBgWrapper>
+      <div className="min-h-screen relative overflow-x-hidden">
         {/* Navigation */}
         <nav
-          className={`bg-white/20 backdrop-blur-2xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out px-0
+          className={`bg-white/80 backdrop-blur-xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out
             ${
               navCompressed
-                ? "top-0 mx-auto max-w-4xl left-0 right-0 rounded-xl py-0.5" // compressed: only adjust top & radius
-                : "top-4 mx-auto max-w-4xl left-0 right-0 rounded-full py-1"
+                ? "top-4 mx-auto max-w-5xl left-0 right-0 rounded-2xl py-0"
+                : "top-6 mx-auto max-w-5xl left-0 right-0 rounded-full py-1"
             }
           `}
           style={{ transform: `scale(${navScale})`, transformOrigin: 'top center', willChange: 'transform' }}
         >
           <div
-            className={`mx-auto max-w-4xl px-4 flex items-center justify-between transition-all duration-300 ${
-              navCompressed ? "py-0.5" : "py-1"
+            className={`mx-auto max-w-5xl px-6 flex items-center justify-between transition-all duration-300 ${
+              navCompressed ? "py-1.5" : "py-1"
             }`}
           >
             <div className="flex items-center -space-x-1">
               <Logo 
-                size={navCompressed ? 40 : 64}
-                scale={1.9}
+                size={navCompressed ? 36 : 48}
+                scale={1.8}
                 animate={true}
-                className="transition-all duration-300 rounded-lg" 
+                className="transition-all duration-300" 
               />
-              <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"} ml-1`}>GlowApp</span>
+              <span className={`font-extrabold tracking-tight text-gray-900 transition-all duration-300 ${navCompressed ? "text-lg" : "text-xl"} ml-1`}>Oylan</span>
             </div>
             {/* Desktop Nav */}
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="hidden md:flex items-center space-x-2">
               {sections.slice(1).map((section) => (
                 <a
                   key={section.id}
                   href={`#${section.id}`}
                   onClick={(e) => scrollToSection(e, section.id)}
-                  className={`font-semibold text-base px-2 py-1 rounded-lg transition-all duration-300 relative group
-                    ${activeSection === section.id ? "text-gray-900" : "text-gray-700 hover:text-black"}
+                  className={`font-semibold text-sm px-3 py-1.5 rounded-lg transition-all duration-300 relative group
+                    ${activeSection === section.id ? "text-gray-900 bg-white/70" : "text-gray-600 hover:text-black"}
                   `}
                 >
                   {section.name}
                   {activeSection === section.id && (
-                    <span className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 w-6 h-1 bg-gray-900 rounded-full opacity-80" />
+                    <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-gray-900 rounded-full" />
                   )}
                 </a>
               ))}
               <Button 
                 onClick={handleGetStarted}
-                className="ml-2 px-4 py-1.5 rounded-full bg-black/90 text-white font-semibold shadow-md hover:bg-black transition-all duration-200 text-base"
+                className="ml-4 px-5 py-2 rounded-full bg-black/90 text-white font-semibold shadow-md hover:bg-black transition-all duration-200 text-sm"
               >
-                Get Started
+                Get Started Free
               </Button>
             </div>
             {/* Mobile Hamburger */}
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsVisible((v) => !v)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-black hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
+                className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-black hover:bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-gray-500"
                 aria-label="Open main menu"
               >
                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -197,7 +176,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
 
         {/* Mobile Nav Drawer */}
         {isVisible && (
-          <div className="md:hidden bg-white/80 backdrop-blur-2xl border border-gray-200/60 px-4 pt-2 pb-4 rounded-3xl shadow-xl animate-fade-in mx-2 mt-2">
+          <div className="md:hidden bg-white/90 backdrop-blur-2xl border border-gray-200/60 px-4 pt-4 pb-4 rounded-3xl shadow-xl animate-fade-in mx-4 fixed top-24 left-0 right-0 z-40">
             <div className="flex flex-col space-y-2">
               {sections.slice(1).map((section) => (
                 <a
@@ -207,8 +186,8 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                     scrollToSection(e, section.id);
                     setIsVisible(false);
                   }}
-                  className={`font-semibold text-base px-3 py-2 rounded-lg transition-all duration-200
-                    ${activeSection === section.id ? "text-gray-900" : "text-gray-700 hover:text-black"}
+                  className={`font-semibold text-lg px-4 py-3 rounded-xl transition-all duration-200
+                    ${activeSection === section.id ? "text-gray-900 bg-gray-100" : "text-gray-700 hover:text-black"}
                   `}
                 >
                   {section.name}
@@ -216,7 +195,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               ))}
               <Button 
                 onClick={handleGetStarted}
-                className="mt-2 px-6 py-2 rounded-xl bg-black text-white font-semibold shadow hover:bg-gray-900 transition-all duration-300 w-full"
+                className="mt-4 px-6 py-4 rounded-xl bg-black text-white font-semibold shadow hover:bg-gray-900 transition-all duration-300 w-full text-lg"
               >
                 Get Started
               </Button>
@@ -225,263 +204,161 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         )}
 
         {/* Hero Section */}
-        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-40">
+        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-40 pb-20">
           <div className="max-w-7xl mx-auto text-center">
             {/* Main Headline */}
             <h1
-              className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-8xl 2xl:text-8xl font-extrabold text-gray-900 mb-10 leading-tight tracking-wide text-center max-w-5xl mx-auto"
-              style={{ fontFamily: '"Playfair Display", serif' }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 mb-8 leading-tight tracking-tighter"
             >
-              See the Truth.<br />
-              Become the Potential.
+              See Your Truth. <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
+                Become Your Potential.
+              </span>
             </h1>
-            <p className="text-3xl md:text-4xl text-gray-600 mb-20 max-w-3xl mx-auto">
-              Analyze your life today.
+            <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
+              Transform your life with AI-powered analysis, gamified stats, and atomic habits.
             </p>
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20">
+            
+            {/* CTA Button */}
+            <div className="flex justify-center items-center mb-24">
               <Button
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gray-900 hover:bg-black text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
               >
-                Start Your GlowApp
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white px-8 py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105"
-              >
-                <Play className="mr-2 w-5 h-5" />
-                Learn More
+                <Sparkles className="w-5 h-5" />
+                Start Your Transformation
+                <ArrowRight className="w-5 h-5" />
               </Button>
             </div>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { title: "Total Users", value: "12,847", icon: Users, color: "blue", trend: "+8.5%" },
-                { title: "Transformations", value: "8,293", icon: Target, color: "purple", trend: "+12.3%" },
-                { title: "Avg GlowScore", value: "8.7", icon: BarChart3, color: "green", trend: "-2.1%" },
-                { title: "Active Plans", value: "4,521", icon: Clock, color: "orange", trend: "+5.8%" },
-              ].map((stat, index) => (
-                <Card
-                  key={index}
-                  className="bg-white border-0 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                        <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                      </div>
-                      <div className={`w-12 h-12 bg-${stat.color}-100 rounded-full flex items-center justify-center`}>
-                        <stat.icon className={`w-6 h-6 text-${stat.color}-600`} />
-                      </div>
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <TrendingUp
-                        className={`w-4 h-4 mr-1 ${stat.trend.startsWith("+") ? "text-green-500" : "text-red-500 rotate-180"}`}
-                      />
-                      <span className={`font-medium ${stat.trend.startsWith("+") ? "text-green-500" : "text-red-500"}`}>
-                        {stat.trend}
-                      </span>
-                      <span className="text-gray-500 ml-1">
-                        {stat.title === "Transformations" ? "Up from past week" : "Up from yesterday"}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            
+            {/* Value Props - Styled like Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
+                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
+                  <Gamepad2 className="w-7 h-7 text-purple-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Your Glow Score</h3>
+                <p className="text-gray-600 text-sm">See your current score & unlock your 90-day potential.</p>
+              </div>
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
+                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
+                  <Target className="w-7 h-7 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Daily Habits</h3>
+                <p className="text-gray-600 text-sm">Follow micro-habits and complete weekly life challenges.</p>
+              </div>
+              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
+                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
+                  <Brain className="w-7 h-7 text-green-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">AI Coach</h3>
+                <p className="text-gray-600 text-sm">Get guidance from an AI that is your future self.</p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Revolutionary Features Section */}
-        <section id="features" className="py-20 px-4 bg-gradient-to-br from-slate-50 via-blue-25 to-indigo-50">
+        {/* What We Do - Dashboard Preview Style */}
+        <section id="what-we-do" className="py-24 px-4">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="bg-purple-100 text-purple-700 border border-purple-200 mb-6">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Revolutionary AI Features
-              </Badge>
-              <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                Your Ultimate Glow-Up Experience
+            {/* Section Header */}
+            <div className="text-center mb-20">
+              <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Your Life, Gamified.
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Cutting-edge AI technology that analyzes, transforms, and guides your journey to your highest potential
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Oylan turns self-improvement into an engaging game. Here's a preview of your personalized dashboard.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {/* Visual Transformation Avatar */}
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/50 hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-8">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
-                      <Camera className="w-8 h-8 text-green-600" />
-                    </div>
-                    <Badge className="bg-green-100 text-green-700 border border-green-200">Coming Soon</Badge>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Visual Transformation Avatar</h3>
-                  <p className="text-gray-600 mb-6">AI-powered avatar showing your full potential with detailed metrics and visual transformation preview</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      AI-generated future self visualization
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      Real-time progress tracking
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                      Biological age analysis
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Atomic Glow-Up System */}
-              <Card className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200/50 hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-8">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
-                      <Target className="w-8 h-8 text-red-600" />
-                    </div>
-                    <Badge className="bg-red-100 text-red-700 border border-red-200">Coming Soon</Badge>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">Atomic Glow-Up System</h3>
-                  <p className="text-gray-600 mb-6">30-day micro-habits and challenges scientifically designed to reach your full glow potential</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
-                      Personalized daily micro-habits
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
-                      Proven transformation methodology
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-red-500 mr-2" />
-                      Gamified challenge system
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* AI Coach */}
-              <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 hover:shadow-xl transition-all duration-300 group">
-                <CardContent className="p-8">
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="p-4 bg-white/80 rounded-xl shadow-sm">
-                      <Brain className="w-8 h-8 text-orange-600" />
-                    </div>
-                    <Badge className="bg-orange-100 text-orange-700 border border-orange-200">Coming Soon</Badge>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">AI Personal Coach</h3>
-                  <p className="text-gray-600 mb-6">Your 24/7 AI coach providing personalized guidance, tips, and motivation for your transformation journey</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
-                      Real-time personalized guidance
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
-                      Adaptive coaching strategies
-                    </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-orange-500 mr-2" />
-                      24/7 motivation and support
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Glow Score Analytics Preview */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8 mb-12">
-              <div className="grid lg:grid-cols-2 gap-12 items-center">
-                <div>
-                  <Badge className="bg-purple-100 text-purple-700 border border-purple-200 mb-4">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    Advanced Analytics
-                  </Badge>
-                  <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                    Get Your Complete Glow Score Analysis
-                  </h3>
-                  <p className="text-lg text-gray-600 mb-8">
-                    Our AI analyzes 50+ factors across Physical Vitality, Emotional Health, and Visual Appearance to give you a comprehensive wellness score with actionable insights.
-                  </p>
-                  <div className="space-y-4">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                        <Zap className="w-4 h-4 text-purple-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Physical Vitality Score</h4>
-                        <p className="text-sm text-gray-600">Energy, fitness & strength analysis</p>
+            {/* Main Feature Showcase - Rebuilt to look like Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              
+              {/* Left Side: Profile & Age Analysis */}
+              <div className="lg:col-span-4">
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-6 h-full">
+                  <div className="text-center">
+                    <div className="relative inline-block mb-6">
+                      <div className="w-32 h-32 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-2xl">
+                        <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
+                          <User className="w-16 h-16 text-gray-400" />
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-4">
-                        <Heart className="w-4 h-4 text-pink-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Emotional Health Score</h4>
-                        <p className="text-sm text-gray-600">Mood, stress & resilience tracking</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                        <Eye className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">Visual Appearance Score</h4>
-                        <p className="text-sm text-gray-600">Skin, style & confidence metrics</p>
+                    
+                    <div className="space-y-4">
+                      <h3 className="text-2xl font-bold text-gray-900">Your Future Self</h3>
+                      <p className="text-gray-600">A preview of your potential.</p>
+                      
+                      {/* Age Analysis Compact */}
+                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
+                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Age Analysis</h4>
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div>
+                            <div className="text-2xl font-bold text-emerald-600">24</div>
+                            <div className="text-xs text-gray-600">Biological</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-pink-600">26</div>
+                            <div className="text-xs text-gray-600">Emotional</div>
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-gray-700">28</div>
+                            <div className="text-xs text-gray-600">Actual</div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center bg-white rounded-xl shadow-lg px-6 py-4 mb-4">
-                      <span className="text-sm font-semibold text-gray-600 mr-4">Your Glow Score</span>
-                      <div className="flex items-center">
-                        <span className="text-3xl font-black text-gray-900">78</span>
-                        <div className="flex items-center ml-2">
-                          <TrendingUp className="w-4 h-4 text-emerald-500" />
-                          <span className="text-lg font-bold text-emerald-600">→85+</span>
-                        </div>
-                      </div>
+              </div>
+
+              {/* Right Side: Performance Metrics */}
+              <div className="lg:col-span-8">
+                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-8 h-full">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">Wellness Metrics</h3>
+                      <p className="text-gray-600">Track your performance in real-time.</p>
                     </div>
-                    <p className="text-sm text-gray-600">Potential to reach 85+ with our AI guidance</p>
+                    <div className="flex items-center space-x-2">
+                       <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Glow Score</span>
+                       <div className="flex items-baseline space-x-1">
+                         <span className="text-3xl font-black text-gray-900">72</span>
+                         <TrendingUp className="w-5 h-5 text-emerald-500" />
+                         <span className="text-2xl font-extrabold text-emerald-600">85+</span>
+                       </div>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Physical Vitality</span>
-                      <span className="text-sm font-bold text-purple-600">82/100</span>
+                
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Physical Vitality */}
+                    <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3"><Zap className="w-4 h-4 text-purple-600" /></div>
+                        <h4 className="text-base font-semibold text-gray-900">Physical</h4>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900 mb-4">66</div>
+                      <div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 bg-purple-500 rounded-full" style={{ width: '66%' }}></div></div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="h-2 bg-purple-500 rounded-full" style={{ width: '82%' }}></div>
+                    {/* Emotional Health */}
+                    <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3"><Heart className="w-4 h-4 text-pink-600" /></div>
+                        <h4 className="text-base font-semibold text-gray-900">Emotional</h4>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900 mb-4">58</div>
+                      <div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 bg-pink-500 rounded-full" style={{ width: '58%' }}></div></div>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Emotional Health</span>
-                      <span className="text-sm font-bold text-pink-600">75/100</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="h-2 bg-pink-500 rounded-full" style={{ width: '75%' }}></div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">Visual Appearance</span>
-                      <span className="text-sm font-bold text-blue-600">77/100</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="h-2 bg-blue-500 rounded-full" style={{ width: '77%' }}></div>
+                    {/* Visual Appearance */}
+                    <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                      <div className="flex items-center mb-4">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3"><Eye className="w-4 h-4 text-blue-600" /></div>
+                        <h4 className="text-base font-semibold text-gray-900">Visual</h4>
+                      </div>
+                      <div className="text-3xl font-bold text-gray-900 mb-4">62</div>
+                      <div className="w-full bg-gray-200 rounded-full h-2"><div className="h-2 bg-blue-500 rounded-full" style={{ width: '62%' }}></div></div>
                     </div>
                   </div>
                 </div>
@@ -490,247 +367,184 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
           </div>
         </section>
 
-        {/* How It Works */}
-        <section id="how-it-works" className="py-20 px-4 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="bg-gray-100 text-gray-600 border border-gray-200 mb-6">
-                <Target className="w-4 h-4 mr-2" />
-                Simple Process
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">From Analysis to Transformation</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Four simple steps to unlock your complete transformation potential
+        {/* How It Works - Visual Process */}
+        <section id="how-it-works" className="py-24 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Your Transformation in 4 Steps
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                A simple, science-backed process to unlock your full potential.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Process Steps - Styled like Quick Actions from Dashboard */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 {
                   step: "01",
-                  title: "Complete Assessment",
-                  description: "15 detailed questions analyzing your lifestyle, habits, and wellness goals",
-                  icon: MessageCircle,
-                  color: "from-blue-200 to-blue-600",
+                  title: "Analysis",
+                  description: "Complete a 5-min assessment & photo upload for a baseline score.",
+                  icon: BarChart3,
+                  color: "blue",
                 },
                 {
                   step: "02",
-                  title: "Upload Photo",
-                  description: "AI analyzes your photo for biological age, facial features, and glow potential",
-                  icon: Camera,
-                  color: "from-purple-200 to-pink-500",
+                  title: "Visualization",
+                  description: "See your potential score and a preview of your future-self avatar.",
+                  icon: User,
+                  color: "purple",
                 },
                 {
                   step: "03",
-                  title: "Get Your Scores",
-                  description: "Receive detailed Glow Score breakdown with personalized archetype analysis",
-                  icon: BarChart3,
-                  color: "from-pink-200 to-red-500",
+                  title: "Transformation",
+                  description: "Follow daily atomic habits and weekly life challenges to improve.",
+                  icon: Target,
+                  color: "green",
                 },
                 {
                   step: "04",
-                  title: "Start Transforming",
-                  description: "Access your dashboard with AI-powered features and transformation roadmap",
-                  icon: Sparkles,
-                  color: "from-green-200 to-green-600",
+                  title: "Achievement",
+                  description: "Track your progress in real-time and chat with your AI coach.",
+                  icon: Trophy,
+                  color: "orange",
                 },
-              ].map((item, index) => (
-                <Card
-                  key={index}
-                  className="bg-white border-0 shadow-md hover:shadow-lg transition-all duration-500 transform hover:-translate-y-2 group"
-                >
-                  <CardContent className="p-8 text-center">
-                    <div
-                      className={`w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-r ${item.color} flex items-center justify-center transition-all duration-300 group-hover:scale-110`}
-                    >
-                      <item.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="text-sm font-bold text-gray-500 mb-2">{item.step}</div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                    <p className="text-gray-600">{item.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
+              ].map((item) => {
+                const colors = {
+                  blue: {
+                    bg: "from-blue-50 to-indigo-50",
+                    border: "border-blue-200/50",
+                    iconBg: "bg-blue-100",
+                    iconText: "text-blue-600",
+                    stepText: "text-blue-500"
+                  },
+                  purple: {
+                    bg: "from-purple-50 to-violet-50",
+                    border: "border-purple-200/50",
+                    iconBg: "bg-purple-100",
+                    iconText: "text-purple-600",
+                    stepText: "text-purple-500"
+                  },
+                  green: {
+                    bg: "from-green-50 to-emerald-50",
+                    border: "border-green-200/50",
+                    iconBg: "bg-green-100",
+                    iconText: "text-green-600",
+                    stepText: "text-green-500"
+                  },
+                  orange: {
+                    bg: "from-orange-50 to-amber-50",
+                    border: "border-orange-200/50",
+                    iconBg: "bg-orange-100",
+                    iconText: "text-orange-600",
+                    stepText: "text-orange-500"
+                  }
+                };
+                const c = colors[item.color as keyof typeof colors];
 
-        {/* Testimonials Section */}
-        <section id="testimonials" className="py-20 px-4 bg-gradient-to-br from-purple-50 via-pink-25 to-red-50">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <Badge className="bg-pink-100 text-pink-700 border border-pink-200 mb-6">
-                <Star className="w-4 h-4 mr-2" />
-                Success Stories
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Real Transformations</h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                See how our AI-powered platform has helped thousands discover their potential
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
-              {[
-                {
-                  name: "Sarah M.",
-                  age: 28,
-                  glowScore: 85,
-                  improvement: "+18 points",
-                  archetype: "Radiant Achiever",
-                  quote: "The biological age analysis was mind-blowing - I'm actually 3 years younger than my chronological age! The personalized insights helped me understand exactly what to focus on.",
-                  metrics: {
-                    physical: 88,
-                    emotional: 82,
-                    visual: 85
-                  }
-                },
-                {
-                  name: "Alex K.",
-                  age: 32,
-                  glowScore: 91,
-                  improvement: "+24 points",
-                  archetype: "Balanced Transformer",
-                  quote: "The Glow Score breakdown showed me I was stronger emotionally than I thought, but needed to work on physical vitality. The targeted approach really works!",
-                  metrics: {
-                    physical: 85,
-                    emotional: 95,
-                    visual: 92
-                  }
-                },
-                {
-                  name: "Maya L.",
-                  age: 25,
-                  glowScore: 87,
-                  improvement: "+21 points",
-                  archetype: "Confident Visionary",
-                  quote: "Seeing my future self avatar was incredibly motivating. The AI analysis gave me concrete steps to reach my full potential. I feel more confident than ever!",
-                  metrics: {
-                    physical: 90,
-                    emotional: 84,
-                    visual: 87
-                  }
-                }
-              ].map((testimonial, index) => (
-                <Card key={index} className="bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                  <CardContent className="p-8">
+                return (
+                  <div key={item.step} className={`bg-gradient-to-br ${c.bg} border ${c.border} rounded-3xl p-8 hover:shadow-xl transition-all duration-300 group hover:-translate-y-2`}>
                     <div className="flex items-start justify-between mb-6">
-                      <div className="flex items-center">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
-                          {testimonial.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-gray-900">{testimonial.name}</h4>
-                          <p className="text-sm text-gray-500">{testimonial.archetype}</p>
-                        </div>
+                      <div className={`p-3 ${c.iconBg} rounded-xl shadow-sm`}>
+                        <item.icon className={`w-6 h-6 ${c.iconText}`} />
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center">
-                          <span className="text-2xl font-bold text-gray-900">{testimonial.glowScore}</span>
-                          <div className="ml-2">
-                            <TrendingUp className="w-4 h-4 text-emerald-500" />
-                            <span className="text-sm font-bold text-emerald-600">{testimonial.improvement}</span>
-                          </div>
-                        </div>
-                      </div>
+                      <span className={`text-5xl font-bold text-gray-300/80 transition-all group-hover:text-gray-400/80`}>{item.step}</span>
                     </div>
-                    
-                    <p className="text-gray-600 mb-6 italic">"{testimonial.quote}"</p>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Physical Vitality</span>
-                        <span className="font-bold text-purple-600">{testimonial.metrics.physical}/100</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div className="h-1.5 bg-purple-500 rounded-full" style={{ width: `${testimonial.metrics.physical}%` }}></div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Emotional Health</span>
-                        <span className="font-bold text-pink-600">{testimonial.metrics.emotional}/100</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div className="h-1.5 bg-pink-500 rounded-full" style={{ width: `${testimonial.metrics.emotional}%` }}></div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Visual Appearance</span>
-                        <span className="font-bold text-blue-600">{testimonial.metrics.visual}/100</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div className="h-1.5 bg-blue-500 rounded-full" style={{ width: `${testimonial.metrics.visual}%` }}></div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <h3 className="font-bold text-gray-900 text-xl mb-3">{item.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">{item.description}</p>
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="text-center">
+            {/* CTA */}
+            <div className="text-center mt-24">
               <Button 
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                className="bg-gray-900 hover:bg-black text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               >
-                Start Your Transformation Journey
-                <ArrowRight className="ml-2 w-5 h-5" />
+                Get My Free Analysis
               </Button>
+              <p className="text-gray-500 mt-4 text-sm">
+                Takes 5 minutes &bull; 100% private & secure
+              </p>
             </div>
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="py-20 px-4 bg-white">
+        {/* Social Proof - Simplified and restyled */}
+        <section className="py-24 px-4">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge className="bg-gray-100 text-gray-600 border border-gray-200 mb-6">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Get in Touch
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-8">Contact Us</h2>
-            <p className="text-xl text-gray-600 mb-12">Have questions about GlowApp? We're here to help!</p>
-
-            <Card className="bg-white border-0 shadow-md hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-8">
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center">
-                        <MessageCircle className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900">Email Us</h3>
-                        <p className="text-gray-600">support@glowapp.ai</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center">
-                        <Facebook className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900">Follow Us</h3>
-                        <p className="text-gray-600">@glowapp.ai</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <Button 
-                      onClick={handleGetStarted}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white transition-all duration-300 transform hover:scale-105"
-                    >
-                      Start Your Transformation
-                    </Button>
-                    <Button variant="outline" className="w-full transition-all duration-300 transform hover:scale-105">
-                      Learn More
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Join <span className="text-purple-600">12,847</span> people transforming their lives
+            </h2>
+            <p className="text-lg text-gray-600 mb-12">Trusted by a fast-growing community of life-optimizers.</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-purple-600 mb-1">1.2M+</div>
+                <div className="text-sm text-gray-600">Habits Completed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-blue-600 mb-1">4.9★</div>
+                <div className="text-sm text-gray-600">Average Rating</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-green-600 mb-1">87%</div>
+                <div className="text-sm text-gray-600">Achieve Goals</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-orange-600 mb-1">90</div>
+                <div className="text-sm text-gray-600">Day Transformation</div>
+              </div>
+            </div>
           </div>
         </section>
+
+        {/* Contact Section - Restyled */}
+        <section id="contact" className="pt-20 pb-24 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-5xl font-bold text-gray-900 mb-6">Ready to Start Your Journey?</h2>
+            <p className="text-xl text-gray-600 mb-12">Get your free analysis today. No credit card required.</p>
+
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border-white/50 p-10 max-w-2xl mx-auto">
+              <div className="flex items-center justify-center gap-10 mb-8">
+                <div className="flex items-center gap-3">
+                  <MessageCircle className="w-6 h-6 text-purple-600" />
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">Email Support</div>
+                    <a href="mailto:support@oylan.me" className="text-gray-600 text-sm hover:text-purple-600">support@oylan.me</a>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                  <div className="text-left">
+                    <div className="font-semibold text-gray-900">Response Time</div>
+                    <div className="text-gray-600 text-sm">Within 24 hours</div>
+                  </div>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={handleGetStarted}
+                size="lg"
+                className="w-full bg-gray-900 hover:bg-black text-white py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg mb-4"
+              >
+                Start Your Transformation Now
+              </Button>
+              <p className="text-sm text-gray-500">Free analysis &bull; See your future self &bull; Begin changing today</p>
+            </div>
+          </div>
+        </section>
+        
+        {/* Footer */}
+        <footer className="bg-transparent py-8 px-4">
+            <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+                &copy; {new Date().getFullYear()} Oylan. All rights reserved.
+            </div>
+        </footer>
       </div>
-    </AuroraBackground>
+    </AuroraBgWrapper>
   );
 }; 
