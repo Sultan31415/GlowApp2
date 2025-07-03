@@ -12,6 +12,8 @@ services:
       - postgres
     networks:
       - glowapp-net
+    ports:
+      - "8000:8000"
 
   frontend:
     build: 
