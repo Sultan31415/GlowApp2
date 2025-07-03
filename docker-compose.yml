@@ -24,6 +24,8 @@ services:
       - backend
     networks:
       - glowapp-net
+    ports:
+      - 127.0.0.1:4173:4173
 
   postgres:
     image: postgres:15
@@ -40,23 +42,23 @@ services:
     networks:
       - glowapp-net
 
-  nginx:
-    image: nginx:alpine
-    container_name: glowapp-nginx
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - ./certs/oylan.me.crt:/etc/ssl/oylan.me.crt:ro
-      - ./certs/oylan.me.key:/etc/ssl/oylan.me.key:ro
-      - ./certs/ca-bundle.crt:/etc/ssl/ca-bundle.crt:ro
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - glowapp-net
+ # nginx:
+   # image: nginx:alpine
+   # container_name: glowapp-nginx
+   # restart: unless-stopped
+   # ports:
+     # - "80:80"
+    #  - "443:443"
+   # volumes:
+     # - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+     # - ./certs/oylan.me.crt:/etc/ssl/oylan.me.crt:ro
+     # - ./certs/oylan.me.key:/etc/ssl/oylan.me.key:ro
+    #  - ./certs/ca-bundle.crt:/etc/ssl/ca-bundle.crt:ro
+   # depends_on:
+  #    - frontend
+ #     - backend
+#   networks:
+#      - glowapp-net
 
 networks:
   glowapp-net:
