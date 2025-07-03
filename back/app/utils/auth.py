@@ -23,7 +23,7 @@ def get_current_user(request: Request):
                     "https://oylan.me",
                     "https://www.oylan.me"
                 ],
-                jwt_key=os.getenv("JWT_KEY")
+
             )
         )
         if not request_state.is_signed_in:

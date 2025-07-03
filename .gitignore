@@ -42,3 +42,4 @@ front/node_modules
 
 # SSL certificates
 certs/
+back/.env
