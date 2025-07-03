@@ -202,12 +202,11 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
           <div className="max-w-7xl mx-auto text-center">
             {/* Main Headline */}
             <h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 mb-8 leading-tight tracking-tighter"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold text-black mb-8 leading-tight tracking-tighter"
+              style={{ fontFamily: '"Playfair Display", serif' }}
             >
               See Your Truth. <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-500">
-                Become Your Potential.
-              </span>
+              Become Your Potential.
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 mb-12 max-w-4xl mx-auto leading-relaxed">
               Transform your life with AI-powered analysis, gamified stats, and atomic habits.
@@ -218,7 +217,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               <Button
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-gray-900 hover:bg-black text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3"
               >
                 <Sparkles className="w-5 h-5" />
                 Start Your Transformation
@@ -457,7 +456,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               <Button 
                 onClick={handleGetStarted}
                 size="lg"
-                className="bg-gray-900 hover:bg-black text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-10 py-5 text-lg rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105"
               >
                 Get My Free Analysis
               </Button>
@@ -523,7 +522,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               <Button 
                 onClick={handleGetStarted}
                 size="lg"
-                className="w-full bg-gray-900 hover:bg-black text-white py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg mb-4"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 text-lg rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg mb-4"
               >
                 Start Your Transformation Now
               </Button>
