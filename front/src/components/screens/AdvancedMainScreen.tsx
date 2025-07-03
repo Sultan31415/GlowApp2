@@ -227,26 +227,41 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
             
             {/* Value Props - Styled like Dashboard */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
-                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
-                  <Gamepad2 className="w-7 h-7 text-purple-600" />
+              {/* Glow Score Card */}
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl p-7 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-purple-200">
+                  <span className="text-2xl font-extrabold text-purple-700">72</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Your Glow Score</h3>
-                <p className="text-gray-600 text-sm">See your current score & unlock your 90-day potential.</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Glow Score</h3>
+                <p className="text-gray-500 text-sm mb-2">Discover your current potential and track your progress.</p>
+                <div className="flex justify-center items-center gap-1 mt-2">
+                  <Star className="w-5 h-5 text-purple-500" />
+                  <span className="text-xs text-gray-400">Sample Score</span>
+                </div>
               </div>
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
-                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
-                  <Target className="w-7 h-7 text-blue-600" />
+              {/* Daily Habits Card */}
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl p-7 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+                  <CheckCircle className="w-7 h-7 text-blue-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">Daily Habits</h3>
-                <p className="text-gray-600 text-sm">Follow micro-habits and complete weekly life challenges.</p>
+                <p className="text-gray-500 text-sm mb-2">Build small habits for big changes, every day.</p>
+                <div className="flex justify-center items-center gap-1 mt-2">
+                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <span className="text-xs text-gray-400">Track Progress</span>
+                </div>
               </div>
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 border border-white/50 shadow-lg text-left">
-                <div className="w-12 h-12 bg-white/70 rounded-xl flex items-center justify-center mb-4">
-                  <Brain className="w-7 h-7 text-green-600" />
+              {/* AI Coach Card */}
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl p-7 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
+                  <MessageCircle className="w-7 h-7 text-green-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">AI Coach</h3>
-                <p className="text-gray-600 text-sm">Get guidance from an AI that is your future self.</p>
+                <p className="text-gray-500 text-sm mb-2">Personalized guidance from your future self.</p>
+                <div className="flex justify-center items-center gap-1 mt-2">
+                  <Brain className="w-5 h-5 text-green-400" />
+                  <span className="text-xs text-gray-400">Get Insights</span>
+                </div>
               </div>
             </div>
           </div>
