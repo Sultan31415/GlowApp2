@@ -1,0 +1,27 @@
+.scrolling-wrapper {
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+.scrolling-content {
+  display: flex;
+  width: calc(2 * (5 * 220px + 4 * 1rem)); /* 2 * (5 cards * width + 4 * gap) */
+  gap: 1rem;
+  animation: scroll 30s linear infinite;
+}
+
+@keyframes scroll {
+  0% {
+    
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.scrolling-wrapper:hover .scrolling-content {
+  animation-play-state: paused;
+} 
