@@ -11,8 +11,13 @@ export const AppLayout = ({ children, onStartTest, hasResults }: { children: Rea
   // Hide navigation on landing page for signed-out users
   const shouldShowNavigation = isSignedIn || location.pathname !== '/';
 
+  const sidebarWidth = isExpanded ? '256px' : '64px'; // Corresponds to ml-64 and ml-16 in Tailwind
+
   return (
-    <div className="min-h-screen aurora-bg text-[#0f172a]">
+    <div 
+      className="min-h-screen aurora-bg text-[#0f172a]"
+      style={{ '--sidebar-width': shouldShowNavigation ? sidebarWidth : '0px' } as React.CSSProperties}
+    >
       {shouldShowNavigation && (
         <Navigation 
           onStartTest={onStartTest} 

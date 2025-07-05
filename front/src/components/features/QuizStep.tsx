@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown } from 'lucide-react';
 import { Question, Option } from '../../types';
 
 interface QuizStepProps {
@@ -13,7 +13,6 @@ interface QuizStepProps {
   onPrevious: () => void;
   canGoBack: boolean;
   canGoNext: boolean;
-  onClose: () => void;
 }
 
 export const QuizStep: React.FC<QuizStepProps> = ({
@@ -26,8 +25,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   onNext,
   onPrevious,
   canGoBack,
-  canGoNext,
-  onClose,
+  canGoNext
 }) => {
   const [textInput, setTextInput] = useState<string>('');
   const [numberInput, setNumberInput] = useState<string>('');
@@ -470,17 +468,8 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="text-sm sm:text-base font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                {currentQuestionIndex + 1} / {totalQuestions}
-              </div>
-              <button
-                onClick={onClose}
-                className="bg-gray-200/80 hover:bg-gray-300/80 text-gray-700 rounded-full p-2"
-                aria-label="Close assessment"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="text-sm sm:text-base font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+              {currentQuestionIndex + 1} / {totalQuestions}
             </div>
           </div>
           

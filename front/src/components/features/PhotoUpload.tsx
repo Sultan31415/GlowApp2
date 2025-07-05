@@ -8,7 +8,6 @@ interface PhotoUploadProps {
   uploadedPhoto: File | null;
   isSubmitting: boolean;
   error: string | null;
-  onClose: () => void;
 }
 
 export const PhotoUpload: React.FC<PhotoUploadProps> = ({
@@ -17,8 +16,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   onSubmit,
   uploadedPhoto,
   isSubmitting,
-  error,
-  onClose,
+  error
 }) => {
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -182,13 +180,6 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               <div className="text-sm font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200">
                 2/2
               </div>
-              <button
-                onClick={onClose}
-                className="bg-gray-200/80 hover:bg-gray-300/80 text-gray-700 rounded-full p-2"
-                aria-label="Close assessment"
-              >
-                <X className="w-5 h-5" />
-              </button>
             </div>
           </div>
         </div>

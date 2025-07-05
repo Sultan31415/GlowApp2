@@ -64,7 +64,6 @@ export const TestModal: React.FC<TestModalProps> = ({
             onPrevious={onPrevious}
             canGoBack={canGoBack()}
             canGoNext={canGoNext()}
-            onClose={onClose}
           />
         );
         
@@ -77,7 +76,6 @@ export const TestModal: React.FC<TestModalProps> = ({
             uploadedPhoto={uploadedPhoto}
             isSubmitting={isSubmitting}
             error={error}
-            onClose={onClose}
           />
         );
         
@@ -89,5 +87,21 @@ export const TestModal: React.FC<TestModalProps> = ({
     }
   };
 
-  return <>{renderModalContent()}</>;
+  return (
+    <div className="absolute inset-0 z-40 bg-white aurora-bg overflow-y-auto sm:left-[var(--sidebar-width)] transition-all duration-300">
+      {/* Close Button - Re-styled for consistency */}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 shadow-lg transition-colors"
+        aria-label="Close modal"
+      >
+        <X className="w-5 h-5 sm:w-6 sm:h-6" />
+      </button>
+
+      {/* Modal Body */}
+      <div className="w-full h-full">
+        {renderModalContent()}
+      </div>
+    </div>
+  );
 };
