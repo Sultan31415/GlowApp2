@@ -64,6 +64,7 @@ export const TestModal: React.FC<TestModalProps> = ({
             onPrevious={onPrevious}
             canGoBack={canGoBack()}
             canGoNext={canGoNext()}
+            onClose={onClose}
           />
         );
         
@@ -76,6 +77,7 @@ export const TestModal: React.FC<TestModalProps> = ({
             uploadedPhoto={uploadedPhoto}
             isSubmitting={isSubmitting}
             error={error}
+            onClose={onClose}
           />
         );
         
@@ -87,25 +89,5 @@ export const TestModal: React.FC<TestModalProps> = ({
     }
   };
 
-  return (
-    <div className="relative min-h-screen aurora-bg">
-
-      
-      {/* Modal Content */}
-      <div className="relative w-full h-full">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-6 right-6 z-10 bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Modal Body */}
-        <div className="h-full overflow-y-auto">
-          {renderModalContent()}
-        </div>
-      </div>
-    </div>
-  );
+  return <>{renderModalContent()}</>;
 };

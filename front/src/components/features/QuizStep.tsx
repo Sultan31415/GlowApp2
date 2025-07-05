@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown, X } from 'lucide-react';
 import { Question, Option } from '../../types';
 
 interface QuizStepProps {
@@ -13,6 +13,7 @@ interface QuizStepProps {
   onPrevious: () => void;
   canGoBack: boolean;
   canGoNext: boolean;
+  onClose: () => void;
 }
 
 export const QuizStep: React.FC<QuizStepProps> = ({
@@ -25,7 +26,8 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   onNext,
   onPrevious,
   canGoBack,
-  canGoNext
+  canGoNext,
+  onClose,
 }) => {
   const [textInput, setTextInput] = useState<string>('');
   const [numberInput, setNumberInput] = useState<string>('');
@@ -450,204 +452,161 @@ export const QuizStep: React.FC<QuizStepProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-100/50">
-      {/* Enhanced Progress Header with better hierarchy and accessibility */}
+      {/* Enhanced Progress Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200/80 shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          {/* Header Top Section */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Left Section - Section Info */}
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex flex-col">
-                  <h1 className="font-medium text-lg text-gray-800 leading-tight">
-                    {sectionTitle}
-                  </h1>
-                  <p className="text-sm text-gray-500 font-medium">
-                    Assessment in Progress
-                  </p>
-                </div>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               </div>
-              
-
+              <div>
+                <h1 className="font-semibold text-sm sm:text-base text-gray-800 leading-tight">
+                  {sectionTitle}
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                  Assessment in Progress
+                </p>
+              </div>
             </div>
             
-            {/* Right Section - Question Counter */}
-            <div className="flex items-center space-x-3">
-              <div className="text-sm font-medium text-slate-600 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
-                <span className="sr-only">Question </span>
-                {currentQuestionIndex + 1} 
-                <span className="text-gray-400 mx-1">/</span> 
-                {totalQuestions}
+            <div className="flex items-center gap-4">
+              <div className="text-sm sm:text-base font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                {currentQuestionIndex + 1} / {totalQuestions}
               </div>
+              <button
+                onClick={onClose}
+                className="bg-gray-200/80 hover:bg-gray-300/80 text-gray-700 rounded-full p-2"
+                aria-label="Close assessment"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
           </div>
           
-                     {/* Progress Bar Section */}
-           <div className="relative" role="progressbar" aria-valuenow={percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`Assessment progress: ${percentage}% complete`}>
-             {/* Progress Track */}
-             <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-               <div
-                 className="bg-gradient-to-r from-slate-400 via-blue-400 to-teal-400 h-3 rounded-full transition-all duration-1000 ease-out relative overflow-hidden"
-                 style={{ width: `${percentage}%` }}
-               >
-               </div>
-             </div>
-           </div>
-          
-
+          <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
+            <div
+              className="bg-gradient-to-r from-blue-400 to-teal-400 h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${percentage}%` }}
+            ></div>
+          </div>
+          <div className="h-3 sm:h-4"></div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Question Section - Top Layout (Wider) */}
-        <div className="max-w-6xl mx-auto mb-6">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-xl shadow-indigo-500/10 border border-white/50 relative overflow-hidden">
-            {/* Subtle background pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/30 via-transparent to-purple-50/30"></div>
-            
-            {/* Question Header */}
-            <div className="relative text-center">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight tracking-tight">
+      <div className="container sm:mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="max-w-4xl sm:mx-auto">
+          {/* Question Card */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-white/50 mb-4 sm:mb-6">
+            <div className="text-center">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                 {question.text}
               </h1>
             </div>
           </div>
-        </div>
 
-        {/* Options Section - Bottom Layout */}
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-5 sm:p-6 shadow-xl shadow-indigo-500/10 border border-white/50 mb-6 relative overflow-hidden">
-            {/* Subtle background pattern */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 via-transparent to-indigo-50/30"></div>
+          {/* Options & Navigation Card */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg border border-white/50">
+            <div className="text-center mb-6">
+              <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
+                Choose the option that best describes you ✨
+              </p>
+            </div>
             
-            <div className="relative">
-              {/* Encouraging subtitle */}
-              <div className="text-center mb-6">
-                <p className="text-gray-600 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed">
-                  Choose the option that best describes you 🌟
-                </p>
-              </div>
-              
-              {/* Answer Input */}
-              {renderQuestionInput()}
+            {renderQuestionInput()}
 
-              {/* Navigation - improved layout for 3 sections */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 items-center">
-                {/* Left: Previous Button */}
-                <div className="flex justify-center sm:justify-start">
+            {/* Navigation Controls */}
+            <div className="mt-6 pt-6 border-t border-gray-200/80">
+              {/* --- Desktop Navigation (3-column) --- */}
+              <div className="hidden sm:grid sm:grid-cols-3 gap-3 items-center">
+                {/* Previous Button */}
+                <div className="flex justify-start">
                   <button
                     onClick={onPrevious}
                     disabled={!canGoBack}
-                    className={`flex items-center px-5 py-3 rounded-2xl font-medium transition-all duration-300 ${
-                      canGoBack
-                        ? 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 hover:shadow-md'
-                        : 'text-gray-300 cursor-not-allowed'
-                    }`}
+                    className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    <ChevronLeft className="w-5 h-5 mr-1" />
                     Previous
                   </button>
                 </div>
 
-                {/* Center: Auto-advance controls */}
+                {/* Auto-advance controls */}
                 <div className="flex justify-center">
                   {question.type === 'single-choice' && (
-                    <div className="flex flex-col items-center gap-2">
-                      {/* Auto-advance toggle button */}
-                      <button
-                        onClick={toggleAutoAdvance}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 border-2 ${
-                          autoAdvanceEnabled
-                            ? 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100 hover:border-green-300'
-                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
-                        }`}
-                        title={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
-                        aria-label={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
-                      >
-                        {autoAdvanceEnabled ? (
-                          <>
-                            <Zap className="w-4 h-4" />
-                            <span className="hidden sm:inline">Auto-advance ON</span>
-                            <span className="sm:hidden">Auto ON</span>
-                          </>
-                        ) : (
-                          <>
-                            <ZapOff className="w-4 h-4" />
-                            <span className="hidden sm:inline">Auto-advance OFF</span>
-                            <span className="sm:hidden">Auto OFF</span>
-                          </>
-                        )}
-                      </button>
-
-                      {/* Countdown indicator when active */}
-                      {showAutoAdvanceCountdown && (
-                        <div className="flex items-center space-x-2 text-sm bg-blue-50 px-3 py-2 rounded-xl border border-blue-200">
-                          <div className="relative">
-                            <div className="w-5 h-5 rounded-full border-2 border-blue-200">
-                              <div 
-                                className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin absolute top-0 left-0"
-                                style={{ animationDuration: '1s' }}
-                              ></div>
-                            </div>
-                            <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-blue-600">
-                              {countdown}
-                            </span>
-                          </div>
-                          <span className="text-blue-600 font-medium text-xs">
-                            {countdown}s
-                          </span>
-                          <button
-                            onClick={cancelAutoAdvance}
-                            className="text-blue-600 hover:text-blue-700 text-xs underline underline-offset-2 transition-colors duration-200"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      onClick={toggleAutoAdvance}
+                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 border ${
+                        autoAdvanceEnabled
+                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                      title={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
+                    >
+                      {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
+                      <span>Auto-advance {autoAdvanceEnabled ? 'ON' : 'OFF'}</span>
+                    </button>
                   )}
                 </div>
 
-                {/* Right: Next Button */}
-                <div className="flex justify-center sm:justify-end">
+                {/* Next Button */}
+                <div className="flex justify-end">
                   <button
                     onClick={onNext}
                     disabled={!canGoNext}
-                    className={`flex items-center px-6 py-3 rounded-2xl font-medium transition-all duration-300 ${
-                      canGoNext
-                        ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
+                    className="flex items-center px-4 py-2 rounded-lg font-semibold transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    {currentQuestionIndex === totalQuestions - 1 ? 'Continue to Photo' : 'Next'}
-                    <ChevronRight className="w-4 h-4 ml-2" />
+                    {currentQuestionIndex === totalQuestions - 1 ? 'Continue' : 'Next'}
+                    <ChevronRight className="w-5 h-5 ml-1" />
+                  </button>
+                </div>
+              </div>
+
+              {/* --- Mobile Navigation (stacked with 2-button row) --- */}
+              <div className="sm:hidden flex flex-col gap-4">
+                {/* Auto-advance controls */}
+                <div className="flex justify-center">
+                  {question.type === 'single-choice' && (
+                    <button
+                      onClick={toggleAutoAdvance}
+                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 border ${
+                        autoAdvanceEnabled
+                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                      title={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
+                    >
+                      {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
+                      <span>Auto-advance {autoAdvanceEnabled ? 'ON' : 'OFF'}</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Previous & Next Button Row */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={onPrevious}
+                    disabled={!canGoBack}
+                    className="flex-1 flex items-center justify-center px-4 py-3 rounded-xl font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 bg-gray-200 hover:bg-gray-300"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={onNext}
+                    disabled={!canGoNext}
+                    className="flex-[2] flex items-center justify-center px-4 py-3 rounded-xl font-semibold transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    <span>{currentQuestionIndex === totalQuestions - 1 ? 'Continue' : 'Next'}</span>
+                    <ChevronRight className="w-5 h-5 ml-2" />
                   </button>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Question Navigation Dots - compact */}
-          <div className="flex justify-center space-x-2 mb-4">
-            {Array.from({ length: totalQuestions }, (_, i) => (
-              <div
-                key={i}
-                className={`h-2 rounded-full transition-all duration-500 ${
-                  i < currentQuestionIndex
-                    ? 'bg-green-400 w-2'
-                    : i === currentQuestionIndex
-                    ? 'bg-blue-400 w-8'
-                    : 'bg-gray-300 w-2'
-                }`}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>
-      );
-  };
+  );
+};
