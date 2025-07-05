@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
 
@@ -143,8 +143,16 @@ function App() {
     <AppLayout onStartTest={assessment.handleStartTest} hasResults={!!assessment.results}>
       <Routes>
         {/* Public routes */}
-        <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
-        <Route path="/sign-up/*" element={<SignUp routing="path" path="/sign-up" />} />
+        <Route path="/sign-in/*" element={
+          <div className="flex justify-center items-center h-screen p-4">
+            <SignIn routing="path" path="/sign-in" />
+          </div>
+        } />
+        <Route path="/sign-up/*" element={
+           <div className="flex justify-center items-center h-screen p-4">
+              <SignUp routing="path" path="/sign-up" />
+           </div>
+        } />
 
         {/* Home page */}
         <Route path="/" element={
