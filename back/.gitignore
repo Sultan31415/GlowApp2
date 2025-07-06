@@ -27,3 +27,6 @@ ENV/
 # VSCode/IDE
 .vscode/
 .idea/
+
+# Ignore Docker files
+Dockerfile

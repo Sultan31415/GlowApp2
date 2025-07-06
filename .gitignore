@@ -43,3 +43,7 @@ front/node_modules
 # SSL certificates
 certs/
 back/.env
+
+# Ignore Docker files
+Dockerfile
+docker-compose.yml
