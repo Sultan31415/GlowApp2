@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
 
@@ -9,15 +9,16 @@ import { useAuthEffects } from './hooks/useAuthEffects';
 
 // Components
 import { AppLayout } from './layouts/AppLayout';
-import { TestModal } from './components/features/TestModal';
-import { ResultsScreen } from './components/screens/ResultsScreen';
-import { DashboardScreen } from './components/screens/DashboardScreen';
-
-import { ErrorScreen } from './components/screens/ErrorScreen';
-import { MicroHabitsScreen } from './components/screens/MicroHabitsScreen';
-import { FutureScreen } from './components/screens/FutureScreen';
-import { AdvancedMainScreen } from './components/screens/AdvancedMainScreen';
 import { Logo } from './components/ui/Logo';
+
+// Lazy-loaded components for code-splitting
+const TestModal = lazy(() => import('./components/features/TestModal').then(m => ({ default: m.TestModal })));
+const ResultsScreen = lazy(() => import('./components/screens/ResultsScreen').then(m => ({ default: m.ResultsScreen })));
+const DashboardScreen = lazy(() => import('./components/screens/DashboardScreen').then(m => ({ default: m.DashboardScreen })));
+const ErrorScreen = lazy(() => import('./components/screens/ErrorScreen').then(m => ({ default: m.ErrorScreen })));
+const MicroHabitsScreen = lazy(() => import('./components/screens/MicroHabitsScreen').then(m => ({ default: m.MicroHabitsScreen })));
+const FutureScreen = lazy(() => import('./components/screens/FutureScreen').then(m => ({ default: m.FutureScreen })));
+const AdvancedMainScreen = lazy(() => import('./components/screens/AdvancedMainScreen').then(m => ({ default: m.AdvancedMainScreen })));
 
 // Home Screen Component
 const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoading: boolean; quizError: string | null }> = ({ 
@@ -141,159 +142,162 @@ function App() {
 
   return (
     <AppLayout onStartTest={assessment.handleStartTest} hasResults={!!assessment.results}>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/sign-in/*" element={
-          <div className="flex justify-center items-center h-screen p-4">
-            <SignIn routing="path" path="/sign-in" />
-          </div>
-        } />
-        <Route path="/sign-up/*" element={
-           <div className="flex justify-center items-center h-screen p-4">
-              <SignUp routing="path" path="/sign-up" />
-           </div>
-        } />
+      {/* Suspense ensures a small fallback bundle for initial paint while heavier route chunks load */}
+      <Suspense fallback={<div className="flex justify-center items-center py-20"><Logo size={60} animate={true} /></div>}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/sign-in/*" element={
+            <div className="flex justify-center items-center h-screen p-4">
+              <SignIn routing="path" path="/sign-in" />
+            </div>
+          } />
+          <Route path="/sign-up/*" element={
+             <div className="flex justify-center items-center h-screen p-4">
+                <SignUp routing="path" path="/sign-up" />
+             </div>
+          } />
 
-        {/* Home page */}
-        <Route path="/" element={
-          <>
-            <SignedOut>
-              <AdvancedMainScreen onStartTest={assessment.handleStartTest} />
-            </SignedOut>
-            <SignedIn>
-              <div className="max-w-4xl mx-auto p-8">
-                <HomeScreen 
-                  onStartTest={assessment.handleStartTest}
-                  results={assessment.results}
-                  isQuizLoading={quiz.isQuizLoading}
-                  quizError={quiz.quizError}
-                />
-              </div>
-            </SignedIn>
-          </>
-        } />
-
-        {/* Protected Routes */}
-        
-        <Route
-          path="/dashboard"
-          element={
+          {/* Home page */}
+          <Route path="/" element={
             <>
-              <SignedIn>
-                <DashboardScreen />
-              </SignedIn>
               <SignedOut>
-                <RedirectToSignIn />
+                <AdvancedMainScreen onStartTest={assessment.handleStartTest} />
               </SignedOut>
-            </>
-          }
-        />
-        
-        <Route
-          path="/results/:id"
-          element={
-            <>
               <SignedIn>
-                {assessment.results ? (
-                  <ResultsScreen
+                <div className="max-w-4xl mx-auto p-8">
+                  <HomeScreen 
+                    onStartTest={assessment.handleStartTest}
                     results={assessment.results}
-                    onRestart={handleRestart}
-                    onGoToDashboard={() => navigate('/dashboard')}
+                    isQuizLoading={quiz.isQuizLoading}
+                    quizError={quiz.quizError}
                   />
-                ) : (
-                  <Navigate to="/" />
-                )}
+                </div>
               </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
             </>
-          }
-        />
-        
-        {/* TEMPORARILY DISABLED FOR MVP LAUNCH */}
-        {/* 
-        <Route
-          path="/future"
-          element={
-            <>
-              <SignedIn>
-                {assessment.results ? (
-                  <FutureScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
-                ) : (
-                  <Navigate to="/" />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
-        
-        <Route
-          path="/micro-habits"
-          element={
-            <>
-              <SignedIn>
-                {assessment.results ? (
-                  <MicroHabitsScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
-                ) : (
-                  <Navigate to="/" />
-                )}
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        /> 
-        */}
+          } />
 
-        <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
+          {/* Protected Routes */}
+          
+          <Route
+            path="/dashboard"
+            element={
+              <>
+                <SignedIn>
+                  <DashboardScreen />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+          
+          <Route
+            path="/results/:id"
+            element={
+              <>
+                <SignedIn>
+                  {assessment.results ? (
+                    <ResultsScreen
+                      results={assessment.results}
+                      onRestart={handleRestart}
+                      onGoToDashboard={() => navigate('/dashboard')}
+                    />
+                  ) : (
+                    <Navigate to="/" />
+                  )}
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+          
+          {/* TEMPORARILY DISABLED FOR MVP LAUNCH */}
+          {/* 
+          <Route
+            path="/future"
+            element={
+              <>
+                <SignedIn>
+                  {assessment.results ? (
+                    <FutureScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
+                  ) : (
+                    <Navigate to="/" />
+                  )}
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+          
+          <Route
+            path="/micro-habits"
+            element={
+              <>
+                <SignedIn>
+                  {assessment.results ? (
+                    <MicroHabitsScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
+                  ) : (
+                    <Navigate to="/" />
+                  )}
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          /> 
+          */}
 
-        <Route
-          path="/test"
-          element={
-            <>
-              <SignedIn>
-                {/* The actual assessment UI is rendered via <TestModal> outside of <Routes>. */}
-                <></>
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn />
-              </SignedOut>
-            </>
-          }
-        />
+          <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
 
-        {/* Catch-all for unknown routes */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-      
-      {/* Test Modal - Rendered conditionally */}
-      <SignedIn>
-        <TestModal
-          isOpen={location.pathname === '/test'}
-          onClose={() => navigate('/')}
-          currentStep={assessment.currentTestStep}
-          currentQuestionIndex={quiz.currentQuestionIndex}
-          allQuestions={quiz.allQuestions}
-          answers={quiz.answers}
-          uploadedPhoto={assessment.uploadedPhoto}
-          onAnswerSelect={quiz.handleAnswerSelect}
-          onNext={handleNext}
-          onPrevious={quiz.handlePrevious}
-          onPhotoUpload={assessment.handlePhotoUpload}
-          onBackToQuiz={handleBackToQuiz}
-          onSubmitAssessment={handleSubmitAssessment}
-          canGoBack={quiz.canGoBack}
-          canGoNext={quiz.canGoNext}
-          getCurrentAnswer={quiz.getCurrentAnswer}
-          isSubmitting={assessment.isSubmitting}
-          error={assessment.error}
-        />
-      </SignedIn>
+          <Route
+            path="/test"
+            element={
+              <>
+                <SignedIn>
+                  {/* The actual assessment UI is rendered via <TestModal> outside of <Routes>. */}
+                  <></>
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+
+          {/* Catch-all for unknown routes */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+
+        {/* Test Modal - Rendered conditionally */}
+        <SignedIn>
+          <TestModal
+            isOpen={location.pathname === '/test'}
+            onClose={() => navigate('/')}
+            currentStep={assessment.currentTestStep}
+            currentQuestionIndex={quiz.currentQuestionIndex}
+            allQuestions={quiz.allQuestions}
+            answers={quiz.answers}
+            uploadedPhoto={assessment.uploadedPhoto}
+            onAnswerSelect={quiz.handleAnswerSelect}
+            onNext={handleNext}
+            onPrevious={quiz.handlePrevious}
+            onPhotoUpload={assessment.handlePhotoUpload}
+            onBackToQuiz={handleBackToQuiz}
+            onSubmitAssessment={handleSubmitAssessment}
+            canGoBack={quiz.canGoBack}
+            canGoNext={quiz.canGoNext}
+            getCurrentAnswer={quiz.getCurrentAnswer}
+            isSubmitting={assessment.isSubmitting}
+            error={assessment.error}
+          />
+        </SignedIn>
+      </Suspense>
     </AppLayout>
   );
 }
