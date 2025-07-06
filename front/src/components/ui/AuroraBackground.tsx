@@ -1,7 +1,6 @@
 "use client";
-import React, { ReactNode, useMemo } from "react";
+import React, { ReactNode } from "react";
 import { cn } from "../../lib/utils";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 interface AuroraBackgroundProps extends React.HTMLProps<HTMLDivElement> {
   children: ReactNode;
@@ -14,20 +13,15 @@ export const AuroraBackground = ({
   showRadialGradient = true,
   ...props
 }: AuroraBackgroundProps) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
-  // Memoize the background element to prevent re-renders on parent state changes
-  const backgroundElement = useMemo(() => {
-    // On mobile, render a simpler, static gradient. It's much cheaper to render.
-    if (isMobile) {
-      return (
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-white via-purple-50 to-white pointer-events-none" />
-      );
-    }
-
-    // On desktop, render the full, animated aurora effect.
-    return (
-      <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10">
+  return (
+    <main
+      className={cn(
+        "relative flex flex-col items-center transition-bg",
+        className
+      )}
+      {...props}
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className={cn(
             `
@@ -50,12 +44,6 @@ export const AuroraBackground = ({
           )}
         />
       </div>
-    );
-  }, [isMobile, showRadialGradient]);
-
-  return (
-    <main className={cn("relative flex flex-col items-center", className)} {...props}>
-      {backgroundElement}
       {children}
     </main>
   );

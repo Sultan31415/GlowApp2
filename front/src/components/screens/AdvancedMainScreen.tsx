@@ -13,7 +13,7 @@ import { Card, CardContent } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { Logo } from '../ui/Logo';
 import { CircularGallery } from '../ui/CircularGallery';
-// import './AdvancedMainScreen.css';
+import './AdvancedMainScreen.css';
 
 interface AdvancedMainScreenProps {
   onStartTest: () => void;

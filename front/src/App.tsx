@@ -10,6 +10,7 @@ import { useAuthEffects } from './hooks/useAuthEffects';
 // Components
 import { AppLayout } from './layouts/AppLayout';
 import { Logo } from './components/ui/Logo';
+import { AuroraBackground } from './components/ui/AuroraBackground';
 
 // Lazy-loaded components for code-splitting
 const TestModal = lazy(() => import('./components/features/TestModal').then(m => ({ default: m.TestModal })));
@@ -164,14 +165,16 @@ function App() {
                 <AdvancedMainScreen onStartTest={assessment.handleStartTest} />
               </SignedOut>
               <SignedIn>
-                <div className="max-w-4xl mx-auto p-8">
-                  <HomeScreen 
-                    onStartTest={assessment.handleStartTest}
-                    results={assessment.results}
-                    isQuizLoading={quiz.isQuizLoading}
-                    quizError={quiz.quizError}
-                  />
-                </div>
+                <AuroraBackground>
+                  <div className="max-w-4xl mx-auto p-8">
+                    <HomeScreen 
+                      onStartTest={assessment.handleStartTest}
+                      results={assessment.results}
+                      isQuizLoading={quiz.isQuizLoading}
+                      quizError={quiz.quizError}
+                    />
+                  </div>
+                </AuroraBackground>
               </SignedIn>
             </>
           } />

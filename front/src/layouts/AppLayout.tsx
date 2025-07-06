@@ -25,7 +25,7 @@ export const AppLayout = ({ children, onStartTest, hasResults }: { children: Rea
 
   return (
     <div 
-      className="min-h-screen aurora-bg text-[#0f172a]"
+      className="min-h-screen text-[#0f172a]"
       style={{ '--sidebar-width': shouldShowNavigation && !isMobile ? sidebarWidth : '0px' } as React.CSSProperties}
     >
       {shouldShowNavigation && (
