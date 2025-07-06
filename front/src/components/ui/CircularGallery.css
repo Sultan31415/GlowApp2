@@ -57,6 +57,14 @@
   animation-play-state: paused;
 }
 
+.circular-gallery:hover {
+  animation-play-state: paused;
+}
+
+.animation-paused {
+  animation-play-state: paused;
+}
+
 @media (max-width: 768px) {
   .circular-gallery-container {
     height: 340px;
