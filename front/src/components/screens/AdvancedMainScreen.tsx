@@ -42,50 +42,62 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
     }
   };
 
-  // Scroll handling for active section
+  /* -----------------------------
+   * Section highlight – IntersectionObserver instead of scroll polling
+   * --------------------------- */
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY + 100;
-      const currentSection = sections.find((section) => {
-        const element = document.getElementById(section.id);
-        if (element) {
-          const offsetTop = element.offsetTop;
-          const offsetBottom = offsetTop + element.offsetHeight;
-          return scrollPosition >= offsetTop && scrollPosition < offsetBottom;
-        }
-        return false;
-      });
-      if (currentSection) {
-        setActiveSection(currentSection.id);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      {
+        // Trigger when a section is roughly in the middle of the viewport
+        root: null,
+        rootMargin: '-30% 0px -60% 0px',
+        threshold: 0,
+      }
+    );
+
+    sections.forEach((section) => {
+      const element = document.getElementById(section.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  /* -----------------------------
+   * Throttled nav transform on scroll (rAF + passive listener)
+   * --------------------------- */
+  useEffect(() => {
+    const maxScroll = 300;
+    const minScale = 0.95;
+    let ticking = false;
+
+    const update = () => {
+      const scrollY = window.scrollY;
+      const clampedScroll = Math.min(scrollY, maxScroll);
+      const newScale = 1 - (clampedScroll / maxScroll) * (1 - minScale);
+      setNavScale(newScale);
+      setNavCompressed(scrollY > 120);
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [sections, activeSection]);
-
-  // Nav compress on scroll
-  const maxScroll = 300;
-  const minScale = 0.95;
-
-  const handleNavScroll = () => {
-    const scrollY = window.scrollY;
-    const clampedScroll = Math.min(scrollY, maxScroll);
-    const newScale = 1 - (clampedScroll / maxScroll) * (1 - minScale);
-    setNavScale(newScale);
-
-    if (scrollY > 120) {
-      setNavCompressed(true);
-    } else {
-      setNavCompressed(false);
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleNavScroll);
-    return () => window.removeEventListener("scroll", handleNavScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const scrollToSection = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, id: string) => {

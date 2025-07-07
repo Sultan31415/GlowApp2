@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Disallow sensitive routes
+Disallow: /api/
+Disallow: /auth/
+
+Sitemap: https://oylan.me/sitemap.xml 
