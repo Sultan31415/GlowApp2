@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { QuizAnswer, QuizSection } from '../types';
 import { getQuizData } from '../utils/api';
 
@@ -8,6 +9,12 @@ export const useQuiz = () => {
   const [quizSections, setQuizSections] = useState<QuizSection[]>([]);
   const [isQuizLoading, setIsQuizLoading] = useState(true);
   const [quizError, setQuizError] = useState<string | null>(null);
+
+  // Track current route – we only need quiz data when the user is on /test
+  const { pathname } = useLocation();
+
+  // Whether we have already fetched quiz data (to avoid refetching on every re-render)
+  const [hasFetched, setHasFetched] = useState(false);
 
   // Get all questions in order
   const allQuestions = useMemo(() => 
@@ -20,18 +27,26 @@ export const useQuiz = () => {
   , [quizSections]);
 
   useEffect(() => {
+    // Only fetch when the user is on the /test route and we haven't fetched yet
+    if (pathname !== '/test' || hasFetched) {
+      return;
+    }
+
     const fetchQuizData = async () => {
       try {
         const data = await getQuizData();
         setQuizSections(data);
-      } catch (err) {
+      } catch {
         setQuizError('Failed to load quiz. Please try refreshing the page.');
       } finally {
         setIsQuizLoading(false);
+        setHasFetched(true);
       }
     };
+
+    // Initiate fetch
     fetchQuizData();
-  }, []);
+  }, [pathname, hasFetched]);
 
   const handleAnswerSelect = (value: string | number, label: string) => {
     const currentQuestion = allQuestions[currentQuestionIndex];
