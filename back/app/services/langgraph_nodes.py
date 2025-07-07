@@ -171,6 +171,22 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
 
     --- CRITICAL INSTRUCTIONS FOR FINAL SYNTHESIS & SCORE ADJUSTMENTS ---
 
+    #################### STRICT GENDER-MATCH RULE ####################
+    The field `biologicalSex` is **"{additional_data.get('biologicalSex', 'Not provided')}"**.
+
+    • If `biologicalSex` == "male":
+        — The `glowUpArchetype.name` MUST reference a **MALE** real or fictional figure.  
+        — It MUST NOT reference any clearly female names (e.g., "Serena Williams", "Beyoncé", "Oprah", etc.).
+
+    • If `biologicalSex` == "female":
+        — The `glowUpArchetype.name` MUST reference a **FEMALE** real or fictional figure.  
+        — It MUST NOT reference any clearly male names (e.g., "LeBron James", "Elon Musk", "Tony Stark", etc.).
+
+    • If `biologicalSex` is "other" or "Not provided":
+        — Choose a well-known gender-neutral icon (e.g., "Angel/Gabriel", "Dr. Who", "Sam Beckett"), or pick a figure whose gender presentation fits non-binary / gender-neutral contexts.
+
+    FAILURE TO RESPECT THIS RULE WILL INVALIDATE THE RESPONSE. #################################################
+
     **Your output MUST be a single, complete JSON object. Do not include any text before or after the JSON.**
 
     Based on ALL the information above, generate a final JSON object with the following schema. You must critically evaluate and synthesize, not just copy, the inputs.
@@ -217,13 +233,6 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
         "name": "<string, Headline MUST start with 'You are like ' followed by a REAL celebrity or iconic FICTIONAL character whose public persona BEST matches the user's COMPLETE wellness profile. Example: 'You are like Zendaya in her 'Euphoria' era'. SELECTION GUIDELINES (use ALL gathered data, not just dominant score):\n   • Cross-reference adjusted scores, photo insights, key strengths, lifestyle factors, cultural context, and priorities to find the closest holistic match.\n   • CRITICAL: The chosen figure MUST match the user's biologicalSex (male → male figure, female → female figure; if biologicalSex is unknown use a clearly gender-neutral icon).\n   • Physical Vitality emphasis → athletes/action heroes.\n   • Emotional Health emphasis → empathy role-models or uplifting fictional mentors.\n   • Visual Appearance emphasis → fashion/style icons or visually charismatic characters.\n   • Tech/innovation themes → visionary entrepreneurs or tech superheroes.\n   • Balanced multipotentialite → polymath figures.\n   • Artistic/creative dominance → celebrated artists/musicians.\nChoose gender-appropriate (or clearly relevant gender-neutral) figures. DO NOT reuse the same figure across diverse user profiles unless patterns are truly identical.",
         "description": "<string, 110-160 words. Craft an inspirational narrative that explicitly ties the chosen figure's transformation arc to the user's UNIQUE photo and quiz insights. Highlight parallels between their challenges, breakthroughs, and defining traits. The tone should be uplifting, specific, and avoid generic praise.>"
       }},
-      "microHabits": [
-        "<1. Specific, Actionable Habit: Connect this directly to a specific finding from EITHER the photo or quiz, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
-        "<2. Specific, Actionable Habit: (as above)>",
-        "<3. Specific, Actionable Habit: (as above)>",
-        "<4. Specific, Actionable Habit: (as above)>",
-        "<5. Specific, Actionable Habit: (as above)>"
-      ],
       "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing BOTH photo and quiz insights, and the {country} context. Explain the final score adjustments, especially visual appearance and physical vitality, *detailing how the photo influenced them*. End with an empowering message.>",
       "detailedInsightsPerCategory": {{
         "physicalVitalityInsights": [
@@ -245,7 +254,7 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. CRITICAL: BE REALISTIC - humans are not perfect, most score 60-80 range. Photo analysis MUST significantly impact visual appearance scores when quality is good. Apply conservative scoring with humility about limitations. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. Generate personalized archetype names based on user's specific analysis data. Always return valid JSON."
+                    "content": "You are an expert wellness synthesizer with advanced training in integrative health assessment. CRITICAL: BE REALISTIC - humans are not perfect, most score 60-80 range. Photo analysis MUST significantly impact visual appearance scores when quality is good. Apply conservative scoring with humility about limitations. Focus on accurate synthesis, cultural sensitivity, and actionable recommendations. Generate personalized archetype names based on user's specific analysis data. ALWAYS ENSURE the chosen archetype's gender matches the user's biologicalSex (male→male figure, female→female figure, other/unknown→gender-neutral icon). Always return valid JSON."
                 },
                 {"role": "user", "content": prompt}
             ],
@@ -274,6 +283,7 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
                         pass
         
         print(f"[LangGraph] 🎯 Orchestrator synthesis completed in {time.time() - start_time:.2f}s")
+        print(f"[LangGraph] 🎯 Orchestrator received biologicalSex: {state['additional_data'].get('biologicalSex', 'Not provided')}")
         return {**state, "ai_analysis": parsed}
 
     except Exception as e:
@@ -313,6 +323,7 @@ def orchestrator_node(state: Dict[str, Any]) -> Dict[str, Any]:
                             pass
             
             print(f"[LangGraph] 🎯 Fallback Orchestrator synthesis completed in {time.time() - start_time:.2f}s")
+            print(f"[LangGraph] 🎯 Orchestrator received biologicalSex: {state['additional_data'].get('biologicalSex', 'Not provided')}")
             return {**state, "ai_analysis": parsed}
             
         except Exception as fallback_e:
@@ -627,7 +638,8 @@ PHOTO ANALYSIS SUMMARY:
         photo_insights, 
         int(user_age) if isinstance(user_age, (int, float)) and user_age else 30,
         user_country,
-        base_scores
+        base_scores,
+        additional_data.get('biologicalSex', 'other')
     )
 
     # Use Azure OpenAI GPT-4o mini for orchestration
@@ -788,15 +800,6 @@ PHOTO ANALYSIS SUMMARY:
                 "description": fallback_desc
             }
             
-        if not final_analysis.get("microHabits"):
-            final_analysis["microHabits"] = [
-                "Drink an extra glass of water each morning",
-                "Take 5 deep breaths when stressed",
-                "Go to bed 15 minutes earlier",
-                "Take a 10-minute walk daily",
-                "Practice gratitude before sleep"
-            ]
-            
         if not final_analysis.get("analysisSummary"):
             final_analysis["analysisSummary"] = "Analysis completed with available data. Focus on consistent healthy habits for optimal wellness."
             
@@ -826,9 +829,6 @@ PHOTO ANALYSIS SUMMARY:
         archetype = final_analysis.get('glowUpArchetype', {})
         print(f"🎭 Generated Archetype: {archetype.get('name', 'N/A')}")
         
-        habits = final_analysis.get('microHabits', [])
-        print(f"🔄 Micro-Habits Generated: {len(habits)} habits")
-        
         print(f"{'='*80}\n")
         
         return {**state, "ai_analysis": final_analysis}
@@ -845,13 +845,7 @@ PHOTO ANALYSIS SUMMARY:
                 "name": "The Resilient Alchemist",
                 "description": "Like a master alchemist, you possess the rare gift of transforming life's challenges into wisdom and strength. Your wellness journey is marked by an intuitive understanding that true healing happens from within, and you approach each setback as raw material for your personal transformation. There's a quiet power in your resilience—you don't just bounce back, you evolve forward. Your superpower lies in your ability to find the hidden lessons in every experience and transmute them into greater vitality. You're destined to become a beacon of authentic transformation, showing others that wellness isn't about perfection, but about the beautiful alchemy of turning wounds into wisdom and obstacles into opportunities for growth."
             },
-            "microHabits": [
-                "Drink an extra glass of water each morning",
-                "Take 5 deep breaths when stressed",
-                "Go to bed 15 minutes earlier",
-                "Take a 10-minute walk daily",
-                "Practice gratitude before sleep"
-            ],
+            "microHabits": [],
             "analysisSummary": "Analysis completed with available data. Focus on consistent healthy habits for optimal wellness.",
             "detailedInsightsPerCategory": {
                 "physicalVitalityInsights": ["Continue building healthy physical habits"],

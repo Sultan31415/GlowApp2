@@ -81,10 +81,11 @@ class AIService:
             age = state.get('additional_data', {}).get('chronologicalAge', 30)
             country = state.get('additional_data', {}).get('countryOfResidence', 'Global')
             base_scores = state.get('base_scores', {})
+            biological_sex = state.get('additional_data', {}).get('biologicalSex', 'other')
             
             # Use optimized prompt
             prompt = PromptOptimizer.build_fast_orchestrator_prompt(
-                quiz_insights, photo_insights, age, country, base_scores
+                quiz_insights, photo_insights, age, country, base_scores, biological_sex
             )
             
             response = await self.orchestrator_client.chat.completions.create(
@@ -222,13 +223,6 @@ class AIService:
             "name": "<string, GENERATE a completely original and personalized archetype name based on their specific analysis. Deep dive into their photo insights (energy levels, vitality, stress patterns, skin health) and quiz data (lifestyle, values, challenges, strengths) to craft a truly unique wellness identity. Use 'The [Creative Energy Descriptor] [Unique Identity Role]' format. Energy Descriptors should be inspired by their actual photo data - think nature elements (Ocean, Mountain, Forest, Aurora), cosmic themes (Stellar, Luna, Nova), elemental forces (Ember, Crystal, Storm), or abstract concepts (Luminous, Whispering, Ascending). Identity Roles should reflect their transformation journey from quiz data - mystical (Weaver, Keeper, Oracle), heroic (Phoenix, Catalyst, Guardian), or aspirational (Visionary, Builder, Sage). Create their personal wellness mythology, not a generic label.>",
             "description": "<string, 170-290 words (15% longer than typical). Write an engaging, personality-rich description that reads like a wellness horoscope. Start with their core essence, weave in specific traits from BOTH photo and quiz analysis, describe their wellness journey style, acknowledge challenges with empathy, highlight unique strengths, and paint their transformation potential with vivid, aspirational language. Make it feel personal and slightly mystical while grounded in data.>"
           }},
-          "microHabits": [
-            "<1. Specific, Actionable Habit: Connect this directly to a specific finding, e.g., 'To address the observed skin dullness (from photo) and reported low energy (from quiz), try...'>",
-            "<2. Specific, Actionable Habit: (as above)>",
-            "<3. Specific, Actionable Habit: (as above)>",
-            "<4. Specific, Actionable Habit: (as above)>",
-            "<5. Specific, Actionable Habit: (as above)>"
-          ],
           "analysisSummary": "<string, 200-400 words. A comprehensive narrative. Start by explaining the overallGlowScore and age estimates, explicitly referencing both photo and quiz insights (e.g., 'Your score reflects your strong emotional resilience noted in the quiz, balanced with visual signs of stress around the eyes from the photo.'). Explain the final score adjustments. End with an empowering message.>",
           "detailedInsightsPerCategory": {{
             "physicalVitalityInsights": [

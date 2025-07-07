@@ -11,7 +11,8 @@ class PromptOptimizer:
         photo_insights: Optional[Dict[str, Any]], 
         age: int,
         country: str,
-        base_scores: Dict[str, float]
+        base_scores: Dict[str, float],
+        biological_sex: str = "other"
     ) -> str:
         """
         ENHANCED orchestrator prompt using Context7 best practices:
@@ -76,6 +77,13 @@ class PromptOptimizer:
 
 <task_context>
 You must synthesize multiple data sources into a holistic wellness assessment for a {age}-year-old individual from {country}. The quiz analysis provides culturally-adjusted behavioral and lifestyle insights, while the photo analysis offers objective visual health indicators. Your role is to create a balanced, evidence-based assessment that reflects realistic human wellness patterns.
+
+STRICT GENDER-MATCH RULE (Context-7 standard):
+• The user's biologicalSex is "{biological_sex}".
+    – If "male": The glowUpArchetype.name MUST reference a MALE real or fictional figure and MUST NOT reference clearly female names.
+    – If "female": The glowUpArchetype.name MUST reference a FEMALE figure and MUST NOT reference clearly male names.
+    – If "other" or unspecified: choose a well-known gender-neutral icon.
+Failure to respect this rule invalidates the response.
 </task_context>
 
 <input_data>
@@ -152,13 +160,6 @@ Based on the above analysis, provide your assessment in this exact JSON format:
     "name": "<string, Must start with 'You are like ' followed by a REAL celebrity or iconic FICTIONAL character that HOLISTICALLY matches the user's combined insights (adjusted scores, photo findings, key strengths, lifestyle, cultural context). Example: 'You are like Serena Williams during her 2015 Grand Slam run'. CRITICAL: The figure must match the user's biologicalSex (male → male figure, female → female figure; unknown → gender-neutral icon). Selection cues: Physical Vitality → athletes/action heroes; Emotional Health → empathy figures; Visual Appearance → style icons; Innovation → tech visionaries; Balanced → polymaths; Creative → renowned artists. Avoid over-reusing the same figure.>",
     "description": "<110-160 words. Write an engaging narrative linking the user's unique insights to the chosen figure's transformation arc, highlighting specific parallels and inspirational lessons.>"
   }},
-  "microHabits": [
-    "<habit1: specific to their priority areas>",
-    "<habit2: addressing key challenges>",
-    "<habit3: building on strengths>",
-    "<habit4: supporting visual appearance goals>",
-    "<habit5: culturally appropriate for {country}>"
-  ],
   "analysisSummary": "<100 words: realistic assessment acknowledging data limitations, evidence quality, and synthesis confidence level>"
 }}"""
 
