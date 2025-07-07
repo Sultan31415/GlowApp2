@@ -311,16 +311,22 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
               ref={userBtnWrapperRef}
               role="button"
               tabIndex={0}
-              onClick={() => {
+              onClick={(e) => {
                 if (isMobile) setMobileMenuOpen(false);
-                const el = userBtnWrapperRef.current?.querySelector('button, div');
-                (el as HTMLElement | null)?.click();
+                const target = e.target as HTMLElement;
+                // Detect the actual Clerk trigger element (they typically mark it with data-user-button-trigger)
+                const isRealTrigger = target.closest('[data-user-button-trigger]') || target.closest('button');
+                if (isRealTrigger) return; // Native click will open the menu
+
+                // Otherwise, find the internal trigger and simulate a click
+                const triggerEl = userBtnWrapperRef.current?.querySelector('[data-user-button-trigger], button');
+                (triggerEl as HTMLElement | null)?.click();
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   if (isMobile) setMobileMenuOpen(false);
-                  const el = userBtnWrapperRef.current?.querySelector('button, div');
-                  (el as HTMLElement | null)?.click();
+                  const triggerEl = userBtnWrapperRef.current?.querySelector('[data-user-button-trigger], button');
+                  (triggerEl as HTMLElement | null)?.click();
                 }
               }}
               onMouseEnter={isMobile ? undefined : () => setHoveredItem('account')}

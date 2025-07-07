@@ -20,8 +20,8 @@ export const AppLayout = ({ children, onStartTest, hasResults }: { children: Rea
   const shouldShowNavigation = isSignedIn || location.pathname !== '/';
 
   const sidebarWidth = isExpanded ? '256px' : '64px'; // Corresponds to ml-64 and ml-16 in Tailwind
-  const mainContentMargin = shouldShowNavigation && !isMobile ? (isExpanded ? 'ml-64' : 'ml-16') : 'ml-0';
-  const mainContentPadding = shouldShowNavigation ? (isMobile ? 'p-4' : 'p-6') : 'p-0';
+  const mainContentPaddingLeft = ''; // Let individual screens handle any offset
+  const mainContentPadding = shouldShowNavigation && isMobile ? 'p-4' : ''; // Mobile padding only
 
   return (
     <div 
@@ -36,7 +36,7 @@ export const AppLayout = ({ children, onStartTest, hasResults }: { children: Rea
           setIsExpanded={setIsExpanded} 
         />
       )}
-      <main className={`transition-all duration-300 ${mainContentMargin} ${mainContentPadding}`}>
+      <main className={`transition-all duration-300 ${mainContentPadding}`}>
         {children}
       </main>
     </div>

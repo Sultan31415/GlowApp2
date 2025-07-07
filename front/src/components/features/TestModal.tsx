@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Question, QuizAnswer } from '../../types';
 import { QuizStep } from './QuizStep';
@@ -48,10 +48,26 @@ export const TestModal: React.FC<TestModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  // Reference to the scrollable container so we can scroll to top on question change
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top whenever the quiz question changes (only during quiz step)
+  useEffect(() => {
+    if (currentStep === 'quiz' && modalRef.current) {
+      modalRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep, currentQuestionIndex]);
+
   const renderModalContent = () => {
     switch (currentStep) {
       case 'quiz':
+        if (allQuestions.length === 0) {
+          return <LoadingScreen />;
+        }
         const currentQuestion = allQuestions[currentQuestionIndex];
+        if (!currentQuestion) {
+          return <LoadingScreen />;
+        }
         return (
           <QuizStep
             question={currentQuestion}
@@ -88,7 +104,7 @@ export const TestModal: React.FC<TestModalProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 z-40 bg-white aurora-bg overflow-y-auto sm:left-[var(--sidebar-width)] transition-all duration-300">
+    <div ref={modalRef} className="absolute inset-0 z-40 bg-white aurora-bg overflow-y-auto overflow-x-hidden sm:left-[var(--sidebar-width)] transition-all duration-300">
       {/* Close Button - Re-styled for consistency */}
       <button
         onClick={onClose}

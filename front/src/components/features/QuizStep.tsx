@@ -40,6 +40,42 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   const percentage = Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100);
   const estimatedTimeLeft = Math.max(1, Math.ceil((totalQuestions - currentQuestionIndex - 1) * 0.5));
 
+  /* ----------------- BMI Calculator (for question q14) ------------------ */
+  const isBMIQuestion = question.id === 'q14';
+  const [weightKg, setWeightKg] = useState('');
+  const [heightCm, setHeightCm] = useState('');
+  const [calculatedBMI, setCalculatedBMI] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isBMIQuestion) return;
+    // Reset calculator when leaving BMI question
+    return () => {
+      setWeightKg('');
+      setHeightCm('');
+      setCalculatedBMI(null);
+    };
+  }, [isBMIQuestion]);
+
+  const handleBMICalc = () => {
+    const w = parseFloat(weightKg);
+    const h = parseFloat(heightCm);
+    if (!w || !h) return;
+    const bmi = w / ((h / 100) ** 2);
+    setCalculatedBMI(bmi);
+
+    // Determine category
+    let categoryValue = 'unknown';
+    if (bmi < 18.5) categoryValue = 'underweight';
+    else if (bmi < 25) categoryValue = 'normal';
+    else if (bmi < 30) categoryValue = 'overweight';
+    else categoryValue = 'obese';
+
+    // Find label from options
+    const categoryOption = question.options?.find(o => o.value === categoryValue);
+    const label = categoryOption ? categoryOption.label : categoryValue;
+    onAnswerSelect(categoryValue, label);
+  };
+
   useEffect(() => {
     setIsAnswered(selectedAnswer !== undefined && selectedAnswer !== '');
   }, [selectedAnswer]);
@@ -262,74 +298,114 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     switch (question.type) {
       case 'single-choice':
         return (
-          <div className="space-y-3 mb-6">
-            {question.options?.map((option: Option, index: number) => {
-              const isSelected = selectedAnswer === option.value;
-              return (
-                <div
-                  key={index}
-                  className={`group relative overflow-hidden transition-all duration-500 ${
-                    isSelected ? 'transform scale-[1.02] z-10' : 'hover:scale-[1.01]'
-                  }`}
+          <>
+            {isBMIQuestion && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-xl flex flex-col sm:flex-row gap-4 items-end">
+                <div className="flex flex-col flex-1">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                  <input
+                    type="number"
+                    value={weightKg}
+                    onChange={(e) => setWeightKg(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., 70"
+                    min={1}
+                  />
+                </div>
+                <div className="flex flex-col flex-1">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+                  <input
+                    type="number"
+                    value={heightCm}
+                    onChange={(e) => setHeightCm(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="e.g., 175"
+                    min={1}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBMICalc}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow"
                 >
-                  <button
-                    onClick={() => onAnswerSelect(option.value, option.label)}
-                    className={`w-full p-4 sm:p-5 rounded-2xl text-left transition-all duration-300 border-2 min-h-[4rem] relative group ${
-                      isSelected
-                        ? 'bg-blue-50 text-slate-800 border-blue-200 shadow-md ring-2 ring-blue-100'
-                        : 'bg-white/95 backdrop-blur-sm hover:bg-white border-gray-200 hover:border-blue-300 hover:shadow-md'
+                  Calculate
+                </button>
+                {calculatedBMI && (
+                  <div className="text-center sm:text-left sm:ml-4 mt-4 sm:mt-0">
+                    <div className="text-sm font-medium text-gray-700">BMI: {calculatedBMI.toFixed(1)}</div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className="space-y-3 mb-6">
+              {question.options?.map((option: Option, index: number) => {
+                const isSelected = selectedAnswer === option.value;
+                return (
+                  <div
+                    key={index}
+                    className={`group relative overflow-hidden transition-all duration-500 ${
+                      isSelected ? 'transform scale-[1.02] z-10' : 'hover:scale-[1.01]'
                     }`}
                   >
-                    
-                    <div className="relative flex items-center justify-between">
-                      <div className="flex items-center flex-1 space-x-3">
-                        {/* Letter Indicator */}
-                        <div className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center font-medium text-sm transition-all duration-300 ${
-                          isSelected
-                            ? 'bg-blue-500 text-white border-blue-500' 
-                            : `${optionColors[index % optionColors.length]} group-hover:scale-105`
-                        }`}>
-                          {optionIndicators[index]}
+                    <button
+                      onClick={() => onAnswerSelect(option.value, option.label)}
+                      className={`w-full p-4 sm:p-5 rounded-2xl text-left transition-all duration-300 border-2 min-h-[4rem] relative group ${
+                        isSelected
+                          ? 'bg-blue-50 text-slate-800 border-blue-200 shadow-md ring-2 ring-blue-100'
+                          : 'bg-white/95 backdrop-blur-sm hover:bg-white border-gray-200 hover:border-blue-300 hover:shadow-md'
+                      }`}
+                    >
+                      
+                      <div className="relative flex items-center justify-between">
+                        <div className="flex items-center flex-1 space-x-3">
+                          {/* Letter Indicator */}
+                          <div className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center font-medium text-sm transition-all duration-300 ${
+                            isSelected
+                              ? 'bg-blue-500 text-white border-blue-500' 
+                              : `${optionColors[index % optionColors.length]} group-hover:scale-105`
+                          }`}>
+                            {optionIndicators[index]}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className={`font-medium text-base sm:text-lg transition-all duration-300 ${
+                              isSelected ? 'text-slate-800' : 'text-gray-900'
+                            }`}>
+                              {option.label}
+                            </div>
+                            {option.description && (
+                              <div className={`text-sm transition-all duration-300 leading-relaxed ${
+                                isSelected ? 'text-slate-600' : 'text-gray-600'
+                              }`}>
+                                {option.description}
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
-                        <div className="flex-1">
-                          <div className={`font-medium text-base sm:text-lg transition-all duration-300 ${
-                            isSelected ? 'text-slate-800' : 'text-gray-900'
-                          }`}>
-                            {option.label}
-                          </div>
-                          {option.description && (
-                            <div className={`text-sm transition-all duration-300 leading-relaxed ${
-                              isSelected ? 'text-slate-600' : 'text-gray-600'
-                            }`}>
-                              {option.description}
-                            </div>
-                          )}
+                        {/* Enhanced check indicator */}
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          isSelected
+                            ? 'bg-blue-100 text-blue-600'
+                            : 'text-transparent group-hover:text-blue-400 group-hover:bg-blue-50'
+                        }`}>
+                          <CheckCircle className="w-5 h-5" fill="currentColor" />
                         </div>
                       </div>
                       
-                      {/* Enhanced check indicator */}
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isSelected
-                          ? 'bg-blue-100 text-blue-600'
-                          : 'text-transparent group-hover:text-blue-400 group-hover:bg-blue-50'
-                      }`}>
-                        <CheckCircle className="w-5 h-5" fill="currentColor" />
-                      </div>
-                    </div>
-                    
-                    {/* Hover glow effect */}
-                    {!isSelected && (
-                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/5 transition-all duration-300"></div>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-            <p className="text-sm text-gray-500 mt-4 text-center">
-              Press Enter to continue after selecting an answer or use the Next button
-            </p>
-          </div>
+                      {/* Hover glow effect */}
+                      {!isSelected && (
+                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/5 group-hover:to-blue-500/5 transition-all duration-300"></div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+              <p className="text-sm text-gray-500 mt-4 text-center">
+                Press Enter to continue after selecting an answer or use the Next button
+              </p>
+            </div>
+          </>
         );
 
       case 'text-input':

@@ -91,7 +91,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-start justify-center p-4 pt-24 sm:pt-32 lg:pt-48">
+      <div className="absolute inset-0 sm:left-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-start justify-center p-4 pt-24 sm:pt-32 lg:pt-48 transition-all duration-300 overflow-x-hidden">
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
@@ -106,7 +106,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="absolute inset-0 sm:left-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
         <div className="text-center max-w-md mx-auto px-4 sm:px-6">
           <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
             {user && import.meta.env.DEV && (
@@ -163,7 +163,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     };
 
         return (
-      <div className="min-h-screen aurora-bg">
+      <div className="absolute inset-0 sm:left-[var(--sidebar-width)] aurora-bg min-h-screen overflow-y-auto overflow-x-hidden transition-all duration-300">
         {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
         <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
           <div 
@@ -545,7 +545,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   };
 
   return (
-    <div className="min-h-screen aurora-bg">
+    <div className="absolute inset-0 sm:left-[var(--sidebar-width)] aurora-bg min-h-screen overflow-y-auto overflow-x-hidden transition-all duration-300">
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
       <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
         <div 
