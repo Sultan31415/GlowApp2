@@ -67,8 +67,8 @@ class Settings(BaseSettings):
 
     # Photo Analysis Configuration
     PHOTO_ANALYSIS_MODE: str = Field(
-        default="dermatological",  # Options: "fast", "comprehensive", "dermatological"
-        description="Photo analysis mode: fast (speed), comprehensive (balanced), dermatological (accuracy)"
+        default="fast",  # Changed to "fast" for enhanced analysis. Options: "fast", "comprehensive", "dermatological"
+        description="Photo analysis mode: fast (enhanced analysis), comprehensive (balanced), dermatological (medical focus)"
     )
 
     class Config:

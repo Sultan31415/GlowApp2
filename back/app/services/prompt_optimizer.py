@@ -108,17 +108,24 @@ Think through this analysis step by step:
 
 <examples>
 <example>
-Input: 25yo with excellent skin health, clear complexion, high vitality + quiz showing regular exercise, good sleep
+Input: 25yo FEMALE with excellent skin health, clear complexion, high vitality + quiz showing regular exercise, good sleep
 Reasoning: Photo shows exceptional visual health (skin excellent, acne clear) supporting quiz lifestyle. High vitality aligns with good habits.
 Output: Visual Appearance: 82 (quiz 70 + 12 for excellent photo evidence), Physical Vitality: 78, Overall: 77
-Archetype: "The Luminous Athlete" (radiant visual energy + active lifestyle focus)
+Archetype: {{ "name": "The 25-Year-Old Taylor Swift", "description": "You're in your '1989' era, reinventing yourself and taking creative risks that will pay off big time..." }}
 </example>
 
 <example>
-Input: 35yo with fair skin, moderate acne, normal vitality + quiz showing stress, poor sleep, sedentary
+Input: 22yo MALE with good skin, high energy + quiz showing entrepreneurial goals, tech interests
+Reasoning: Photo shows healthy vitality, quiz indicates ambitious mindset and innovation focus.
+Output: Visual Appearance: 75, Physical Vitality: 80, Overall: 74
+Archetype: {{ "name": "The 22-Year-Old Mark Zuckerberg", "description": "In your dorm room era, building an empire from an idea. You have the vision and drive to make it reality..." }}
+</example>
+
+<example>
+Input: 35yo FEMALE with fair skin, moderate acne, normal vitality + quiz showing stress, poor sleep, sedentary
 Reasoning: Photo shows skin challenges (fair health, moderate acne) aligning with quiz stress indicators. Consistent evidence of wellness struggles.
 Output: Visual Appearance: 58 (quiz 65 - 7 for skin issues), Physical Vitality: 52, Overall: 58
-Archetype: "The Gentle Transformer" (moderate energy + focus on overcoming challenges)
+Archetype: {{ "name": "The 35-Year-Old Brené Brown", "description": "Just before becoming a global voice on vulnerability, you are deeply exploring your own story and finding the courage to show up authentically..." }}
 </example>
 </examples>
 
@@ -142,8 +149,8 @@ Based on the above analysis, provide your assessment in this exact JSON format:
   "emotionalAge": <based on quiz maturity patterns>,
   "chronologicalAge": {age},
   "glowUpArchetype": {{
-    "name": "<Create unique archetype: 'The [Visual Energy Descriptor] [Transformation Role]' based on their specific photo energy state and quiz lifestyle patterns>",
-    "description": "<140-160 words grounded in ACTUAL data. Acknowledge strengths AND growth areas. Be aspirational but honest about human complexity.>"
+    "name": "<string, Must start with 'You are like ' followed by a REAL celebrity or iconic FICTIONAL character that HOLISTICALLY matches the user's combined insights (adjusted scores, photo findings, key strengths, lifestyle, cultural context). Example: 'You are like Serena Williams during her 2015 Grand Slam run'. CRITICAL: The figure must match the user's biologicalSex (male → male figure, female → female figure; unknown → gender-neutral icon). Selection cues: Physical Vitality → athletes/action heroes; Emotional Health → empathy figures; Visual Appearance → style icons; Innovation → tech visionaries; Balanced → polymaths; Creative → renowned artists. Avoid over-reusing the same figure.>",
+    "description": "<110-160 words. Write an engaging narrative linking the user's unique insights to the chosen figure's transformation arc, highlighting specific parallels and inspirational lessons.>"
   }},
   "microHabits": [
     "<habit1: specific to their priority areas>",
