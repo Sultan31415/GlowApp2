@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, Heart, Zap, Eye, RotateCcw, LayoutDashboard } from 'lucide-react';
-import { AssessmentResults } from '../types';
+import { AssessmentResults } from '../../types';
 
 interface ResultsScreenProps {
   results: AssessmentResults;
@@ -157,7 +157,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({ results, onRestart
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-white/20 mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Your Personalized Micro-Habit Plan</h2>
             <div className="space-y-4">
-              {results.microHabits.map((habit, index) => (
+              {results.microHabits.map((habit: string, index: number) => (
                 <div key={index} className="flex items-start space-x-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
                   <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
                     {index + 1}

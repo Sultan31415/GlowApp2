@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Sparkles, 
@@ -24,6 +24,8 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { AssessmentResults } from '../../types';
+import { ShareResults } from '../features/ShareResults';
+import { ShareCard } from '../features/ShareCard';
 import { useApi } from '../../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
@@ -33,6 +35,7 @@ interface DashboardScreenProps {}
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const { user } = useUser();
+  const shareCardRef = useRef<HTMLDivElement>(null);
   const { makeRequest } = useApi();
   const navigate = useNavigate();
   const [results, setResults] = useState<AssessmentResults | null>(null);
@@ -189,7 +192,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         {/* Floating CTA Button is removed to reduce clutter */}
 
                           {/* Enhanced Header - Mobile Optimized */}
-         <div className="relative overflow-hidden sm:-mx-6 lg:-mx-8 -mt-4">
+         <div className="relative overflow-hidden sm:-mx-6 lg:-mx-8 mt-4">
            <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
            <div className="relative lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
              <div className="flex items-center">
@@ -204,7 +207,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
            </div>
          </div>
 
-         <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 -mt-6 relative z-10">
+         <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-6 relative z-10">
 
             <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-lg text-center">
                 <div className="flex justify-center items-center mb-4">
@@ -546,6 +549,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
 
   return (
     <div className="absolute inset-0 sm:left-[var(--sidebar-width)] aurora-bg min-h-screen overflow-y-auto overflow-x-hidden transition-all duration-300">
+      <ShareCard ref={shareCardRef} results={results} userData={userData} />
+      
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
       <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
         <div 
@@ -566,7 +571,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       </div>
 
       {/* Enhanced Header - Mobile Optimized */}
-      <div className="relative overflow-hidden sm:-mx-6 lg:-mx-8 -mt-4">
+      <div className="relative overflow-hidden sm:-mx-6 lg:-mx-8 mt-4">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
         <div className="relative lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-3">
           <div className="flex items-center">
@@ -581,7 +586,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         </div>
       </div>
 
-      <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 -mt-6 relative z-10">
+      <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-6 relative z-10">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mb-6">
           
@@ -1018,6 +1023,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             </div>
           </div>
         </div>
+      </div>
+      {/* Floating Share Button */}
+      <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-[110]">
+        <ShareResults targetRef={shareCardRef} />
       </div>
     </div>
   );
