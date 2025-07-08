@@ -166,7 +166,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
     };
 
         return (
-      <div className="absolute inset-0 sm:left-[var(--sidebar-width)] aurora-bg min-h-screen overflow-y-auto overflow-x-hidden transition-all duration-300">
+      <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg overflow-x-hidden transition-all duration-300 pb-24 sm:pb-0">
         {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
         <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
           <div 
@@ -548,7 +548,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   };
 
   return (
-    <div className="absolute inset-0 sm:left-[var(--sidebar-width)] aurora-bg min-h-screen overflow-y-auto overflow-x-hidden transition-all duration-300">
+    <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg flex flex-col overflow-x-hidden transition-all duration-300 sm:pb-0">
       <ShareCard ref={shareCardRef} results={results} userData={userData} />
       
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
@@ -586,7 +586,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         </div>
       </div>
 
-      <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-6 relative z-10">
+      <div className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 mt-6 relative z-10 flex-1 flex flex-col">
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 mb-6">
           

@@ -1,6 +1,7 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
-import { SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, RedirectToSignIn, SignUp } from '@clerk/clerk-react';
+import CustomSignIn from './components/auth/CustomSignIn';
 
 // Custom Hooks
 import { useQuiz } from './hooks/useQuiz';
@@ -148,10 +149,10 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/sign-in/*" element={
-            <div className="flex justify-center items-center h-screen p-4">
-              <SignIn routing="path" path="/sign-in" />
-            </div>
-          } />
+             <div className="flex justify-center items-center h-screen p-4">
+               <CustomSignIn />
+             </div>
+           } />
           <Route path="/sign-up/*" element={
              <div className="flex justify-center items-center h-screen p-4">
                 <SignUp routing="path" path="/sign-up" />
