@@ -239,7 +239,7 @@ quiz_data: List[Dict[str, Any]] = [
                 "id": "q15",
                 "text": "What is your current age?",
                 "type": "number-input",
-                "min": 18,
+                "min": 13,
                 "max": 100,
                 "placeholder": "e.g., 30",
                 "impact_weight": 0.0,  # Used for normalization, not scoring
