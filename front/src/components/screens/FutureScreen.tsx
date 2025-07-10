@@ -175,6 +175,10 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
       <div className="relative overflow-hidden w-full -mx-0">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
         <div className="relative w-full max-w-none px-0 py-0">
+          {/* Beta Version Label - centered above header */}
+          <div className="flex justify-center items-center pt-4 pb-1">
+            <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">Beta Version</span>
+          </div>
           <div className="flex items-center px-4 sm:px-6 lg:px-8 py-2">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 sm:mr-4 border border-gray-200/50">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600" />
