@@ -8,10 +8,12 @@ import openai
 import json
 import re
 import asyncio
+from app.services.future_self_service import FutureSelfService
 
 # These analyzers are stateless, so we can instantiate them here
 photo_analyzer = PhotoAnalyzerGPT4o()
 quiz_analyzer = QuizAnalyzerGemini()
+future_self_service = FutureSelfService()
 
 # Initialize Azure OpenAI client for orchestrator
 azure_openai_client = None
@@ -854,3 +856,21 @@ PHOTO ANALYSIS SUMMARY:
             }
         }
         return {**state, "ai_analysis": fallback_analysis} 
+
+
+async def future_self_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    LangGraph node: Generate dual timeframe projections (7-day and 30-day) using the Future Self LLM.
+    Consumes orchestrator output, quiz insights, and photo insights.
+    """
+    print("[LangGraph] 🔮 Future Self node started - generating dual timeframe projections")
+    orchestrator_output = state.get("ai_analysis")
+    quiz_insights = state.get("quiz_insights")
+    photo_insights = state.get("photo_insights")
+    additional_data = state.get("additional_data", {})
+    user_name = additional_data.get("first_name")
+    projection_result = await future_self_service.get_dual_timeframe_projection(
+        orchestrator_output, quiz_insights, photo_insights, user_name
+    )
+    print("[LangGraph] 🔮 Future Self node completed")
+    return {**state, "future_projection": projection_result} 

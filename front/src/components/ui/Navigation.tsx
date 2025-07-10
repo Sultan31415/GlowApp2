@@ -116,7 +116,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       label: 'Transformation',
       icon: Image,
       onClick: () => navigate('/future'),
-      isAvailable: false,
+      isAvailable: true, // was false, now true
       tooltip: 'Transformation',
       description: 'See your potential',
       isActive: isRouteActive('/future')
@@ -125,11 +125,11 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       id: 'habits',
       label: 'My Habits',
       icon: Calendar,
-      onClick: () => navigate('/micro-habits'),
-      isAvailable: false,
+      onClick: () => navigate('/daily-plan'),
+      isAvailable: true,
       tooltip: 'My Habits',
-      description: 'Personalized micro-habits',
-      isActive: isRouteActive('/micro-habits')
+      description: 'Your personalized 7-day plan',
+      isActive: isRouteActive('/daily-plan')
     },
     {
       id: 'progress',

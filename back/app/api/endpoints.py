@@ -10,6 +10,9 @@ from app.services.user_service import get_or_create_user, save_user_assessment, 
 from app.db.session import SessionLocal, get_db
 from sqlalchemy.orm import Session
 import logging
+from app.services.future_self_service import FutureSelfService
+from app.models.future_projection import FutureProjection
+from app.models.future_projection import DailyPlan
 
 # Initialize router
 router = APIRouter()
@@ -61,6 +64,9 @@ async def assess_results(
         additional_data['advancedScores'] = advanced_scores
         additional_data['calculatedGlowScore'] = overall_glow_score
         additional_data['calculatedBiologicalAge'] = biological_age
+        # Add user name fields for downstream personalization
+        additional_data['first_name'] = db_user.first_name
+        additional_data['last_name'] = db_user.last_name
 
         # Get AI analysis with enhanced data
         assessment = ai_service.get_ai_analysis(
@@ -83,7 +89,21 @@ async def assess_results(
             analysis_summary=assessment.get("analysisSummary"),
             detailed_insights=assessment.get("detailedInsightsPerCategory")
         )
-        save_user_assessment(db, db_user.id, assessment_create)
+        assessment_obj = save_user_assessment(db, db_user.id, assessment_create)
+        # --- End save ---
+
+        # --- Save dual timeframe projection to DB ---
+        future_projection = assessment.get("future_projection")
+        if future_projection:
+            future_self_service = FutureSelfService()
+            future_self_service.save_future_projection(
+                user_id=db_user.id,
+                assessment_id=assessment_obj.id,
+                orchestrator_output=assessment.get("ai_analysis"),
+                quiz_insights=assessment.get("quiz_insights"),
+                photo_insights=assessment.get("photo_insights"),
+                projection_result=future_projection
+            )
         # --- End save ---
 
         return assessment
@@ -278,4 +298,163 @@ async def get_scoring_system_info():
             qid: {"category": mapping["category"], "weight": mapping["base_weight"]}
             for qid, mapping in scoring_service.CATEGORY_MAPPING.items()
         }
+    } 
+
+@router.get("/future-projection")
+async def get_future_projection(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Fetch the latest future projection for the authenticated user."""
+    db_user = get_or_create_user(db, user)
+    
+    # Query for the latest future projection for this user
+    projection = db.query(FutureProjection).filter(
+        FutureProjection.user_id == db_user.id
+    ).order_by(FutureProjection.created_at.desc()).first()
+    
+    if not projection:
+        raise HTTPException(status_code=404, detail="No future projection found for user.")
+    
+    return {
+        "id": projection.id,
+        "user_id": projection.user_id,
+        "assessment_id": projection.assessment_id,
+        "created_at": projection.created_at.isoformat(),
+        "orchestrator_output": projection.orchestrator_output,
+        "quiz_insights": projection.quiz_insights,
+        "photo_insights": projection.photo_insights,
+        "projection_result": projection.projection_result
+    }
+
+@router.post("/generate-future-projection")
+async def generate_future_projection(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a future projection for the user's latest assessment if it doesn't exist."""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        # Check if user already has a future projection
+        existing_projection = db.query(FutureProjection).filter(
+            FutureProjection.user_id == db_user.id
+        ).order_by(FutureProjection.created_at.desc()).first()
+        
+        if existing_projection:
+            return {
+                "message": "Future projection already exists",
+                "projection_id": existing_projection.id,
+                "created_at": existing_projection.created_at.isoformat()
+            }
+        
+        # Get the latest assessment
+        assessment = get_latest_user_assessment(db, db_user.id)
+        if not assessment:
+            raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
+        
+        # Mock the data structure that would come from a full assessment pipeline
+        # This is a simplified version for generating the projection retroactively
+        mock_orchestrator_output = {
+            "overallGlowScore": assessment.overall_glow_score,
+            "adjustedCategoryScores": assessment.category_scores,
+            "biologicalAge": assessment.biological_age,
+            "emotionalAge": assessment.emotional_age,
+            "chronologicalAge": assessment.chronological_age,
+            "glowUpArchetype": assessment.glowup_archetype,
+            "analysisSummary": assessment.analysis_summary or "Assessment completed successfully."
+        }
+        
+        # Generate the future projection
+        future_self_service = FutureSelfService()
+        projection_result = await future_self_service.get_dual_timeframe_projection(
+            orchestrator_output=mock_orchestrator_output,
+            quiz_insights=None,  # Not available from saved assessment
+            photo_insights=None  # Not available from saved assessment
+        )
+        
+        # Save the projection
+        future_self_service.save_future_projection(
+            user_id=db_user.id,
+            assessment_id=assessment.id,
+            orchestrator_output=mock_orchestrator_output,
+            quiz_insights=None,
+            photo_insights=None,
+            projection_result=projection_result
+        )
+        
+        return {
+            "message": "Future projection generated successfully",
+            "projection_result": projection_result
+        }
+        
+    except Exception as e:
+        logger.error("[ERROR] Exception in /generate-future-projection endpoint: %s", e)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e)) 
+
+@router.post("/generate-daily-plan")
+async def generate_daily_plan(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a personalized 7-day daily plan for the user's latest assessment and save it to the database."""
+    db_user = get_or_create_user(db, user)
+    assessment = get_latest_user_assessment(db, db_user.id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
+
+    # Prepare the data for the LLM
+    orchestrator_output = {
+        "overallGlowScore": assessment.overall_glow_score,
+        "adjustedCategoryScores": assessment.category_scores,
+        "biologicalAge": assessment.biological_age,
+        "emotionalAge": assessment.emotional_age,
+        "chronologicalAge": assessment.chronological_age,
+        "glowUpArchetype": assessment.glowup_archetype,
+        "analysisSummary": assessment.analysis_summary or "Assessment completed successfully."
+    }
+    quiz_insights = None
+    photo_insights = None
+    user_name = db_user.first_name
+
+    future_self_service = FutureSelfService()
+    daily_plan = await future_self_service.get_7_day_personalized_plan(
+        orchestrator_output=orchestrator_output,
+        quiz_insights=quiz_insights,
+        photo_insights=photo_insights,
+        user_name=user_name
+    )
+
+    # Save the plan to the database
+    saved_plan = future_self_service.save_daily_plan(
+        user_id=db_user.id,
+        assessment_id=assessment.id,
+        plan_json=daily_plan,
+        plan_type="7-day"
+    )
+
+    return {
+        "message": "7-day daily plan generated and saved successfully.",
+        "plan_id": saved_plan.id,
+        "daily_plan": daily_plan
+    } 
+
+@router.get("/daily-plan")
+async def get_latest_daily_plan(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Fetch the latest saved daily plan for the authenticated user."""
+    db_user = get_or_create_user(db, user)
+    plan = db.query(DailyPlan).filter(
+        DailyPlan.user_id == db_user.id
+    ).order_by(DailyPlan.created_at.desc()).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="No daily plan found for user.")
+    return {
+        "plan_id": plan.id,
+        "created_at": plan.created_at.isoformat(),
+        "plan_type": plan.plan_type,
+        "daily_plan": plan.plan_json
     } 

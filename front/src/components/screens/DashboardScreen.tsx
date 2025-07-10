@@ -168,9 +168,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         return (
       <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg overflow-x-hidden transition-all duration-300 pb-24 sm:pb-0">
         {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
-        <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
+        <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100] flex flex-col items-end space-y-2">
           <div 
-            onClick={() => navigate('/test')}
+            onClick={() => navigate('/future')}
             className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl border-2 border-gray-100 px-3 py-2 sm:px-6 sm:py-4 min-w-[100px] sm:min-w-[160px] transition-all duration-200 hover:shadow-3xl hover:scale-105 backdrop-blur-sm cursor-pointer touch-manipulation"
           >
             <div className="flex flex-col">
@@ -182,11 +182,14 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <span className="text-base sm:text-2xl font-extrabold text-emerald-600">{sampleData.potentialScore}+</span>
                 </div>
               </div>
-              <div className="mt-1 sm:mt-2 text-center">
-                <span className="text-xs text-purple-600 font-medium">Click to get yours →</span>
-              </div>
             </div>
           </div>
+          <button
+            onClick={() => navigate('/future')}
+            className="mt-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm"
+          >
+            See Your Potential
+          </button>
         </div>
 
         {/* Floating CTA Button is removed to reduce clutter */}
@@ -552,22 +555,28 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       <ShareCard ref={shareCardRef} results={results} userData={userData} />
       
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
-      <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100]">
+      <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-[100] flex flex-col items-end space-y-2">
         <div 
-          onClick={scrollToQuickActions}
+          onClick={() => (isNewUser ? navigate('/test') : navigate('/future'))}
           className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl border-2 border-gray-100 px-3 py-2 sm:px-6 sm:py-4 min-w-[100px] sm:min-w-[160px] transition-all duration-200 hover:shadow-3xl hover:scale-105 backdrop-blur-sm cursor-pointer touch-manipulation"
         >
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Glow Score</span>
             <div className="flex items-start space-x-1 sm:space-x-2">
-              <span className="text-lg sm:text-3xl font-black text-gray-900">{results.overallGlowScore}</span>
+              <span className="text-lg sm:text-3xl font-black text-gray-900">{isNewUser ? 78 : results?.overallGlowScore}</span>
               <div className="flex items-baseline space-x-0.5 -mt-1">
                 <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />
-                <span className="text-base sm:text-2xl font-extrabold text-emerald-600">85+</span>
+                <span className="text-base sm:text-2xl font-extrabold text-emerald-600">{isNewUser ? '92+' : '85+'}</span>
               </div>
             </div>
           </div>
         </div>
+        <button
+          onClick={() => navigate('/future')}
+          className="mt-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm"
+        >
+          See Your Potential
+        </button>
       </div>
 
       {/* Enhanced Header - Mobile Optimized */}
@@ -962,31 +971,31 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {/* Visual Transformation Avatar */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/future')}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Image className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     </div>
-                    <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">Soon</span>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">Available</span>
                   </div>
                   <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Visual Transformation Avatar</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">AI-powered avatar and metrics showing your full potential</p>
                 </div>
 
                 {/* Atomic Glow-Up System */}
-                <div className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div className="bg-gradient-to-br from-red-50 to-pink-50 border border-red-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/daily-plan')}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                     </div>
-                    <span className="text-xs text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">Soon</span>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">Available</span>
                   </div>
                   <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Atomic Glow-Up System</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">30-day micro-habits and challenges to reach your full glow potential</p>
                 </div>
 
                 {/* Progress Tracker */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
@@ -998,7 +1007,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                 </div>
 
                 {/* AI Coach */}
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
@@ -1010,7 +1019,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                 </div>
 
                 {/* Future Self Chat */}
-                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />

@@ -162,7 +162,8 @@ class AIService:
                     final_state.get("photo_url", photo_url),
                     final_state.get("photo_insights"),
                     final_state.get("quiz_insights"),
-                    additional_data.get("biologicalSex") if isinstance(additional_data, dict) else None
+                    additional_data.get("biologicalSex") if isinstance(additional_data, dict) else None,
+                    final_state.get("future_projection")  # Add future projection
                 )
             else:
                 print(f"[AI Service] ❌ LangGraph final state keys: {list(final_state.keys()) if final_state else 'None'}")
@@ -263,7 +264,8 @@ class AIService:
         photo_url: Optional[str],
         photo_insights: Optional[Dict[str, Any]] = None,
         quiz_insights: Optional[Dict[str, Any]] = None,
-        biological_sex: Optional[str] = None
+        biological_sex: Optional[str] = None,
+        future_projection: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Format the final response, including all new AI analysis fields."""
         final_chronological_age = chronological_age if chronological_age is not None else ai_analysis.get("chronologicalAge")
@@ -289,7 +291,8 @@ class AIService:
             },
             "photoInsights": photo_insights,
             "quizInsights": quiz_insights,
-            "biologicalSex": biological_sex
+            "biologicalSex": biological_sex,
+            "future_projection": future_projection  # Add future projection to response
         }
 
     # ------------------------- LangGraph integration -------------------------

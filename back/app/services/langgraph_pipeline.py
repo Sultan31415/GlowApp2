@@ -1,7 +1,7 @@
 import asyncio
 from langgraph.graph import StateGraph, END
 from typing import Any, Dict, Callable
-from app.services.langgraph_nodes import photo_node_async, quiz_node_async, orchestrator_node_async
+from app.services.langgraph_nodes import photo_node_async, quiz_node_async, orchestrator_node_async, future_self_node_async
 import time
 import hashlib
 import json
@@ -117,13 +117,15 @@ def build_analysis_graph(orchestrator: Any, question_map: Dict[str, Any]) -> Any
     # Add optimized nodes
     builder.add_node("optimized_parallel_analysis", sync_wrapper(optimized_parallel_analysis_node))
     builder.add_node("optimized_orchestrator", sync_wrapper(optimized_orchestrator_node))
+    builder.add_node("future_self", sync_wrapper(future_self_node_async))
     
-    # Simple linear flow
+    # Linear flow: parallel -> orchestrator -> future self -> END
     builder.add_edge("optimized_parallel_analysis", "optimized_orchestrator")
-    builder.add_edge("optimized_orchestrator", END)
+    builder.add_edge("optimized_orchestrator", "future_self")
+    builder.add_edge("future_self", END)
     
     # Set entry point
     builder.set_entry_point("optimized_parallel_analysis")
     
-    print("[LangGraph] Compiled OPTIMIZED ASYNC pipeline with caching")
+    print("[LangGraph] Compiled OPTIMIZED ASYNC pipeline with caching and future self node")
     return builder.compile() 

@@ -15,12 +15,11 @@ import { AuroraBackground } from './components/ui/AuroraBackground';
 
 // Lazy-loaded components for code-splitting
 const TestModal = lazy(() => import('./components/features/TestModal').then(m => ({ default: m.TestModal })));
-const ResultsScreen = lazy(() => import('./components/screens/ResultsScreen').then(m => ({ default: m.ResultsScreen })));
 const DashboardScreen = lazy(() => import('./components/screens/DashboardScreen').then(m => ({ default: m.DashboardScreen })));
 const ErrorScreen = lazy(() => import('./components/screens/ErrorScreen').then(m => ({ default: m.ErrorScreen })));
-const MicroHabitsScreen = lazy(() => import('./components/screens/MicroHabitsScreen').then(m => ({ default: m.MicroHabitsScreen })));
 const FutureScreen = lazy(() => import('./components/screens/FutureScreen').then(m => ({ default: m.FutureScreen })));
 const AdvancedMainScreen = lazy(() => import('./components/screens/AdvancedMainScreen').then(m => ({ default: m.AdvancedMainScreen })));
+const DailyPlanScreen = lazy(() => import('./components/screens/DailyPlanScreen').then(m => ({ default: m.DailyPlanScreen })));
 
 // Home Screen Component
 const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoading: boolean; quizError: string | null }> = ({ 
@@ -197,30 +196,6 @@ function App() {
           />
           
           <Route
-            path="/results/:id"
-            element={
-              <>
-                <SignedIn>
-                  {assessment.results ? (
-                    <ResultsScreen
-                      results={assessment.results}
-                      onRestart={handleRestart}
-                      onGoToDashboard={() => navigate('/dashboard')}
-                    />
-                  ) : (
-                    <Navigate to="/" />
-                  )}
-                </SignedIn>
-                <SignedOut>
-                  <RedirectToSignIn />
-                </SignedOut>
-              </>
-            }
-          />
-          
-          {/* TEMPORARILY DISABLED FOR MVP LAUNCH */}
-          {/* 
-          <Route
             path="/future"
             element={
               <>
@@ -239,14 +214,14 @@ function App() {
           />
           
           <Route
-            path="/micro-habits"
+            path="/daily-plan"
             element={
               <>
                 <SignedIn>
                   {assessment.results ? (
-                    <MicroHabitsScreen results={assessment.results} onBack={() => navigate('/dashboard')} />
+                    <DailyPlanScreen onBack={() => navigate('/dashboard')} />
                   ) : (
-                    <Navigate to="/" />
+                    <Navigate to="/dashboard" />
                   )}
                 </SignedIn>
                 <SignedOut>
@@ -254,8 +229,7 @@ function App() {
                 </SignedOut>
               </>
             }
-          /> 
-          */}
+          />
 
           <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
 

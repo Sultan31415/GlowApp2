@@ -55,3 +55,54 @@ export interface AssessmentResults {
 }
 
 export type ScreenType = 'main' | 'welcome' | 'quiz' | 'photo-upload' | 'loading' | 'results' | 'error' | 'dashboard' | 'microHabits';
+
+export interface FutureProjection {
+  id: number;
+  user_id: number;
+  assessment_id?: number;
+  created_at: string;
+  orchestrator_output: any;
+  quiz_insights: any;
+  photo_insights: any;
+  projection_result: {
+    sevenDay: {
+      projectedScores: {
+        overallGlowScore: number;
+        physicalVitality: number;
+        emotionalHealth: number;
+        visualAppearance: number;
+      };
+      rationalePerMetric: {
+        physicalVitality: string;
+        emotionalHealth: string;
+        visualAppearance: string;
+      };
+      narrativeSummary: string;
+      keyActions: string[];
+    };
+    thirtyDay: {
+      projectedScores: {
+        overallGlowScore: number;
+        physicalVitality: number;
+        emotionalHealth: number;
+        visualAppearance: number;
+      };
+      rationalePerMetric: {
+        physicalVitality: string;
+        emotionalHealth: string;
+        visualAppearance: string;
+      };
+      narrativeSummary: string;
+      keyMilestones: string[];
+    };
+    actionPlan: {
+      immediateSteps: string[];
+      weeklyFocus: {
+        week1: string;
+        week2: string;
+        week3: string;
+        week4: string;
+      };
+    };
+  };
+}
