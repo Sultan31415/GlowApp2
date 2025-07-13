@@ -85,45 +85,6 @@ class FutureSelfService:
             print(f"Error parsing dual projection for legacy format: {e}")
             return dual_projection
 
-    async def get_7_day_personalized_plan(self, orchestrator_output, quiz_insights, photo_insights, user_name=None):
-        """Generate a personalized daily plan for each day of the first week using the LLM."""
-        prompt = self._build_7_day_plan_prompt(orchestrator_output, quiz_insights, photo_insights, user_name)
-        response = await self.llm_client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are an expert transformation coach specializing in highly personalized, actionable daily wellness plans. For each day, create a plan that is realistic, motivating, and tailored to the user's unique needs, struggles, and goals."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5,
-            max_tokens=2000,
-            response_format={"type": "json_object"}
-        )
-        plan_output = response.choices[0].message.content
-        try:
-            return json.loads(plan_output) if isinstance(plan_output, str) else plan_output
-        except Exception as e:
-            logging.error(f"[FutureSelfService] Error parsing 7-day plan output: {e}")
-            return plan_output
-
-    def _build_7_day_plan_prompt(self, orchestrator_output, quiz_insights, photo_insights, user_name=None):
-        name_str = f" The user's name is {user_name}. Use it at least once during the week." if user_name else ""
-        return f"""
-        Given the following user data:
-        - Orchestrator output: {orchestrator_output}
-        - Quiz insights: {quiz_insights}
-        - Photo insights: {photo_insights}
-        {name_str}
-
-        Generate a JSON array called 'dailyPlan' with 7 objects, each representing a personalized plan for one day of the first week. For each day, include:
-        - 'day': The day number (1-7)
-        - 'mainFocus': The main focus or theme for the day
-        - 'actionableTasks': 2-4 specific, actionable tasks tailored to the user's needs and preferences
-        - 'motivationalTip': A motivational tip or message
-        - 'rationale': A brief rationale for why these actions are chosen for this user
-
-        Make the plan feel like it was written just for this user, referencing their quiz and photo insights. Use vivid, personal language. The plan should be realistic, achievable, and inspiring. Output only the JSON object with the key 'dailyPlan'.
-        """
-
     def _build_dual_projection_prompt(self, orchestrator_output, quiz_insights, photo_insights, user_name=None):
         name_str = f" Their name is {user_name}. Use it at least once in the letter." if user_name else ""
         return f"""
@@ -203,31 +164,43 @@ class FutureSelfService:
           "weeklyBackbone": [
             {{
               "week": 1,
-              "theme": "Ignition & Reset",
-              "coreHabitFocus": ["Hydration Mastery", "Morning Light Exposure", "2-Minute Breathing Anchors"],
-              "mindset": "Cultivating awareness of immediate sensations and celebrating small wins.",
-              "progressiveElement": "Laying the physiological foundation and building instant momentum."
+              "theme": "A *highly personalized and compelling* theme for Week 1. This theme should directly reflect the user's primary pain points or most impactful starting improvements based on ALL provided insights (orchestrator, quiz, photo). For example, 'Reclaiming Rest' if sleep is a critical issue, or 'Digestive Dawn' if gut health is key.",
+              "coreHabitFocus": [
+                "List 2-3 *specific, actionable, and high-level weekly goals* for Week 1. These are **NOT** daily tasks or explicit mentions of specific book principles. They should be directly derived from the user's *unique* situation (current scores, quiz answers, visual cues) and emphasize immediate impact at a *weekly objective* level. For instance, if the user consistently skips breakfast, a goal could be 'Establish a consistent morning nutritional routine.' If they report low energy, 'Integrate consistent energy-boosting movement throughout the day.' If photo insights indicate tired skin, 'Prioritize foundational hydration and skin nourishment this week.'",
+                "Ensure these goals are distinct, impactful, and clearly set the direction for the week. They should provide a clear aim for the next LLM to build daily plans around."
+              ],
+              "mindset": "A mindset focus for Week 1 that directly addresses a likely initial psychological state or common barrier for *this specific user*, based on quiz insights (e.g., 'Embracing Gentle Consistency' for a user prone to burnout, or 'Cultivating Immediate Awareness' for someone feeling disconnected).",
+              "progressiveElement": "A clear, personalized statement on how Week 1 lays a unique physiological and psychological foundation tailored to *this user's starting point* and will build *their specific initial momentum* towards their overall glow."
             }},
             {{
               "week": 2,
-              "theme": "Energy & Flow Optimization",
-              "coreHabitFocus": ["Consistent Sleep Schedule", "Mindful Movement Integration (e.g., 10-min walks)", "Nutrient-Dense Breakfast"],
-              "mindset": "Understanding energy rhythms and building consistent, supportive routines.",
-              "progressiveElement": "Translating initial momentum into sustainable daily energy."
+              "theme": "A *personalized theme* for Week 2 that explicitly builds on Week 1's momentum and addresses the next logical progression for *this user*. For example, 'Sustaining Energy & Deepening Calm' if Week 1 was about basic energy establishment, or 'Building Consistent Wellness Rhythm.'",
+              "coreHabitFocus": [
+                "List 2-3 *specific, actionable, and high-level weekly goals* for Week 2. These *must* build progressively on Week 1's achievements and address the *next most impactful area* for *this specific user*. Consider incorporating insights from their current habits or areas they expressed a desire to improve in the quiz. For example, if Week 1 focused on consistent hydration, Week 2 might be 'Optimize sleep quality and consistency.' Or if they started basic movement, 'Integrate moderate daily physical activity.'",
+                "Ensure these goals are still highly personalized and set the stage for the next level of daily planning, providing clear objectives for the subsequent LLM."
+              ],
+              "mindset": "A mindset focus for Week 2, tailored to maintaining consistency and addressing any emerging resistance or plateaus *specific to this user's likely journey* (e.g., 'Building Resilient Habits' for a user who struggles with follow-through, or 'Finding Joy in Routine').",
+              "progressiveElement": "How Week 2 translates *their specific initial momentum* into sustainable daily energy and routines, directly addressing their unique needs and preparing them for further challenges."
             }},
             {{
               "week": 3,
-              "theme": "Strength & Resilience Building",
-              "coreHabitFocus": ["Structured Bodyweight Routine (3x/week)", "Emotional Regulation Practice (e.g., journaling)", "Strategic Protein Intake"],
-              "mindset": "Embracing challenges as opportunities for growth; building inner and outer strength.",
-              "progressiveElement": "Introducing more structured physical and mental challenges for adaptation."
+              "theme": "A *personalized theme* for Week 3 that introduces deeper structural changes or challenges, *appropriate and relevant to this user's progress and initial capabilities*. For example, 'Building Sustainable Strength' if they needed more physical activity, or 'Mastering Emotional Resilience' if emotional regulation was a key quiz insight.",
+              "coreHabitFocus": [
+                "List 2-3 *specific, actionable, and high-level weekly goals* for Week 3. These should introduce more structured physical/mental challenges *tailored precisely to this user's current fitness/stress level and goals*. For example, if physical vitality was low, 'Establish a structured body-weight routine 3 times this week.' If stress was high, 'Develop personalized emotional regulation techniques.'",
+                "Ensure these goals directly address areas where the user needs significant progression based on *all insights*, providing clear, advanced objectives for the next LLM."
+              ],
+              "mindset": "A mindset focus for Week 3, encouraging resilience, deeper self-awareness, and embracing challenges as opportunities for *this user's personal growth* (e.g., 'Embracing Growth Through Challenge', or 'Deepening Self-Compassion').",
+              "progressiveElement": "Describe how Week 3 introduces more structured physical and mental challenges, specifically designed for *this user's adaptation, strength building, and resilience enhancement*."
             }},
             {{
               "week": 4,
-              "theme": "Integration & Radiance",
-              "coreHabitFocus": ["Advanced Hydration (e.g., electrolyte balance)", "Mind-Body Connection (e.g., stretching/yoga)", "Personalized Self-Care Ritual"],
-              "mindset": "Consolidating new habits into a holistic lifestyle; celebrating visible and felt transformation.",
-              "progressiveElement": "Solidifying habits, refining self-awareness, and maximizing overall glow."
+              "theme": "A *personalized theme* for Week 4 that focuses on advanced integration and celebrating the *user's unique transformation*. For example, 'Holistic Radiance & Sustained Vitality' or 'Your Transformed Self: Integration & Joy.'",
+              "coreHabitFocus": [
+                "List 2-3 *specific, actionable, and high-level weekly goals* for Week 4. These should consolidate new behaviors, refine self-care rituals, and incorporate advanced practices *specifically for this user's continued, long-term journey*. For example, 'Integrate advanced nutritional strategies for sustained energy and gut health.' Or, 'Cultivate a robust self-care ritual that enhances both mental clarity and visual glow.'",
+                "The goals should feel like the natural culmination of their unique 30-day journey and set them up for ongoing success, giving the next LLM clear final objectives."
+              ],
+              "mindset": "A mindset focus for Week 4, dedicated to consolidating new habits into a holistic, sustainable lifestyle, celebrating visible and felt transformation *unique to this individual*, and fostering a sense of empowered self-agency.",
+              "progressiveElement": "How Week 4 solidifies habits, refines *their unique self-awareness*, and maximizes *their overall glow* in a way that is tailored for *their continued progress beyond the 30 days*."
             }}
           ],
           "messageFromFutureSelf": "Write a deeply personal message from the user's future self, 30 days ahead, directly to their present-day self who is just about to begin this journey. This is not a formal letter—it's a raw, honest, and intimate note from 'me' to 'me.'
@@ -273,4 +246,4 @@ class FutureSelfService:
         db.commit()
         db.refresh(daily_plan)
         db.close()
-        return daily_plan 
+        return daily_plan

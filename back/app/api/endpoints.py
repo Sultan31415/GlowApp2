@@ -13,6 +13,7 @@ import logging
 from app.services.future_self_service import FutureSelfService
 from app.models.future_projection import FutureProjection
 from app.models.future_projection import DailyPlan
+from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 
 # Initialize router
 router = APIRouter()
@@ -418,15 +419,16 @@ async def generate_daily_plan(
     photo_insights = None
     user_name = db_user.first_name
 
-    future_self_service = FutureSelfService()
-    daily_plan = await future_self_service.get_7_day_personalized_plan(
+    plan_service = KnowledgeBasedPlanService()
+    daily_plan = await plan_service.generate_7_day_plan(
         orchestrator_output=orchestrator_output,
         quiz_insights=quiz_insights,
         photo_insights=photo_insights,
         user_name=user_name
     )
 
-    # Save the plan to the database
+    # Save the plan to the database (reuse save_daily_plan from FutureSelfService for now)
+    future_self_service = FutureSelfService()
     saved_plan = future_self_service.save_daily_plan(
         user_id=db_user.id,
         assessment_id=assessment.id,
@@ -452,9 +454,26 @@ async def get_latest_daily_plan(
     ).order_by(DailyPlan.created_at.desc()).first()
     if not plan:
         raise HTTPException(status_code=404, detail="No daily plan found for user.")
+
+    # Ensure the response always has a 'daily_plan' key with an array
+    plan_json = plan.plan_json
+    daily_plan = []
+    if isinstance(plan_json, dict):
+        if "daily_plan" in plan_json and isinstance(plan_json["daily_plan"], list):
+            daily_plan = plan_json["daily_plan"]
+        elif "weekPlan" in plan_json and isinstance(plan_json["weekPlan"], list):
+            daily_plan = plan_json["weekPlan"]
+        else:
+            # If it's a dict but not the expected keys, wrap in a list
+            daily_plan = [plan_json]
+    elif isinstance(plan_json, list):
+        daily_plan = plan_json
+    else:
+        daily_plan = []
+
     return {
         "plan_id": plan.id,
         "created_at": plan.created_at.isoformat(),
         "plan_type": plan.plan_type,
-        "daily_plan": plan.plan_json
+        "daily_plan": daily_plan
     } 

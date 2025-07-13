@@ -9,6 +9,7 @@ import json
 import re
 import asyncio
 from app.services.future_self_service import FutureSelfService
+from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 
 # These analyzers are stateless, so we can instantiate them here
 photo_analyzer = PhotoAnalyzerGPT4o()
@@ -874,3 +875,18 @@ async def future_self_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
     )
     print("[LangGraph] 🔮 Future Self node completed")
     return {**state, "future_projection": projection_result} 
+
+
+async def knowledge_based_plan_node_async(state: Dict[str, Any]) -> Dict[str, Any]:
+    print("[LangGraph] 📅 Knowledge-Based Plan node started")
+    orchestrator_output = state.get("ai_analysis")
+    quiz_insights = state.get("quiz_insights")
+    photo_insights = state.get("photo_insights")
+    additional_data = state.get("additional_data", {})
+    user_name = additional_data.get("first_name")
+    plan_service = KnowledgeBasedPlanService()
+    plan = await plan_service.generate_7_day_plan(
+        orchestrator_output, quiz_insights, photo_insights, user_name
+    )
+    print("[LangGraph] 📅 Knowledge-Based Plan node completed")
+    return {**state, "knowledge_based_plan": plan} 
