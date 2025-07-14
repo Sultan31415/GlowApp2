@@ -276,50 +276,47 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
 
         {/* What We Do - Dashboard Preview Style */}
-        <section id="what-we-do" className="py-20 sm:py-24 px-4">
-          <div className="max-w-7xl mx-auto">
+        <section id="what-we-do" className="py-12 sm:py-16 px-2">
+          <div className="max-w-5xl mx-auto">
             {/* Section Header */}
-            <div className="text-center mb-16 sm:mb-20">
-              <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                Your Life, Gamified.
+            <div className="text-center mb-10 sm:mb-14">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight flex items-center justify-center gap-2 sm:gap-4">
+                <span className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-600 text-white font-extrabold text-base sm:text-xl flex-shrink-0">1</span>
+                <span className="block">Your Life Analyzed,<br className="sm:hidden" /> Scientifically.</span>
               </h2>
-              <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Oylan turns self-improvement into an engaging game. Here's a preview of your personalized dashboard.
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               </p>
             </div>
 
             {/* --- DESKTOP LAYOUT --- */}
-            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-center">
+            <div className="hidden lg:grid grid-cols-1 lg:grid-cols-12 gap-6 items-start lg:items-center">
               {/* Left Side: Profile & Age Analysis */}
               <div className="lg:col-span-4">
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-4 sm:p-6 h-full">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-3 sm:p-4 h-full">
                   <div className="text-center">
-                    <div className="relative inline-block mb-6">
-                      <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-2xl">
+                    <div className="relative inline-block mb-4">
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-xl">
                         <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
-                          <User className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400" />
+                          <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="space-y-4">
-                      <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Your Future Self</h3>
-                      <p className="text-gray-600">A preview of your potential.</p>
-                      
+                    <div className="space-y-3">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">Your name</h3>
                       {/* Age Analysis Compact */}
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-3">Age Analysis</h4>
-                        <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-3 border border-gray-100">
+                        <h4 className="text-xs font-semibold text-gray-700 mb-2">Age Analysis</h4>
+                        <div className="grid grid-cols-3 gap-1 text-center">
                           <div>
-                            <div className="text-xl sm:text-2xl font-bold text-emerald-600">24</div>
+                            <div className="text-lg sm:text-xl font-bold text-emerald-600">24</div>
                             <div className="text-xs text-gray-600">Biological</div>
                           </div>
                           <div>
-                            <div className="text-xl sm:text-2xl font-bold text-pink-600">26</div>
+                            <div className="text-lg sm:text-xl font-bold text-pink-600">26</div>
                             <div className="text-xs text-gray-600">Emotional</div>
                           </div>
                           <div>
-                            <div className="text-xl sm:text-2xl font-bold text-gray-700">28</div>
+                            <div className="text-lg sm:text-xl font-bold text-gray-700">28</div>
                             <div className="text-xs text-gray-600">Actual</div>
                           </div>
                         </div>
@@ -331,75 +328,91 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
 
               {/* Right Side: Performance Metrics */}
               <div className="lg:col-span-8">
-                <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 p-4 md:p-8 h-full">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 sm:gap-0">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-3 md:p-5 h-full">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3 sm:gap-0">
                     <div>
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">Wellness Metrics</h3>
-                      <p className="text-sm sm:text-base text-gray-600">Track your performance in real-time.</p>
+                      <h3 className="text-base sm:text-lg font-bold text-gray-900">Wellness Metrics</h3>
+                      <p className="text-xs sm:text-sm text-gray-600">Track your performance in real-time.</p>
                     </div>
-                    <div className="flex items-center space-x-2 self-end sm:self-center">
+                    <div className="flex items-center space-x-1 self-end sm:self-center">
                        <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">Glow Score</span>
                        <div className="flex items-baseline space-x-1">
-                         <span className="text-2xl sm:text-3xl font-black text-gray-900">72</span>
+                         <span className="text-xl sm:text-2xl font-black text-gray-900">72</span>
                          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
-                         <span className="text-xl sm:text-2xl font-extrabold text-emerald-600">85+</span>
+                         <span className="text-lg sm:text-xl font-extrabold text-emerald-600">85+</span>
                        </div>
                     </div>
                   </div>
-                
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                     {/* Physical Vitality */}
-                    <div className="bg-white rounded-xl p-3 sm:p-5 border border-gray-200 shadow-sm">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200 shadow-sm">
                       <div className="flex items-center justify-between sm:block">
-                        <div className="flex items-center sm:mb-4">
-                          <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Zap className="w-4 h-4 text-purple-600" /></div>
-                          <h4 className="text-base font-semibold text-gray-900">Physical</h4>
+                        <div className="flex items-center sm:mb-2">
+                          <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Zap className="w-4 h-4 text-purple-600" /></div>
+                          <h4 className="text-sm font-semibold text-gray-900">Physical</h4>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 sm:mb-4">66</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900 sm:mb-2">66</div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2 sm:mt-0"><div className="h-2 bg-purple-500 rounded-full" style={{ width: '66%' }}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1 sm:mt-0"><div className="h-2 bg-purple-500 rounded-full" style={{ width: '66%' }}></div></div>
                     </div>
                     {/* Emotional Health */}
-                    <div className="bg-white rounded-xl p-3 sm:p-5 border border-gray-200 shadow-sm">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200 shadow-sm">
                       <div className="flex items-center justify-between sm:block">
-                        <div className="flex items-center sm:mb-4">
-                          <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Heart className="w-4 h-4 text-pink-600" /></div>
-                          <h4 className="text-base font-semibold text-gray-900">Emotional</h4>
+                        <div className="flex items-center sm:mb-2">
+                          <div className="w-7 h-7 bg-pink-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Heart className="w-4 h-4 text-pink-600" /></div>
+                          <h4 className="text-sm font-semibold text-gray-900">Emotional</h4>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 sm:mb-4">58</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900 sm:mb-2">58</div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2 sm:mt-0"><div className="h-2 bg-pink-500 rounded-full" style={{ width: '58%' }}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1 sm:mt-0"><div className="h-2 bg-pink-500 rounded-full" style={{ width: '58%' }}></div></div>
                     </div>
                     {/* Visual Appearance */}
-                    <div className="bg-white rounded-xl p-3 sm:p-5 border border-gray-200 shadow-sm">
+                    <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200 shadow-sm">
                       <div className="flex items-center justify-between sm:block">
-                        <div className="flex items-center sm:mb-4">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Eye className="w-4 h-4 text-blue-600" /></div>
-                          <h4 className="text-base font-semibold text-gray-900">Visual</h4>
+                        <div className="flex items-center sm:mb-2">
+                          <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Eye className="w-4 h-4 text-blue-600" /></div>
+                          <h4 className="text-sm font-semibold text-gray-900">Visual</h4>
                         </div>
-                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 sm:mb-4">62</div>
+                        <div className="text-lg sm:text-xl font-bold text-gray-900 sm:mb-2">62</div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mt-2 sm:mt-0"><div className="h-2 bg-blue-500 rounded-full" style={{ width: '62%' }}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1 sm:mt-0"><div className="h-2 bg-blue-500 rounded-full" style={{ width: '62%' }}></div></div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Glow-Up Archetype Preview Card (Desktop only) */}
+            <div className="mt-4 hidden lg:block">
+              <div className="w-full bg-white rounded-xl shadow-lg border border-gray-100 p-4 flex items-start">
+                <div className="w-10 h-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0 border border-gray-200/50">
+                  <User className="w-5 h-5 text-gray-700" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
+                    You are like David Beckham during his prime
+                  </h3>
+                  <p className="text-gray-800 leading-relaxed text-sm sm:text-base">
+                    Much like David Beckham, you embody a blend of charisma and determination. Your commitment to self-care and proactive health choices mirrors Beckham's dedication to fitness and style. While you face challenges in emotional health and social connections, your strengths in engaging activities and overcoming past habits reflect a journey of resilience. Just as Beckham transformed his image and career through hard work and passion, you too have the potential to enhance your well-being and social ties, paving the way for a vibrant future.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {/* --- MOBILE LAYOUT --- */}
             <div className="block lg:hidden">
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border-white/50 p-6 space-y-6">
+              <div className="rounded-2xl border-white/50 p-4 space-y-4">
                 {/* Tab Switcher */}
                 <div className="flex justify-center bg-gray-100 rounded-full p-1">
                   <button 
                     onClick={() => setMobileDashboardTab('profile')}
-                    className={`w-1/2 py-2 text-sm font-semibold rounded-full transition-colors duration-200 ${mobileDashboardTab === 'profile' ? 'bg-white text-gray-900 shadow' : 'text-gray-600'}`}
+                    className={`w-1/2 py-1.5 text-xs font-semibold rounded-full transition-colors duration-200 ${mobileDashboardTab === 'profile' ? 'bg-white text-gray-900 shadow' : 'text-gray-600'}`}
                   >
                     Profile
                   </button>
                   <button 
                     onClick={() => setMobileDashboardTab('metrics')}
-                    className={`w-1/2 py-2 text-sm font-semibold rounded-full transition-colors duration-200 ${mobileDashboardTab === 'metrics' ? 'bg-white text-gray-900 shadow' : 'text-gray-600'}`}
+                    className={`w-1/2 py-1.5 text-xs font-semibold rounded-full transition-colors duration-200 ${mobileDashboardTab === 'metrics' ? 'bg-white text-gray-900 shadow' : 'text-gray-600'}`}
                   >
                     Metrics
                   </button>
@@ -408,84 +421,96 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                 {/* Tab Content */}
                 <div>
                   {mobileDashboardTab === 'profile' && (
-                    <div className="space-y-6 animate-fade-in">
+                    <div className="space-y-4 animate-fade-in">
                       {/* Profile Header */}
                       <div className="text-center">
-                        <div className="relative inline-block mb-4">
-                          <div className="w-24 h-24 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-2xl">
+                        <div className="relative inline-block mb-2">
+                          <div className="w-20 h-20 bg-gradient-to-br from-indigo-400 via-purple-400 to-pink-400 rounded-full p-1 shadow-xl">
                             <div className="w-full h-full rounded-full bg-gray-100 flex items-center justify-center">
-                              <User className="w-12 h-12 text-gray-400" />
+                              <User className="w-10 h-10 text-gray-400" />
                             </div>
                           </div>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">Your Future Self</h3>
-                        <p className="text-gray-600 text-sm">A preview of your potential.</p>
+                        <h3 className="text-lg font-bold text-gray-900">Your Future Self</h3>
+                        <p className="text-gray-600 text-xs">A preview of your potential.</p>
                       </div>
-
                       {/* Age Analysis Compact */}
-                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
-                        <h4 className="text-base font-semibold text-gray-700 mb-3 text-center">Age Analysis</h4>
-                        <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-3 border border-gray-100">
+                        <h4 className="text-xs font-semibold text-gray-700 mb-2 text-center">Age Analysis</h4>
+                        <div className="grid grid-cols-3 gap-1 text-center">
                           <div>
-                            <div className="text-xl font-bold text-emerald-600">24</div>
+                            <div className="text-lg font-bold text-emerald-600">24</div>
                             <div className="text-xs text-gray-600">Biological</div>
                           </div>
                           <div>
-                            <div className="text-xl font-bold text-pink-600">26</div>
+                            <div className="text-lg font-bold text-pink-600">26</div>
                             <div className="text-xs text-gray-600">Emotional</div>
                           </div>
                           <div>
-                            <div className="text-xl font-bold text-gray-700">28</div>
+                            <div className="text-lg font-bold text-gray-700">28</div>
                             <div className="text-xs text-gray-600">Actual</div>
                           </div>
                         </div>
                       </div>
+                      {/* Glow-Up Archetype Preview Card (Mobile only) */}
+                      <div className="w-full bg-white rounded-xl shadow-lg border border-gray-100 p-4 flex items-start mt-2 lg:hidden">
+                        <div className="w-10 h-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-full flex items-center justify-center mr-4 flex-shrink-0 border border-gray-200/50">
+                          <User className="w-5 h-5 text-gray-700" />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-gray-900 mb-1">
+                            You are like David Beckham during his prime
+                          </h3>
+                          <p className="text-gray-800 leading-relaxed text-sm">
+                            Much like David Beckham, you embody a blend of charisma and determination. Your commitment to self-care and proactive health choices mirrors Beckham's dedication to fitness and style. While you face challenges in emotional health and social connections, your strengths in engaging activities and overcoming past habits reflect a journey of resilience. Just as Beckham transformed his image and career through hard work and passion, you too have the potential to enhance your well-being and social ties, paving the way for a vibrant future.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
-
                   {mobileDashboardTab === 'metrics' && (
                     <div className="animate-fade-in">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-bold text-gray-900">Wellness Metrics</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-base font-bold text-gray-900">Wellness Metrics</h3>
                         <div className="flex items-center space-x-1">
                           <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">GLOW</span>
-                          <span className="text-2xl font-black text-gray-900">72</span>
+                          <span className="text-xl font-black text-gray-900">72</span>
                           <TrendingUp className="w-4 h-4 text-emerald-500" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 gap-2">
                         {/* Physical Vitality */}
-                        <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+                        <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Zap className="w-4 h-4 text-purple-600" /></div>
-                              <h4 className="text-base font-semibold text-gray-900">Physical</h4>
+                              <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Zap className="w-4 h-4 text-purple-600" /></div>
+                              <h4 className="text-sm font-semibold text-gray-900">Physical</h4>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">66</div>
+                            <div className="text-lg font-bold text-gray-900">66</div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className="h-2 bg-purple-500 rounded-full" style={{ width: '66%' }}></div></div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1"><div className="h-2 bg-purple-500 rounded-full" style={{ width: '66%' }}></div></div>
                         </div>
                         {/* Emotional Health */}
-                        <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+                        <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-pink-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Heart className="w-4 h-4 text-pink-600" /></div>
-                              <h4 className="text-base font-semibold text-gray-900">Emotional</h4>
+                              <div className="w-7 h-7 bg-pink-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Heart className="w-4 h-4 text-pink-600" /></div>
+                              <h4 className="text-sm font-semibold text-gray-900">Emotional</h4>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">58</div>
+                            <div className="text-lg font-bold text-gray-900">58</div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className="h-2 bg-pink-500 rounded-full" style={{ width: '58%' }}></div></div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1"><div className="h-2 bg-pink-500 rounded-full" style={{ width: '58%' }}></div></div>
                         </div>
                         {/* Visual Appearance */}
-                        <div className="bg-white rounded-xl p-3 border border-gray-200 shadow-sm">
+                        <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3 flex-shrink-0"><Eye className="w-4 h-4 text-blue-600" /></div>
-                              <h4 className="text-base font-semibold text-gray-900">Visual</h4>
+                              <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center mr-2 flex-shrink-0"><Eye className="w-4 h-4 text-blue-600" /></div>
+                              <h4 className="text-sm font-semibold text-gray-900">Visual</h4>
                             </div>
-                            <div className="text-2xl font-bold text-gray-900">62</div>
+                            <div className="text-lg font-bold text-gray-900">62</div>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className="h-2 bg-blue-500 rounded-full" style={{ width: '62%' }}></div></div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1"><div className="h-2 bg-blue-500 rounded-full" style={{ width: '62%' }}></div></div>
                         </div>
                       </div>
                     </div>
@@ -496,8 +521,81 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
           </div>
         </section>
 
+        {/* Add extra spacing between sections */}
+        <div className="mt-20" />
+
+        {/* See Your Potential Transformation Section */}
+        <section className="mt-12 mb-24">
+          <h2 className="text-2xl sm:text-[2.2rem] md:text-[2.8rem] font-bold text-center text-gray-900 mb-5 leading-tight flex items-center justify-center gap-2 sm:gap-4">
+            <span className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600 text-white font-extrabold text-base sm:text-xl flex-shrink-0">2</span>
+            <span className="block">See Your Potential<br className="sm:hidden" /> Transformation</span>
+          </h2>
+          <div className="flex flex-row flex-wrap justify-center items-center md:flex-row gap-6 mb-7">
+            {/* Progress Stats */}
+            <div className="flex flex-col items-center">
+              <span className="text-[2.1rem] font-extrabold text-gray-900">75</span>
+              <span className="text-gray-500 text-sm">Current</span>
+            </div>
+            <span className="text-[1.7rem] font-bold text-gray-400">→</span>
+            <div className="flex flex-col items-center">
+              <span className="text-[2.1rem] font-extrabold text-green-600">79</span>
+              <span className="text-green-600 font-semibold text-sm">+4 in 7 days</span>
+            </div>
+            <span className="text-[1.7rem] font-bold text-gray-400">→</span>
+            <div className="flex flex-col items-center">
+              <span className="text-[2.1rem] font-extrabold text-pink-600">99</span>
+              <span className="text-pink-600 font-semibold text-sm">+24 in 30 days</span>
+            </div>
+          </div>
+          {/* Message from Future Self */}
+          <div className="max-w-4xl mx-auto w-full mt-8">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-pink-200" />
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-purple-700 text-center whitespace-nowrap">Message from Your Future Self</h2>
+              <div className="flex-1 h-px bg-gradient-to-l from-purple-200 to-pink-200" />
+            </div>
+            <div className="w-full bg-white/90 rounded-2xl shadow-xl p-8 sm:p-12 mx-auto">
+              <blockquote className="italic text-gray-700 border-l-4 border-purple-300 pl-6 text-lg sm:text-xl leading-relaxed">
+                Hey, it’s me—30 days from now. I remember feeling uncertain, just like you do now. But trust me, the journey ahead is incredible. You’ll find joy in small wins—like when you first notice your skin glowing or feel more energy. You’ll push through and feel so proud. I’m you, just a version that’s embraced change. We’re closer than you think!
+              </blockquote>
+            </div>
+          </div>
+        </section>
+
+        {/* Personalized Weekly Plan Section (Visual with Book Covers) */}
+        <section className="mt-36 mb-12">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-6 leading-tight flex items-center justify-center gap-2 sm:gap-4">
+            <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-green-600 text-white font-extrabold text-base sm:text-lg flex-shrink-0">3</span>
+            <span className="block">Your Personalized Habit<br className="sm:hidden" /> System & Routines</span>
+          </h2>
+          <div className="flex flex-col items-center">
+            <div className="flex flex-row gap-20 justify-center items-end flex-wrap mt-10 mb-8">
+              <div className="flex flex-col items-center">
+                <img src="/atomic_habits.jpeg" alt="Atomic Habits" className="w-34 h-52 object-cover rounded-xl shadow-lg border-4 border-purple-200 transition-transform duration-300 hover:scale-105" />
+                <span className="mt-3 text-base font-semibold text-purple-700 text-center">Atomic Habits</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <img src="/miracle_morning.jpg" alt="The Miracle Morning" className="w-34 h-52 object-cover rounded-xl shadow-lg border-4 border-blue-200 transition-transform duration-300 hover:scale-105" />
+                <span className="mt-3 text-base font-semibold text-blue-700 text-center">The Miracle Morning</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <img src="/deep_work.jpg" alt="Deep Work" className="w-34 h-52 object-cover rounded-xl shadow-lg border-4 border-yellow-200 transition-transform duration-300 hover:scale-105" />
+                <span className="mt-3 text-base font-semibold text-yellow-700 text-center">Deep Work</span>
+              </div>
+            </div>
+            <div className="mt-8 text-lg md:text-xl text-gray-700 text-center max-w-2xl font-medium">
+              Your system, plan, and habits are created based on these books.
+            </div>
+          </div>
+        </section>
+
+        {/* Divider between Habit System and Transformation Steps */}
+        <div className="w-full flex justify-center my-4">
+          <div className="h-1 w-2/3 bg-gradient-to-r from-green-200 via-gray-100 to-blue-200 rounded-full opacity-70" />
+        </div>
+
         {/* How It Works - Visual Process */}
-        <section id="how-it-works" className="py-20 sm:py-24 px-4">
+        <section id="how-it-works" className="py-12 sm:py-16 px-4 mt-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 sm:mb-20">
               <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -585,6 +683,57 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                   </div>
                 );
               })}
+            </div>
+
+            {/* How It Works: Under the Hood - Agent Diagram */}
+            <div className="flex flex-col items-center justify-center mt-32 mb-16">
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-10">How It Works: Under the Hood</h3>
+              <div className="w-full flex flex-col items-center">
+                <svg width="900" height="200" viewBox="0 0 900 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="max-w-full">
+                  {/* Quiz Agent */}
+                  <circle cx="140" cy="100" r="70" fill="#f3f4f6" stroke="#a78bfa" strokeWidth="5" />
+                  <text x="140" y="95" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#7c3aed">Quiz</text>
+                  <text x="140" y="120" textAnchor="middle" fontSize="16" fill="#7c3aed">Agent</text>
+                  {/* Photo Agent */}
+                  <circle cx="370" cy="100" r="70" fill="#f3f4f6" stroke="#f472b6" strokeWidth="5" />
+                  <text x="370" y="95" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#db2777">Photo</text>
+                  <text x="370" y="120" textAnchor="middle" fontSize="16" fill="#db2777">Agent</text>
+                  {/* Synthesis Agent */}
+                  <circle cx="600" cy="100" r="70" fill="#f3f4f6" stroke="#34d399" strokeWidth="5" />
+                  <text x="600" y="95" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#059669">Synthesis</text>
+                  <text x="600" y="120" textAnchor="middle" fontSize="16" fill="#059669">Agent</text>
+                  {/* Output Node */}
+                  <circle cx="800" cy="100" r="50" fill="#f3f4f6" stroke="#6366f1" strokeWidth="4" />
+                  <text x="800" y="105" textAnchor="middle" fontSize="24" fontWeight="bold" fill="#6366f1">You</text>
+                  {/* Arrows */}
+                  <defs>
+                    <linearGradient id="arrow1" x1="210" y1="100" x2="300" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#a78bfa" />
+                      <stop offset="1" stopColor="#f472b6" />
+                    </linearGradient>
+                    <linearGradient id="arrow2" x1="440" y1="100" x2="530" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#f472b6" />
+                      <stop offset="1" stopColor="#34d399" />
+                    </linearGradient>
+                    <linearGradient id="arrow3" x1="670" y1="100" x2="750" y2="100" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#34d399" />
+                      <stop offset="1" stopColor="#6366f1" />
+                    </linearGradient>
+                  </defs>
+                  {/* Curved Arrows */}
+                  <path d="M210 100 Q290 40 300 100" stroke="url(#arrow1)" strokeWidth="7" fill="none" />
+                  <polygon points="300,100 292,94 292,106" fill="#f472b6" />
+                  <path d="M440 100 Q520 160 530 100" stroke="url(#arrow2)" strokeWidth="7" fill="none" />
+                  <polygon points="530,100 522,94 522,106" fill="#34d399" />
+                  <path d="M670 100 Q740 40 750 100" stroke="url(#arrow3)" strokeWidth="7" fill="none" />
+                  <polygon points="750,100 742,94 742,106" fill="#6366f1" />
+                </svg>
+                <div className="flex justify-between w-full max-w-4xl mt-8 text-lg text-gray-500 font-medium">
+                  <span className="ml-2">Quiz Analysis</span>
+                  <span>Photo Analysis</span>
+                  <span className="mr-2">Holistic Output</span>
+                </div>
+              </div>
             </div>
 
             {/* CTA */}

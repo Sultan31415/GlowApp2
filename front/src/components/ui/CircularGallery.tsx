@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CircularGallery.css';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+// Removed useIntersectionObserver import
 
 interface CircularGalleryProps {
   children: React.ReactNode[];
@@ -8,7 +8,6 @@ interface CircularGalleryProps {
 
 export const CircularGallery: React.FC<CircularGalleryProps> = ({ children }) => {
   const galleryRef = useRef<HTMLDivElement>(null);
-  const isVisible = useIntersectionObserver(galleryRef, { threshold: 0.1 });
   const [radius, setRadius] = useState(440);
   const angleStep = 360 / children.length;
 
@@ -30,7 +29,7 @@ export const CircularGallery: React.FC<CircularGalleryProps> = ({ children }) =>
   return (
     <div className="circular-gallery-container" ref={galleryRef}>
       <div className="circular-gallery-stage">
-        <div className={`circular-gallery ${!isVisible ? 'animation-paused' : ''}`}>
+        <div className="circular-gallery"> {/* Removed animation-paused logic */}
           {children.map((child, i) => (
             <div
               key={i}

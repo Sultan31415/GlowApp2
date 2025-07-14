@@ -174,7 +174,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       <div className="w-full flex justify-center px-2 sm:px-4 mt-8">
         <div className="flex flex-row gap-12 w-full max-w-4xl mb-12">
           {/* Morning Routine Card */}
-          <div className="flex-1 bg-gradient-to-br from-white via-yellow-50 to-yellow-100 border-l-4 border-yellow-400 shadow-xl rounded-2xl p-6 flex items-start min-w-[260px]">
+          <div className="flex-1 bg-transparent backdrop-blur-md shadow-xl rounded-2xl border-l-4 border-purple-300 p-6 flex items-start min-w-[260px]">
             <div className="mr-4 mt-1">
               <Sun className="h-8 w-8 text-yellow-400" />
             </div>
