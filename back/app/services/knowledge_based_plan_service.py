@@ -24,7 +24,8 @@ class KnowledgeBasedPlanService:
                 api_version=settings.AZURE_OPENAI_API_VERSION,
                 azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
             )
-            self.model = settings.AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME
+            # self.model = settings.AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME
+            self.model = settings.AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME
             print(f"[KnowledgeBasedPlanService] Using Azure OpenAI with deployment: {self.model}")
         else:
             self.llm_client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
@@ -37,7 +38,7 @@ class KnowledgeBasedPlanService:
         response = await self.llm_client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are an expert transformation coach specializing in highly personalized, actionable daily wellness plans. For each day, create a plan that is realistic, motivating, and tailored to the user's unique needs, struggles, and goals. Ground your plan in the principles from Atomic Habits, Miracle Morning, and Deep Work."},
+                {"role": "system", "content": "You are an expert transformation coach specializing in highly personalized, actionable daily wellness plans. For each week, create a plan that is realistic, motivating, and tailored to the user's unique needs, struggles, and goals. Ground your plan in the principles from Atomic Habits, Miracle Morning, and Deep Work."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.5,
@@ -51,7 +52,19 @@ class KnowledgeBasedPlanService:
             print(plan_json)
             print("="*80 + "\n")
             try:
-                return json.loads(plan_json)
+                plan = json.loads(plan_json)
+                # Validate new structure: must have morningLaunchpad, deepFocus, days (list of 7)
+                if (
+                    isinstance(plan, dict)
+                    and 'morningLaunchpad' in plan
+                    and 'days' in plan
+                    and isinstance(plan['days'], list)
+                    and len(plan['days']) == 7
+                ):
+                    return plan
+                else:
+                    logging.error(f"[KnowledgeBasedPlanService] Output does not match expected structure. Returning raw parsed object.")
+                    return plan
             except Exception as e:
                 logging.error(f"[KnowledgeBasedPlanService] Error parsing 7-day plan output: {e}")
                 extracted = extract_first_json(plan_json)
@@ -75,7 +88,32 @@ class KnowledgeBasedPlanService:
         backbone_str = f"\nHere is the weekly backbone (themes, focus areas, rationale) for each week: {json.dumps(backbone, ensure_ascii=False, indent=2)}" if backbone else ""
         projected_scores_str = f"\nHere are the user's projected scores for 7 and 30 days: {json.dumps(projected_scores, ensure_ascii=False, indent=2)}" if projected_scores else ""
         return f"""
-        IMPORTANT: Respond ONLY with a valid JSON array of 7 objects (one for each day, in order from Day 1 to Day 7). Do NOT include any explanations, comments, or text outside the JSON. The response must be a single valid JSON array that can be parsed directly.
+        IMPORTANT: Respond ONLY with a valid JSON object with the following structure (no explanations, comments, or text outside the JSON):
+        {{
+          'morningLaunchpad': [...],
+          'days': [
+            {{
+              'day': 1,
+              'mainFocus': <main focus or theme for the day (should align with the backbone)>,
+              'systemBuilding': <1-2 specific, actionable, and progressive habits (Atomic Habits, with trigger, action, reward)>,
+              'deepFocus': <a unique, highly personalized deep work block for this day (Deep Work)>,
+              'eveningReflection': <a review or journaling/reflection task>,
+              'motivationalTip': <a motivational tip or message>
+            }},
+            ...
+          ],
+          'challenges': [
+            {{
+              'category': "Learning | Leisure | Physical | Social | Mindfulness | Creative",
+              'title': <Short title for the challenge>,
+              'description': <Clear, trackable task to complete during the week>,
+              'estimatedTime': <Approximate time to complete the challenge, e.g. "30 min">,
+              'rationale': <Brief explanation why this challenge is useful based on user's profile>
+            }},
+            ...
+          ]
+        }}
+        The response must be a single valid JSON object that can be parsed directly.
 
         Given the following user data:
         - Orchestrator output: {orchestrator_output}
@@ -87,28 +125,33 @@ class KnowledgeBasedPlanService:
         {backbone_str}
         {projected_scores_str}
 
-        Your task: Create a 7-day plan that will help this user build truly life-changing habits and routines, not just generic tasks.
-        - Each day should use the following four-layer structure:
-          1. Morning Launchpad (Miracle Morning): A short, intentional routine to start the day with clarity and energy. Use S.A.V.E.R.S. practices and personalize to the user's needs.
-          2. System Building (Atomic Habits): 1-2 small, specific habits to build or replace, using habit stacking, the 2-minute rule, and identity-based habits. Specify trigger/cue, action, and reward for each.
-          3. Deep Focus (Deep Work): A block of time for focused, meaningful work or self-improvement, free from distractions. Personalize the focus area to the user's goals or struggles.
-          4. Evening Reflection: A short review or journaling task to reinforce progress and identity, celebrate wins, and plan for tomorrow.
-        - Each day's plan should be unique, progressive, and build toward a real routine by week's end.
-        - Use the user's quiz and photo insights, the weekly backbone, and the knowledge base to personalize every section.
-        - Avoid generic or repetitive tasks. Make the plan feel like it was written by a world-class coach for this user.
-        - Each day's plan should take 30-90 minutes total, with at least one habit that, if continued, will change the user's life.
+        Your task:
 
-        For each day, output an object with:
-        - 'day': The day number (1-7)
-        - 'mainFocus': The main focus or theme for the day (should align with the backbone)
-        - 'morningLaunchpad': A personalized morning routine (Miracle Morning)
-        - 'systemBuilding': 1-2 specific, actionable, and progressive habits (Atomic Habits, with trigger, action, reward)
-        - 'deepFocus': A focused work/self-improvement block (Deep Work)
-        - 'eveningReflection': A review or journaling/reflection task
-        - 'motivationalTip': A motivational tip or message
-        - 'rationale': A brief rationale for why these habits/routines are chosen for this user, referencing the knowledge base, the backbone, and the user's unique data
+        1. Create ONE morning routine (Miracle Morning) for the entire week — a list of 5-7 short, trackable actions like ["Wake up", "Drink water", "Stretch", ...], personalized to the user's context.
 
-        Make the plan feel like it was written just for this user, referencing their quiz and photo insights, the backbone, and the projected scores. Use vivid, personal language. The plan should be realistic, achievable, and inspiring, but also substantial and meaningful.
+        2. Create a detailed 7-day plan ("days") where each day includes:
+            - mainFocus: key theme of the day
+            - systemBuilding: 1-2 concrete, physical habits (Atomic Habits structure). Example:
+              {{
+                "trigger": "After lunch",
+                "action": "Take a 15-min walk",
+                "reward": "Clear mind and refreshed energy"
+              }}
+            - deepFocus: personalized 30–60 min session of uninterrupted focus (Deep Work)
+            - eveningReflection: simple journal or reflection action
+            - motivationalTip: motivating sentence
+            - Each habit must be unique, specific, and real-world — no vague or generic instructions.
 
-        AGAIN: Respond ONLY with a single valid JSON array of 7 objects (one for each day, in order from Day 1 to Day 7). Do NOT include any explanations, comments, or text outside the JSON.
+        3. Create exactly 2 or 3 weekly challenges under the "challenges" section. Prioritize the most relevant categories based on the user’s needs, quiz insights, and photo insights. Choose the types of challenges that would most benefit the user's emotional, physical, or mental state this week.
+            - Each challenge should fall into one of these categories: Learning, Leisure, Physical, Social, Mindfulness, Creative
+            - Each challenge must be:
+                - actionable (e.g. “Visit a new place and take 3 photos”)
+                - clearly described
+                - doable within the week
+                - engaging and slightly outside of user's current routine
+            - Include a brief rationale for each challenge
+
+        Do NOT include all categories (Learning, Leisure, Social, etc.). Pick only a few that feel the most important for this user's current situation. This makes the plan more focused and less overwhelming.
+
+        AGAIN: Respond ONLY with a single valid JSON object. Do NOT include any explanation or text outside the JSON.
         """ 

@@ -1,62 +1,48 @@
-import React, { useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
+import React from 'react';
+import { Calendar, Sparkles, Moon, Target, Settings, Info } from 'lucide-react';
 
-interface DayCardProps {
+export interface DayCardProps {
   day: any;
   dayName: string;
 }
 
 export const DayCard: React.FC<DayCardProps> = ({ day, dayName }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-      <div className="bg-pink-100 text-pink-800 font-bold text-center py-3 px-4">
-        {dayName}
+    <div className="bg-white/90 rounded-lg shadow-lg border border-gray-100 p-6 flex flex-col h-full min-h-[320px] self-stretch">
+      <div className="flex items-center mb-2">
+        <Calendar className="w-5 h-5 text-blue-500 mr-2" />
+        <h3 className="text-lg font-bold text-gray-800">{dayName}</h3>
       </div>
-      <div className="p-5">
-        <div className="flex items-center mb-3">
-          <CheckCircle2 className="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
-          <h3 className="font-semibold text-gray-800 text-lg">{day.mainFocus}</h3>
-        </div>
-
-        <div className="text-sm text-gray-600 space-y-2">
-          <div>
-            <b className="text-gray-700">Morning:</b> {typeof day.morningLaunchpad === 'object' ? Object.values(day.morningLaunchpad).join(', ') : day.morningLaunchpad}
-          </div>
-          <div>
-            <b className="text-gray-700">Habit:</b> {Array.isArray(day.systemBuilding) ? day.systemBuilding.map((h: any) => h.action || h.habit).join(', ') : day.systemBuilding}
-          </div>
-        </div>
-
-        <button
-          className="text-blue-500 hover:text-blue-700 font-semibold text-sm mt-4"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? 'Show Less' : 'Learn More'}
-        </button>
-
-        {isExpanded && (
-          <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-700 space-y-3">
-            <div><b>Tip:</b> {day.motivationalTip}</div>
-            <div><b>Why:</b> {day.rationale}</div>
-            {Array.isArray(day.systemBuilding) && (
-              <div>
-                <b className="block mb-1">Habit Details:</b>
-                <ul className="list-disc list-inside space-y-2 pl-2">
-                  {day.systemBuilding.map((habit: any, i: number) => (
-                    <li key={i}>
-                      <span className="font-semibold">{habit.action || habit.habit}</span>
-                      {habit.trigger && <div className="text-xs text-gray-500">Trigger: {habit.trigger}</div>}
-                      {habit.reward && <div className="text-xs text-gray-500">Reward: {habit.reward}</div>}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
+      <div className="mb-2">
+        <span className="text-xs font-semibold text-slate-500">Main Focus:</span>
+        <div className="text-base font-medium text-gray-700">{day.mainFocus}</div>
+      </div>
+      <div className="mb-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center"><Settings className="w-4 h-4 mr-1 text-purple-400" />System Building</h4>
+        <ul className="space-y-1">
+          {(Array.isArray(day.systemBuilding) ? day.systemBuilding : day.systemBuilding ? [day.systemBuilding] : []).map((habit: any, hIdx: number) => (
+            <li key={hIdx} className="flex flex-col text-sm text-gray-700">
+              <span>
+                <b>Action:</b> {habit.action}
+                {habit.trigger && <> <b> | Trigger:</b> {habit.trigger}</>}
+                {habit.reward && <> <b> | Reward:</b> {habit.reward}</>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="mb-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center"><Target className="w-4 h-4 mr-1 text-blue-400" />Deep Focus</h4>
+        <div className="text-gray-700 text-sm">{day.deepFocus}</div>
+      </div>
+      <div className="mb-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center"><Moon className="w-4 h-4 mr-1 text-gray-500" />Evening Reflection</h4>
+        <div className="text-gray-700 text-sm">{day.eveningReflection}</div>
+      </div>
+      <div className="mb-2">
+        <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center"><Sparkles className="w-4 h-4 mr-1 text-pink-400" />Motivational Tip</h4>
+        <div className="italic text-pink-700 text-sm">{day.motivationalTip}</div>
       </div>
     </div>
   );
-};
+}

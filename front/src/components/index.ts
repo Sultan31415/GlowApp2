@@ -17,4 +17,6 @@ export { Button } from './ui/Button';
 export { Card, CardContent } from './ui/Card';
 export { Navigation } from './ui/Navigation';
 export { ProgressBar } from './ui/ProgressBar';
-export { StatsCard } from './ui/StatsCard'; 
+export { StatsCard } from './ui/StatsCard';
+export { TaskItem } from './ui/TaskItem';
+export { TaskStepper } from './ui/TaskStepper'; 

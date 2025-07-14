@@ -455,25 +455,5 @@ async def get_latest_daily_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="No daily plan found for user.")
 
-    # Ensure the response always has a 'daily_plan' key with an array
-    plan_json = plan.plan_json
-    daily_plan = []
-    if isinstance(plan_json, dict):
-        if "daily_plan" in plan_json and isinstance(plan_json["daily_plan"], list):
-            daily_plan = plan_json["daily_plan"]
-        elif "weekPlan" in plan_json and isinstance(plan_json["weekPlan"], list):
-            daily_plan = plan_json["weekPlan"]
-        else:
-            # If it's a dict but not the expected keys, wrap in a list
-            daily_plan = [plan_json]
-    elif isinstance(plan_json, list):
-        daily_plan = plan_json
-    else:
-        daily_plan = []
-
-    return {
-        "plan_id": plan.id,
-        "created_at": plan.created_at.isoformat(),
-        "plan_type": plan.plan_type,
-        "daily_plan": daily_plan
-    } 
+    # The plan_json should be the LLM object (with morningLaunchpad and days)
+    return plan.plan_json 
