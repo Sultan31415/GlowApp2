@@ -16,16 +16,33 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let triedGeneration = false;
     const fetchPlan = async () => {
       try {
         setLoading(true);
         setError(null);
         const data = await makeRequest('daily-plan');
+        // If plan.days is missing or empty, try to generate a new plan (for early users)
+        if (!data || !Array.isArray(data.days) || data.days.length === 0) {
+          if (!triedGeneration) {
+            triedGeneration = true;
+            await makeRequest('generate-daily-plan', { method: 'POST' });
+            const newData = await makeRequest('daily-plan');
+            setPlan(newData);
+            console.log('Fetched plan after generation (missing/empty days):', newData);
+            return;
+          } else {
+            setError('No daily plan found. Please try to generate your plan again.');
+            setPlan(null);
+            return;
+          }
+        }
         setPlan(data);
         console.log('Fetched plan:', data); // Debug: log the plan structure
       } catch (err: any) {
         // If 404, try to generate the plan
-        if (err?.status === 404 || err?.response?.status === 404) {
+        if ((err?.status === 404 || err?.response?.status === 404) && !triedGeneration) {
+          triedGeneration = true;
           try {
             await makeRequest('generate-daily-plan', { method: 'POST' });
             // Try fetching again
@@ -34,10 +51,12 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             console.log('Fetched plan after generation:', data); // Debug: log after generation
           } catch (genErr: any) {
             setError('Failed to generate your daily plan. Please try again.');
+            setPlan(null);
             console.log('Error during plan generation:', genErr); // Debug: log generation error
           }
         } else {
           setError('Failed to load your daily plan.');
+          setPlan(null);
           console.log('Error fetching daily plan:', err); // Debug: log fetch error
         }
       } finally {
@@ -45,6 +64,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       }
     };
     fetchPlan();
+    // eslint-disable-next-line
   }, [makeRequest]);
 
   if (loading) {
@@ -85,8 +105,47 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   }
 
   // Defensive: If plan or plan.days is not available, show nothing
-  if (!plan || !Array.isArray(plan.days)) {
-    return null;
+  if (!plan || !Array.isArray(plan.days) || plan.days.length === 0) {
+    if (error) {
+      return (
+        <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
+          <div className="text-center max-w-md mx-auto px-4 sm:px-6">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RotateCcw className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Daily Plan Found</h3>
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={onBack}
+                className="w-full mt-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // If no error, show loading spinner (should be rare)
+    return (
+      <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
+          </div>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">Loading your daily plan</h3>
+          <p className="text-gray-600 px-4">Preparing your personalized schedule...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
