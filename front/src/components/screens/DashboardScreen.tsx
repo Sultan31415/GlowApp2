@@ -29,6 +29,7 @@ import { ShareCard } from '../features/ShareCard';
 import { useApi } from '../../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useTranslation } from 'react-i18next';
 
 
 interface DashboardScreenProps {}
@@ -44,6 +45,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const isMobile = useMediaQuery('(max-width: 1023px)');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -100,8 +102,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
             <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">Loading your dashboard</h3>
-          <p className="text-gray-600 px-4">Preparing your wellness insights...</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('dashboard.loadingTitle')}</h3>
+          <p className="text-gray-600 px-4">{t('dashboard.loadingDesc')}</p>
         </div>
       </div>
     );
@@ -120,20 +122,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-red-600" />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Oops! Something went wrong</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('dashboard.errorTitle')}</h3>
             <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
             <div className="space-y-3">
               <button
                 onClick={() => window.location.reload()}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
               >
-                Try Again
+                {t('dashboard.errorTryAgain')}
               </button>
               <button
                 onClick={() => navigate('/test')}
                 className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 touch-manipulation"
               >
-                Take Assessment Instead
+                {t('dashboard.errorTakeAssessment')}
               </button>
             </div>
           </div>
@@ -174,7 +176,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl border-2 border-gray-100 px-3 py-2 sm:px-6 sm:py-4 min-w-[100px] sm:min-w-[160px] transition-all duration-200 hover:shadow-3xl hover:scale-105 backdrop-blur-sm cursor-pointer touch-manipulation"
           >
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Glow Score</span>
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">{t('wellness.glowScore')}</span>
               <div className="flex items-start space-x-1 sm:space-x-2">
                 <span className="text-lg sm:text-3xl font-black text-gray-900">{sampleData.overallGlowScore}</span>
                 <div className="flex items-baseline space-x-0.5 -mt-1">
@@ -188,7 +190,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             onClick={() => navigate('/future')}
             className="mt-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm"
           >
-            See Your Potential
+            {t('dashboard.seePotential')}
           </button>
         </div>
 
@@ -203,8 +205,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                  <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600" />
                </div>
                <div>
-                 <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">Welcome, {userData?.first_name || 'Explorer'}!</h1>
-                 <p className="text-slate-500 text-xs sm:text-sm">Here's a preview of your future dashboard.</p>
+                 <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">{t('dashboard.welcome', { name: userData?.first_name || t('dashboard.journey') })}</h1>
+                 <p className="text-slate-500 text-xs sm:text-sm">{t('dashboard.welcomePreview')}</p>
                </div>
              </div>
            </div>
@@ -215,17 +217,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 shadow-lg text-center">
                 <div className="flex justify-center items-center mb-4">
                   <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mr-3" />
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">This is a Preview Dashboard!</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">{t('dashboard.previewTitle')}</h3>
                 </div>
                 <p className="text-gray-700 max-w-2xl mx-auto mb-5 text-sm sm:text-base">
-                  You're currently viewing a dashboard with sample data to show you what's possible. To see your own personalized scores, insights, and AI-powered recommendations, take our quick assessment.
+                  {t('dashboard.previewDesc')}
                 </p>
                 <button 
                   onClick={() => navigate('/test')}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 sm:px-8 sm:py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center mx-auto touch-manipulation"
                 >
                   <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Get Your Real Score
+                  {t('dashboard.getRealScore')}
                 </button>
             </div>
                         {/* Main Content Grid */}
@@ -248,40 +250,40 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                    
                    <div className="space-y-4 mt-4">
                      <div>
-                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Your Journey</h3>
+                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{t('dashboard.journey')}</h3>
                      </div>
                      
                      {/* Age Analysis Compact */}
                      <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-3 sm:p-4 border border-gray-100">
                        <div className="text-center mb-3">
-                         <h4 className="text-sm font-semibold text-gray-700">Age Analysis</h4>
+                         <h4 className="text-sm font-semibold text-gray-700">{t('dashboard.ageAnalysis')}</h4>
                        </div>
                        <div className="grid grid-cols-3 gap-1 sm:gap-4 text-center">
                          <div>
                            <div className="text-xl sm:text-2xl font-bold text-emerald-600">{sampleData.biologicalAge}</div>
-                           <div className="text-xs text-gray-600">Biological Age</div>
+                           <div className="text-xs text-gray-600">{t('dashboard.biologicalAge')}</div>
                          </div>
                          <div>
                            <div className="text-xl sm:text-2xl font-bold text-pink-600">{sampleData.emotionalAge}</div>
-                           <div className="text-xs text-gray-600">Emotional Age</div>
+                           <div className="text-xs text-gray-600">{t('dashboard.emotionalAge')}</div>
                          </div>
                          <div>
                            <div className="text-xl sm:text-2xl font-bold text-gray-700">{sampleData.chronologicalAge}</div>
-                           <div className="text-xs text-gray-600">Actual Age</div>
+                           <div className="text-xs text-gray-600">{t('dashboard.actualAge')}</div>
                          </div>
                        </div>
                        
                        <div className="mt-4 text-center space-y-3">
                          <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
                            <TrendingUp className="w-4 h-4 mr-1" />
-                           {sampleData.chronologicalAge - sampleData.biologicalAge} years younger biologically!
+                           {t('dashboard.yearsYounger', { years: sampleData.chronologicalAge - sampleData.biologicalAge })}
                          </div>
                          <div>
                            <button 
                              onClick={() => navigate('/test')}
                              className="text-xs text-gray-600 hover:text-purple-600 font-medium underline decoration-dotted transition-colors duration-200"
                            >
-                             Discover your biological age →
+                             {t('dashboard.discoverBioAge')}
                            </button>
                          </div>
                        </div>
@@ -296,12 +298,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-4 sm:p-6 h-full">
                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
                      <div>
-                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">Wellness Metrics</h3>
-                       <p className="text-gray-600 text-sm">Your current performance overview</p>
+                       <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{t('dashboard.wellnessMetrics')}</h3>
+                       <p className="text-gray-600 text-sm">{t('dashboard.performanceOverview')}</p>
                      </div>
                      <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg mt-2 sm:mt-0">
                        <BarChart3 className="w-4 h-4 mr-2" />
-                       Live Data
+                       {t('dashboard.liveData')}
                      </div>
                    </div>
                  
@@ -313,8 +315,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                          <Zap className="w-4 h-4 text-purple-600" />
                        </div>
                        <div>
-                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">Physical Vitality</h4>
-                         <p className="text-xs text-gray-500">Energy, fitness & strength</p>
+                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.physicalVitality')}</h4>
+                         <p className="text-xs text-gray-500">{t('dashboard.physicalDesc')}</p>
                        </div>
                      </div>
                      
@@ -327,7 +329,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                      
                      <div className="space-y-3 mt-auto">
                        <div className="flex justify-between text-sm">
-                         <span className="text-gray-600">Progress</span>
+                         <span className="text-gray-600">{t('dashboard.progress')}</span>
                          <span className="font-medium text-gray-900">{sampleData.categoryScores.physicalVitality}%</span>
                        </div>
                        <div className="w-full bg-gray-200 rounded-full h-2">
@@ -338,13 +340,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                        </div>
                        <div className="flex justify-between items-center">
                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                           Good
+                           {t('dashboard.excellent')}
                          </span>
                          <button 
                            onClick={() => navigate('/test')}
                            className="text-xs text-purple-600 hover:text-purple-800 font-medium underline decoration-dotted"
                          >
-                           Get yours
+                           {t('dashboard.getYours')}
                          </button>
                        </div>
                      </div>
@@ -357,8 +359,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                          <Heart className="w-4 h-4 text-pink-600" />
                        </div>
                        <div>
-                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">Emotional Health</h4>
-                         <p className="text-xs text-gray-500">Mood, stress & resilience</p>
+                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.emotionalHealth')}</h4>
+                         <p className="text-xs text-gray-500">{t('dashboard.emotionalDesc')}</p>
                        </div>
                      </div>
                      
@@ -371,7 +373,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                      
                      <div className="space-y-3 mt-auto">
                        <div className="flex justify-between text-sm">
-                         <span className="text-gray-600">Progress</span>
+                         <span className="text-gray-600">{t('dashboard.progress')}</span>
                          <span className="font-medium text-gray-900">{sampleData.categoryScores.emotionalHealth}%</span>
                        </div>
                        <div className="w-full bg-gray-200 rounded-full h-2">
@@ -382,13 +384,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                        </div>
                        <div className="flex justify-between items-center">
                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                           Good
+                           {t('dashboard.excellent')}
                          </span>
                          <button 
                            onClick={() => navigate('/test')}
                            className="text-xs text-purple-600 hover:text-purple-800 font-medium underline decoration-dotted"
                          >
-                           Get yours
+                           {t('dashboard.getYours')}
                          </button>
                        </div>
                      </div>
@@ -401,8 +403,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                          <Eye className="w-4 h-4 text-blue-600" />
                        </div>
                        <div>
-                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">Visual Appearance</h4>
-                         <p className="text-xs text-gray-500">Skin, style & confidence</p>
+                         <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.visualAppearance')}</h4>
+                         <p className="text-xs text-gray-500">{t('dashboard.visualDesc')}</p>
                        </div>
                      </div>
                      
@@ -415,7 +417,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                      
                      <div className="space-y-3 mt-auto">
                        <div className="flex justify-between text-sm">
-                         <span className="text-gray-600">Progress</span>
+                         <span className="text-gray-600">{t('dashboard.progress')}</span>
                          <span className="font-medium text-gray-900">{sampleData.categoryScores.visualAppearance}%</span>
                        </div>
                        <div className="w-full bg-gray-200 rounded-full h-2">
@@ -426,13 +428,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                        </div>
                        <div className="flex justify-between items-center">
                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                           Excellent
+                           {t('dashboard.excellent')}
                          </span>
                          <button 
                            onClick={() => navigate('/test')}
                            className="text-xs text-purple-600 hover:text-purple-800 font-medium underline decoration-dotted"
                          >
-                           Get yours
+                           {t('dashboard.getYours')}
                          </button>
                        </div>
                      </div>
@@ -461,12 +463,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       </div>
                     </div>
                     <div className="mt-4 text-sm">
-                      <span className="text-gray-600 mr-0 mb-2 block">Ready to discover your archetype?</span>
+                      <span className="text-gray-600 mr-0 mb-2 block">{t('dashboard.archetypeReady')}</span>
                       <button 
                         onClick={() => navigate('/test')}
                         className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg font-medium hover:bg-purple-200 transition-colors duration-200 flex items-center"
                       >
-                        Take Assessment
+                        {t('dashboard.takeAssessment')}
                         <ArrowRight className="w-3 h-3 ml-1" />
                       </button>
                     </div>
@@ -493,10 +495,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
              <div className="mb-6">
                <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-100/50 p-6 sm:p-8">
                  <div className="mb-6">
-                   <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">
-                     Want to unlock your real results?
-                   </h3>
-                   <p className="text-gray-600 text-sm sm:text-base">Complete the wellness assessment to see your personalized dashboard with AI-powered insights.</p>
+                   <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3">{t('dashboard.unlockResults')}</h3>
+                   <p className="text-gray-600 text-sm sm:text-base">{t('dashboard.completeAssessment')}</p>
                  </div>
                  
                  <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -504,17 +504,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                      onClick={() => navigate('/test')}
                      className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 sm:py-4 rounded-2xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center w-full sm:w-auto touch-manipulation"
                    >
-                     Start Assessment
+                     {t('dashboard.startAssessment')}
                      <ArrowRight className="w-5 h-5 ml-2" />
                    </button>
                    <div className="flex items-center text-gray-500 text-sm mt-3 sm:mt-0">
                      <div className="flex items-center mr-4 sm:mr-6">
                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                       3-5 minutes
+                       {t('dashboard.minutes')}
                      </div>
                      <div className="flex items-center">
                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                       Free assessment
+                       {t('dashboard.freeAssessment')}
                      </div>
                    </div>
                  </div>
@@ -561,7 +561,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           className="bg-white rounded-xl sm:rounded-2xl shadow-xl sm:shadow-2xl border-2 border-gray-100 px-3 py-2 sm:px-6 sm:py-4 min-w-[100px] sm:min-w-[160px] transition-all duration-200 hover:shadow-3xl hover:scale-105 backdrop-blur-sm cursor-pointer touch-manipulation"
         >
           <div className="flex flex-col">
-            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Glow Score</span>
+            <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">{t('wellness.glowScore')}</span>
             <div className="flex items-start space-x-1 sm:space-x-2">
               <span className="text-lg sm:text-3xl font-black text-gray-900">{isNewUser ? 78 : results?.overallGlowScore}</span>
               <div className="flex items-baseline space-x-0.5 -mt-1">
@@ -575,7 +575,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           onClick={() => navigate('/future')}
           className="mt-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 sm:px-6 sm:py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm"
         >
-          See Your Potential
+          {t('dashboard.seePotential')}
         </button>
       </div>
 
@@ -588,8 +588,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">Welcome back!</h1>
-              <p className="text-slate-500 text-xs sm:text-sm">Your wellness journey continues</p>
+              <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">{t('dashboard.welcome', { name: userData?.first_name || t('dashboard.journey') })}</h1>
+              <p className="text-slate-500 text-xs sm:text-sm">{t('dashboard.welcomePreview')}</p>
             </div>
           </div>
         </div>
@@ -675,20 +675,20 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   {/* Age Analysis Compact */}
                   <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-3 sm:p-4 border border-gray-100">
                     <div className="text-center mb-3">
-                      <h4 className="text-sm font-semibold text-gray-700">Age Analysis</h4>
+                      <h4 className="text-sm font-semibold text-gray-700">{t('dashboard.ageAnalysis')}</h4>
                     </div>
                     <div className="grid grid-cols-3 gap-1 sm:gap-4 text-center">
                       <div>
                         <div className="text-xl sm:text-2xl font-bold text-emerald-600">{results.biologicalAge}</div>
-                        <div className="text-xs text-gray-600">Biological Age</div>
+                        <div className="text-xs text-gray-600">{t('dashboard.biologicalAge')}</div>
                       </div>
                       <div>
                         <div className="text-xl sm:text-2xl font-bold text-pink-600">{results.emotionalAge}</div>
-                        <div className="text-xs text-gray-600">Emotional Age</div>
+                        <div className="text-xs text-gray-600">{t('dashboard.emotionalAge')}</div>
                       </div>
                       <div>
                         <div className="text-xl sm:text-2xl font-bold text-gray-700">{results.chronologicalAge}</div>
-                        <div className="text-xs text-gray-600">Actual Age</div>
+                        <div className="text-xs text-gray-600">{t('dashboard.actualAge')}</div>
                       </div>
                     </div>
                     
@@ -696,7 +696,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       <div className="mt-4 text-center">
                         <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
                           <TrendingUp className="w-4 h-4 mr-1" />
-                          {results.chronologicalAge - results.biologicalAge} years younger biologically!
+                          {t('dashboard.yearsYounger', { years: results.chronologicalAge - results.biologicalAge })}
                         </div>
                       </div>
                     )}
@@ -712,12 +712,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-4 sm:p-6 h-full">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">Wellness Metrics</h3>
-                  <p className="text-gray-600 text-sm">Your current performance overview</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{t('dashboard.wellnessMetrics')}</h3>
+                  <p className="text-gray-600 text-sm">{t('dashboard.performanceOverview')}</p>
                 </div>
                 <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg mt-2 sm:mt-0">
                   <BarChart3 className="w-4 h-4 mr-2" />
-                  Live Data
+                  {t('dashboard.liveData')}
                 </div>
               </div>
               
@@ -731,7 +731,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-semibold text-gray-900">Physical Vitality</h4>
+                          <h4 className="text-sm font-semibold text-gray-900">{t('dashboard.physicalVitality')}</h4>
                           <span className="text-sm font-bold text-gray-900">{categoryScores.physicalVitality}/100</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
@@ -751,7 +751,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-semibold text-gray-900">Emotional Health</h4>
+                          <h4 className="text-sm font-semibold text-gray-900">{t('dashboard.emotionalHealth')}</h4>
                           <span className="text-sm font-bold text-gray-900">{categoryScores.emotionalHealth}/100</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
@@ -771,7 +771,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-semibold text-gray-900">Visual Appearance</h4>
+                          <h4 className="text-sm font-semibold text-gray-900">{t('dashboard.visualAppearance')}</h4>
                           <span className="text-sm font-bold text-gray-900">{categoryScores.visualAppearance}/100</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
@@ -793,8 +793,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       <Zap className="w-4 h-4 text-purple-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">Physical Vitality</h4>
-                      <p className="text-xs text-gray-500">Energy, fitness & strength</p>
+                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.physicalVitality')}</h4>
+                      <p className="text-xs text-gray-500">{t('dashboard.physicalDesc')}</p>
                     </div>
                   </div>
                   
@@ -807,7 +807,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   
                   <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Progress</span>
+                      <span className="text-gray-600">{t('dashboard.progress')}</span>
                       <span className="font-medium text-gray-900">{categoryScores.physicalVitality}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -824,7 +824,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                           ? 'bg-yellow-100 text-yellow-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {categoryScores.physicalVitality >= 70 ? 'Excellent' : categoryScores.physicalVitality >= 50 ? 'Good' : 'Needs Focus'}
+                        {categoryScores.physicalVitality >= 70 ? t('dashboard.excellent') : categoryScores.physicalVitality >= 50 ? t('dashboard.good') : t('dashboard.needsFocus')}
                       </span>
                     </div>
                   </div>
@@ -837,8 +837,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       <Heart className="w-4 h-4 text-pink-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">Emotional Health</h4>
-                      <p className="text-xs text-gray-500">Mood, stress & resilience</p>
+                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.emotionalHealth')}</h4>
+                      <p className="text-xs text-gray-500">{t('dashboard.emotionalDesc')}</p>
                     </div>
                   </div>
                   
@@ -851,7 +851,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   
                   <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Progress</span>
+                      <span className="text-gray-600">{t('dashboard.progress')}</span>
                       <span className="font-medium text-gray-900">{categoryScores.emotionalHealth}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -868,7 +868,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                           ? 'bg-yellow-100 text-yellow-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {categoryScores.emotionalHealth >= 70 ? 'Excellent' : categoryScores.emotionalHealth >= 50 ? 'Good' : 'Needs Focus'}
+                        {categoryScores.emotionalHealth >= 70 ? t('dashboard.excellent') : categoryScores.emotionalHealth >= 50 ? t('dashboard.good') : t('dashboard.needsFocus')}
                       </span>
                     </div>
                   </div>
@@ -881,8 +881,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       <Eye className="w-4 h-4 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">Visual Appearance</h4>
-                      <p className="text-xs text-gray-500">Skin, style & confidence</p>
+                      <h4 className="text-sm sm:text-base font-semibold text-gray-900">{t('dashboard.visualAppearance')}</h4>
+                      <p className="text-xs text-gray-500">{t('dashboard.visualDesc')}</p>
                     </div>
                   </div>
                   
@@ -895,7 +895,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   
                   <div className="space-y-3 mt-auto">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Progress</span>
+                      <span className="text-gray-600">{t('dashboard.progress')}</span>
                       <span className="font-medium text-gray-900">{categoryScores.visualAppearance}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -912,7 +912,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                           ? 'bg-yellow-100 text-yellow-800' 
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {categoryScores.visualAppearance >= 70 ? 'Excellent' : categoryScores.visualAppearance >= 50 ? 'Good' : 'Needs Focus'}
+                        {categoryScores.visualAppearance >= 70 ? t('dashboard.excellent') : categoryScores.visualAppearance >= 50 ? t('dashboard.good') : t('dashboard.needsFocus')}
                       </span>
                     </div>
                   </div>
@@ -964,9 +964,9 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
             <div className="mb-10">
               <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 flex items-center">
                 <Sparkles className="w-6 h-6 text-purple-500 mr-2 sm:mr-3" />
-                Quick Actions: Your Ultimate Glow-Up Experience
+                {t('dashboard.quickActionsTitle')}
               </h3>
-              <p className="text-gray-500 text-sm sm:text-base">Revolutionary features powered by cutting-edge AI - Coming Soon!</p>
+              <p className="text-gray-500 text-sm sm:text-base">{t('dashboard.quickActionsDesc')}</p>
             </div>
             
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -976,10 +976,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Image className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
                     </div>
-                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">Available</span>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">{t('dashboard.available')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Visual Transformation Avatar</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">AI-powered avatar and metrics showing your full potential</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.visualAvatar')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.visualAvatarDesc')}</p>
                 </div>
 
                 {/* Atomic Glow-Up System */}
@@ -988,10 +988,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
                     </div>
-                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">Available</span>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">{t('dashboard.available')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Atomic Glow-Up System</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">30-day micro-habits and challenges to reach your full glow potential</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.atomicSystem')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.atomicSystemDesc')}</p>
                 </div>
 
                 {/* Progress Tracker */}
@@ -1000,10 +1000,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                     </div>
-                    <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">Soon</span>
+                    <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Progress Tracker</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">Watch your avatar evolve with every habit</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.progressTracker')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.progressTrackerDesc')}</p>
                 </div>
 
                 {/* AI Coach */}
@@ -1012,10 +1012,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
                     </div>
-                    <span className="text-xs text-orange-600 font-medium bg-orange-100 px-2 py-1 rounded-full">Soon</span>
+                    <span className="text-xs text-orange-600 font-medium bg-orange-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">AI Coach</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">Personalized guidance & tips</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.aiCoach')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.aiCoachDesc')}</p>
                 </div>
 
                 {/* Future Self Chat */}
@@ -1024,10 +1024,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                     </div>
-                    <span className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-1 rounded-full">Soon</span>
+                    <span className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Talk to Future Self</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">Get motivation from your transformed self</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.futureSelf')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.futureSelfDesc')}</p>
                 </div>
             </div>
           </div>

@@ -16,6 +16,9 @@ import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Logo } from './Logo';
 import { useMediaQuery } from '../../hooks';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import { Button } from './Button';
 
 interface NavigationProps {
   onStartTest: () => void;
@@ -35,6 +38,14 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
   const location = useLocation();
   const userBtnWrapperRef = React.useRef<HTMLDivElement>(null);
   const navRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const { t } = useTranslation();
+  const [language, setLanguage] = useState<'en' | 'ru'>(i18n.language as 'en' | 'ru');
+
+  const handleLanguageSwitch = () => {
+    const newLang = language === 'en' ? 'ru' : 'en';
+    setLanguage(newLang);
+    i18n.changeLanguage(newLang);
+  };
 
   // Helper function to check if a route is active
   const isRouteActive = (path: string) => {
@@ -90,55 +101,55 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
   const navItems = [
     {
       id: 'home',
-      label: 'Dashboard',
+      label: t('sidebar.dashboard'),
       icon: hasResults ? BarChart3 : Home,
       onClick: () => (hasResults ? navigate('/dashboard') : navigate('/')),
       isAvailable: true,
-      tooltip: hasResults ? 'View Dashboard' : 'Home',
-      description: hasResults ? 'Your wellness analytics' : 'Welcome home',
+      tooltip: hasResults ? t('sidebar.dashboardTooltip') : t('sidebar.homeTooltip'),
+      description: hasResults ? t('sidebar.dashboardDescription') : t('sidebar.homeDescription'),
       isActive: isRouteActive('/dashboard') || (location.pathname === '/' && hasResults)
     },
     {
       id: 'assessment',
-      label: 'Take Assessment',
+      label: t('sidebar.takeAssessment'),
       icon: Camera,
       onClick: () => {
         console.log('Navigation - Assessment button clicked');
         onStartTest();
       },
       isAvailable: true,
-      tooltip: 'Take Assessment',
-      description: 'Quiz + Photo Analysis',
+      tooltip: t('sidebar.assessmentTooltip'),
+      description: t('sidebar.assessmentDescription'),
       isActive: location.pathname === '/test'
     },
     {
       id: 'transformation',
-      label: 'Transformation',
+      label: t('sidebar.transformation'),
       icon: Image,
       onClick: () => navigate('/future'),
       isAvailable: true, // was false, now true
-      tooltip: 'Transformation',
-      description: 'See your potential',
+      tooltip: t('sidebar.transformationTooltip'),
+      description: t('sidebar.transformationDescription'),
       isActive: isRouteActive('/future')
     },
     {
       id: 'habits',
-      label: 'My Habits',
+      label: t('sidebar.habits'),
       icon: Calendar,
       onClick: () => navigate('/daily-plan'),
       isAvailable: true,
-      tooltip: 'My Habits',
-      description: 'Your personalized 7-day plan',
+      tooltip: t('sidebar.habitsTooltip'),
+      description: t('sidebar.habitsDescription'),
       isActive: isRouteActive('/daily-plan')
     },
     {
       id: 'progress',
-      label: 'Progress Tracker',
+      label: t('sidebar.progress'),
       icon: TrendingUp,
       onClick: () => navigate('/progress'),
       isAvailable: false,
-      tooltip: 'Progress Tracker',
-      description: 'Track your transformation',
+      tooltip: t('sidebar.progressTooltip'),
+      description: t('sidebar.progressDescription'),
       isActive: isRouteActive('/progress')
     }
   ];
@@ -190,7 +201,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
             <button
               onClick={() => isMobile ? setMobileMenuOpen(false) : setIsExpanded(false)}
               className="focus:outline-none transition-all duration-300 hover:scale-110"
-              title={isMobile ? "Close" : "Collapse"}
+              title={isMobile ? t('sidebar.collapse') : t('sidebar.collapse')}
             >
               <PanelLeftClose className="w-6 h-6 text-gray-800" />
             </button>
@@ -216,7 +227,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
               </div>
               {!isExpanded && (hoveredItem === 'logo') && (
                 <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
-                  Expand
+                  {t('sidebar.expand')}
                   <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
                 </div>
               )}
@@ -275,7 +286,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
                   {!contentIsExpanded && isHovered && (
                     <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
                       {item.tooltip}
-                      {!item.isAvailable && <span className="text-yellow-300 ml-1">(soon)</span>}
+                      {!item.isAvailable && <span className="text-yellow-300 ml-1">({t('sidebar.comingSoon')})</span>}
                       {/* Arrow */}
                       <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
                     </div>
@@ -290,7 +301,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
                       <div className="text-xs opacity-70 mt-0.5">{item.description}</div>
                     )}
                     {!item.isAvailable && (
-                      <div className="text-xs text-amber-600 mt-0.5">Coming Soon</div>
+                      <div className="text-xs text-amber-600 mt-0.5">{t('sidebar.comingSoon')}</div>
                     )}
                   </div>
                 )}
@@ -304,6 +315,18 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
           })}
         </nav>
 
+        {/* Language Switcher */}
+        <div className="w-full px-2 pb-2 flex flex-col items-center">
+          <Button
+            onClick={handleLanguageSwitch}
+            className={`w-full py-2 rounded-xl border-2 border-purple-500 font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 ${
+              language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'
+            }`}
+            aria-label="Switch language"
+          >
+            {language === 'en' ? 'EN' : 'RU'}
+          </Button>
+        </div>
         {/* Account Section */}
         <div className="w-full mt-auto px-2 pt-4 border-t border-white/20">
           <SignedIn>
@@ -354,7 +377,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
                 {/* Tooltip for collapsed account */}
                 {!contentIsExpanded && hoveredItem === 'account' && (
                   <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white rounded-lg ring-1 ring-white/10 z-50 whitespace-nowrap text-[11px] leading-tight">
-                    Account
+                    {t('sidebar.account')}
                     <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-[rgba(0,0,0,0.7)]"></div>
                   </div>
                 )}
@@ -362,8 +385,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
               
               {contentIsExpanded && (
                 <div className="ml-3 flex-1 text-left">
-                  <div className="text-sm font-semibold tracking-wide">Account</div>
-                  <div className="text-xs opacity-70 mt-0.5">Manage your profile</div>
+                  <div className="text-sm font-semibold tracking-wide">{t('sidebar.account')}</div>
+                  <div className="text-xs opacity-70 mt-0.5">{t('sidebar.manageProfile')}</div>
                 </div>
               )}
               

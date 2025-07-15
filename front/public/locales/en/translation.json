@@ -1,0 +1,211 @@
+{
+  "nav": {
+    "home": "Home",
+    "platform": "Platform",
+    "howItWorks": "How It Works",
+    "contact": "Contact",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "headline": "See who you are.<br /> Become who you can be",
+    "sub": "Transform your life with AI-powered analysis, gamified stats, and atomic habits.",
+    "cta": "Start Your Transformation"
+  },
+  "valueProps": {
+    "glowScore": {
+      "title": "Glow Score",
+      "desc": "Discover your current potential and track your progress.",
+      "sample": "Sample Score"
+    },
+    "dailyHabits": {
+      "title": "Daily Habits",
+      "desc": "Build small habits for big changes, every day.",
+      "track": "Track Progress"
+    },
+    "aiCoach": {
+      "title": "AI Coach",
+      "desc": "Personalized guidance & tips.",
+      "insights": "Get Insights"
+    },
+    "futureSelf": {
+      "title": "Talk to Future Self",
+      "desc": "Get motivation from your transformed self.",
+      "motivate": "Get Motivated"
+    },
+    "avatar": {
+      "title": "Future Self Avatar",
+      "desc": "See your best version with an AI-generated avatar.",
+      "visualize": "Visualize Potential"
+    }
+  },
+  "whatWeDo": {
+    "headline": "Your Life Analyzed,\n Scientifically."
+  },
+  "wellness": {
+    "metrics": "Wellness Metrics",
+    "desc": "Track your performance in real-time.",
+    "glowScore": "Glow Score",
+    "physical": "Physical",
+    "emotional": "Emotional",
+    "visual": "Visual"
+  },
+  "archetype": {
+    "title": "You are like David Beckham during his prime",
+    "desc": "Much like David Beckham, you embody a blend of charisma and determination. Your commitment to self-care and proactive health choices mirrors Beckham's dedication to fitness and style. While you face challenges in emotional health and social connections, your strengths in engaging activities and overcoming past habits reflect a journey of resilience. Just as Beckham transformed his image and career through hard work and passion, you too have the potential to enhance your well-being and social ties, paving the way for a vibrant future."
+  },
+  "profile": {
+    "name": "Your name",
+    "ageAnalysis": "Age Analysis",
+    "biological": "Biological",
+    "emotional": "Emotional",
+    "actual": "Actual"
+  },
+  "transformation": {
+    "headline": "See Your Potential Transformation",
+    "current": "Current",
+    "in7": "+4 in 7 days",
+    "in30": "+24 in 30 days",
+    "messageTitle": "Message from Your Future Self",
+    "messageQuote": "Hey, it's me—30 days from now. I remember feeling uncertain, just like you do now. But trust me, the journey ahead is incredible. You'll find joy in small wins—like when you first notice your skin glowing or feel more energy. You'll push through and feel so proud. I'm you, just a version that's embraced change. We're closer than you think!"
+  },
+  "habit": {
+    "header": "Your Personalized Habit System & Routines",
+    "atomic": "Atomic Habits",
+    "miracle": "The Miracle Morning",
+    "deep": "Deep Work",
+    "desc": "Your system, plan, and habits are created based on these books."
+  },
+  "steps": {
+    "header": "Your Transformation in 4 Steps",
+    "subheader": "A simple, science-backed process to unlock your full potential.",
+    "analysis": {
+      "title": "Analysis",
+      "desc": "Complete a 5-min assessment & photo upload for a baseline score."
+    },
+    "visualization": {
+      "title": "Visualization",
+      "desc": "See your potential score and a preview of your future-self avatar."
+    },
+    "transformation": {
+      "title": "Transformation",
+      "desc": "Follow daily atomic habits and weekly life challenges to improve."
+    },
+    "achievement": {
+      "title": "Achievement",
+      "desc": "Track your progress in real-time and chat with your AI coach."
+    }
+  },
+  "how": {
+    "header": "How It Works: Under the Hood",
+    "quiz": "Quiz",
+    "photo": "Photo",
+    "synthesis": "Synthesis",
+    "you": "You",
+    "agent": "Agent",
+    "quizAnalysis": "Quiz Analysis",
+    "photoAnalysis": "Photo Analysis",
+    "holisticOutput": "Holistic Output",
+    "cta": "Get My Free Analysis",
+    "subtext": "Takes 5 minutes • 100% private & secure"
+  },
+  "proof": {
+    "header": "Join 1000 people transforming their lives",
+    "subheader": "Trusted by a fast-growing community of life-optimizers.",
+    "habits": "Habits Completed",
+    "rating": "Average Rating",
+    "goals": "Achieve Goals",
+    "days": "Day Transformation"
+  },
+  "cta": {
+    "header": "Ready to Start Your Journey?",
+    "subheader": "Get your free analysis today. No credit card required.",
+    "email": "Email Support",
+    "response": "Response Time",
+    "linkedin": "LinkedIn Profile",
+    "within": "Within 24 hours",
+    "button": "Start Your Transformation Now",
+    "subtext": "Free analysis • See your future self • Begin changing today"
+  },
+  "footer": {
+    "copyright": "© 2025 Oylan. All rights reserved."
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "takeAssessment": "Take Assessment",
+    "transformation": "Transformation",
+    "habits": "My Habits",
+    "progress": "Progress Tracker",
+    "dashboardTooltip": "View Dashboard",
+    "dashboardDescription": "Your wellness analytics",
+    "homeTooltip": "Home",
+    "homeDescription": "Welcome home",
+    "assessmentTooltip": "Take Assessment",
+    "assessmentDescription": "Quiz + Photo Analysis",
+    "transformationTooltip": "Transformation",
+    "transformationDescription": "See your potential",
+    "habitsTooltip": "My Habits",
+    "habitsDescription": "Your personalized 7-day plan",
+    "progressTooltip": "Progress Tracker",
+    "progressDescription": "Track your transformation",
+    "comingSoon": "Coming Soon",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "account": "Account",
+    "manageProfile": "Manage your profile"
+  },
+  "dashboard": {
+    "loadingTitle": "Loading your dashboard",
+    "loadingDesc": "Preparing your wellness insights...",
+    "errorTitle": "Oops! Something went wrong",
+    "errorTryAgain": "Try Again",
+    "errorTakeAssessment": "Take Assessment Instead",
+    "previewTitle": "This is a Preview Dashboard!",
+    "previewDesc": "You're currently viewing a dashboard with sample data to show you what's possible. To see your own personalized scores, insights, and AI-powered recommendations, take our quick assessment.",
+    "getRealScore": "Get Your Real Score",
+    "seePotential": "See Your Potential",
+    "welcome": "Welcome, {{name}}!",
+    "welcomePreview": "Here's a preview of your future dashboard.",
+    "journey": "Your Journey",
+    "ageAnalysis": "Age Analysis",
+    "biologicalAge": "Biological Age",
+    "emotionalAge": "Emotional Age",
+    "actualAge": "Actual Age",
+    "yearsYounger": "{{years}} years younger biologically!",
+    "discoverBioAge": "Discover your biological age →",
+    "wellnessMetrics": "Wellness Metrics",
+    "performanceOverview": "Your current performance overview",
+    "liveData": "Live Data",
+    "physicalVitality": "Physical Vitality",
+    "physicalDesc": "Energy, fitness & strength",
+    "emotionalHealth": "Emotional Health",
+    "emotionalDesc": "Mood, stress & resilience",
+    "visualAppearance": "Visual Appearance",
+    "visualDesc": "Skin, style & confidence",
+    "progress": "Progress",
+    "excellent": "Excellent",
+    "good": "Good",
+    "needsFocus": "Needs Focus",
+    "getYours": "Get yours",
+    "archetypeReady": "Ready to discover your archetype?",
+    "takeAssessment": "Take Assessment",
+    "unlockResults": "Want to unlock your real results?",
+    "completeAssessment": "Complete the wellness assessment to see your personalized dashboard with AI-powered insights.",
+    "startAssessment": "Start Assessment",
+    "minutes": "3-5 minutes",
+    "freeAssessment": "Free assessment",
+    "quickActionsTitle": "Quick Actions: Your Ultimate Glow-Up Experience",
+    "quickActionsDesc": "Revolutionary features powered by cutting-edge AI - Coming Soon!",
+    "available": "Available",
+    "soon": "Soon",
+    "visualAvatar": "Visual Transformation Avatar",
+    "visualAvatarDesc": "AI-powered avatar and metrics showing your full potential",
+    "atomicSystem": "Atomic Glow-Up System",
+    "atomicSystemDesc": "30-day micro-habits and challenges to reach your full glow potential",
+    "progressTracker": "Progress Tracker",
+    "progressTrackerDesc": "Watch your avatar evolve with every habit",
+    "aiCoach": "AI Coach",
+    "aiCoachDesc": "Personalized guidance & tips",
+    "futureSelf": "Talk to Future Self",
+    "futureSelfDesc": "Get motivation from your transformed self"
+  }
+} 
