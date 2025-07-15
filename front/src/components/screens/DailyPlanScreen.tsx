@@ -182,14 +182,14 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
 
       {/* Morning Routine & Challenges Section */}
       <div className="w-full flex justify-center px-2 sm:px-4 mt-8">
-        <div className="flex flex-row gap-12 w-full max-w-4xl mb-12">
+        <div className="flex flex-col sm:flex-row gap-6 sm:gap-12 w-full max-w-4xl mb-8 sm:mb-12">
           {/* Morning Routine Card */}
-          <div className="flex-1 bg-transparent backdrop-blur-md shadow-xl rounded-2xl border-l-4 border-purple-300 p-6 flex items-start min-w-[260px]">
-            <div className="mr-4 mt-1">
-              <Sun className="h-8 w-8 text-yellow-400" />
+          <div className="flex-1 bg-transparent backdrop-blur-md shadow-xl rounded-2xl border-l-4 border-purple-300 p-4 sm:p-6 flex items-start min-w-0 mb-4 sm:mb-0">
+            <div className="mr-3 sm:mr-4 mt-1">
+              <Sun className="h-7 w-7 sm:h-8 sm:w-8 text-yellow-400" />
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-yellow-700 mb-2 flex items-center">
+              <h2 className="text-lg sm:text-xl font-extrabold text-yellow-700 mb-2 flex items-center">
                 {t('daily.morningRoutine')}
               </h2>
               <ul className="list-none space-y-2 text-gray-700">
@@ -210,18 +210,18 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
           {/* Weekly Challenges Card */}
           {Array.isArray(plan.challenges) && plan.challenges.length > 0 && (
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-purple-900 mb-3 flex items-center">
+              <h2 className="text-base sm:text-lg font-semibold text-purple-900 mb-2 sm:mb-3 flex items-center">
                 <span className="mr-2">🏆</span>
                 {t('daily.weeklyChallenges')}
               </h2>
-              <ul className="space-y-3">
+              <ul className="space-y-2 sm:space-y-3">
                 {plan.challenges.map((challenge: any, idx: number) => (
                   <li key={idx} className="border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/30 rounded shadow-none">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{t('daily.category', { category: challenge.category })}</span>
-                      <span className="text-sm font-semibold text-purple-900">{t('daily.title', { title: challenge.title })}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-purple-900">{t('daily.title', { title: challenge.title })}</span>
                     </div>
-                    <div className="text-gray-800 text-sm mb-0.5">{t('daily.description', { description: challenge.description })}</div>
+                    <div className="text-gray-800 text-xs sm:text-sm mb-0.5">{t('daily.description', { description: challenge.description })}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600 mb-0.5">
                       <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {t('daily.estimatedTime', { time: challenge.estimatedTime })}</span>
                     </div>
@@ -234,8 +234,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Daily Plan Grid */}
-      <div className="w-full mx-auto px-8 lg:px-24">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+      <div className="w-full mx-auto px-2 sm:px-8 lg:px-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 items-stretch">
           {plan.days.map((day: any, idx: number) => (
             <DayCard key={idx} day={day} dayName={t(dayNames[idx] || 'daily.day', { day: idx + 1 })} />
           ))}
@@ -245,8 +245,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Back Button */}
-      <div className="text-center mt-12">
-        <button onClick={onBack} className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-full inline-flex items-center transition-colors duration-300">
+      <div className="text-center mt-8 sm:mt-12 px-2">
+        <button onClick={onBack} className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 sm:px-8 rounded-full inline-flex items-center transition-colors duration-300 w-full sm:w-auto max-w-xs sm:max-w-none">
           <RotateCcw className="w-5 h-5 mr-2" />
           <span>{t('daily.goBack')}</span>
         </button>
