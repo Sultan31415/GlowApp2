@@ -137,7 +137,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
 
   return (
     <AuroraBackground>
-      <div className="min-h-screen relative overflow-x-hidden">
+      <div className="min-h-screen relative overflow-x-hidden px-4 sm:px-6 md:px-8">
         {/* Navigation */}
         <nav
           className={`bg-white/20 backdrop-blur-2xl border border-gray-200/30 shadow-lg fixed z-50 transition-all duration-500 ease-in-out px-0
@@ -218,7 +218,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </nav>
 
         {/* Hero Section */}
-        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen pt-40 pb-20">
+        <section id="hero" className="relative flex flex-col items-center justify-center min-h-screen pt-40 pb-20 px-0 sm:px-0 md:px-0">
           <div className="max-w-7xl mx-auto text-center px-4">
             {/* Main Headline */}
             <h1
@@ -248,62 +248,62 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
           <div className="w-full mt-24">
             <CircularGallery>
               {/* Glow Score Card */}
-              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-purple-200">
-                  <span className="text-2xl font-extrabold text-purple-700">72</span>
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-3 sm:p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="h-10 w-10 sm:w-14 sm:h-14 mb-2 sm:mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-purple-200">
+                  <span className="text-lg sm:text-2xl font-extrabold text-purple-700">72</span>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('valueProps.glowScore.title')}</h3>
-                <p className="text-gray-500 text-sm leading-snug mb-2 h-12 flex items-center">{t('valueProps.glowScore.desc')}</p>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{t('valueProps.glowScore.title')}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-snug mb-2 h-auto sm:h-12 flex items-center justify-center">{t('valueProps.glowScore.desc')}</p>
                 <div className="flex justify-center items-center gap-1 mt-2">
-                  <Star className="w-5 h-5 text-purple-500" />
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
                   <span className="text-xs text-gray-400">{t('valueProps.glowScore.sample')}</span>
                 </div>
               </div>
               {/* Daily Habits Card */}
-              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
-                  <CheckCircle className="w-7 h-7 text-blue-600" />
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-3 sm:p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="h-10 w-10 sm:w-14 sm:h-14 mb-2 sm:mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-blue-200">
+                  <CheckCircle className="w-5 h-5 sm:w-7 sm:h-7 text-blue-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('valueProps.dailyHabits.title')}</h3>
-                <p className="text-gray-500 text-sm leading-snug mb-2 h-12 flex items-center">{t('valueProps.dailyHabits.desc')}</p>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{t('valueProps.dailyHabits.title')}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-snug mb-2 h-auto sm:h-12 flex items-center justify-center">{t('valueProps.dailyHabits.desc')}</p>
                 <div className="flex justify-center items-center gap-1 mt-2">
-                  <Calendar className="w-5 h-5 text-blue-400" />
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                   <span className="text-xs text-gray-400">{t('valueProps.dailyHabits.track')}</span>
                 </div>
               </div>
               {/* AI Coach Card */}
-              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-200">
-                  <Bot className="w-7 h-7 text-orange-600" />
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-3 sm:p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="h-10 w-10 sm:w-14 sm:h-14 mb-2 sm:mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-orange-100 to-orange-200">
+                  <Bot className="w-5 h-5 sm:w-7 sm:h-7 text-orange-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('valueProps.aiCoach.title')}</h3>
-                <p className="text-gray-500 text-sm leading-snug mb-2 h-12 flex items-center">{t('valueProps.aiCoach.desc')}</p>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{t('valueProps.aiCoach.title')}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-snug mb-2 h-auto sm:h-12 flex items-center justify-center">{t('valueProps.aiCoach.desc')}</p>
                 <div className="flex justify-center items-center gap-1 mt-2">
-                  <Brain className="w-5 h-5 text-orange-400" />
+                  <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
                   <span className="text-xs text-gray-400">{t('valueProps.aiCoach.insights')}</span>
                 </div>
               </div>
               {/* Talk to Future Self Card */}
-              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-violet-200">
-                  <MessageCircle className="w-7 h-7 text-purple-600" />
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-3 sm:p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="h-10 w-10 sm:w-14 sm:h-14 mb-2 sm:mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-purple-100 to-violet-200">
+                  <MessageCircle className="w-5 h-5 sm:w-7 sm:h-7 text-purple-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('valueProps.futureSelf.title')}</h3>
-                <p className="text-gray-500 text-sm leading-snug mb-2 h-12 flex items-center">{t('valueProps.futureSelf.desc')}</p>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{t('valueProps.futureSelf.title')}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-snug mb-2 h-auto sm:h-12 flex items-center justify-center">{t('valueProps.futureSelf.desc')}</p>
                 <div className="flex justify-center items-center gap-1 mt-2">
-                  <Heart className="w-5 h-5 text-purple-400" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
                   <span className="text-xs text-gray-400">{t('valueProps.futureSelf.motivate')}</span>
                 </div>
               </div>
               {/* Future Self Avatar Card */}
-              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                <div className="w-14 h-14 mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
-                  <Image className="w-7 h-7 text-green-600" />
+              <div className="group bg-white/70 backdrop-blur-lg rounded-2xl aspect-square flex flex-col items-center justify-center p-3 sm:p-6 border border-white/60 shadow-lg text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                <div className="h-10 w-10 sm:w-14 sm:h-14 mb-2 sm:mb-4 flex items-center justify-center rounded-xl bg-gradient-to-br from-green-100 to-green-200">
+                  <Image className="w-5 h-5 sm:w-7 sm:h-7 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('valueProps.avatar.title')}</h3>
-                <p className="text-gray-500 text-sm leading-snug mb-2 h-12 flex items-center">{t('valueProps.avatar.desc')}</p>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">{t('valueProps.avatar.title')}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-snug mb-2 h-auto sm:h-12 flex items-center justify-center">{t('valueProps.avatar.desc')}</p>
                 <div className="flex justify-center items-center gap-1 mt-2">
-                  <Sparkles className="w-5 h-5 text-green-400" />
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
                   <span className="text-xs text-gray-400">{t('valueProps.avatar.visualize')}</span>
                 </div>
               </div>
@@ -312,7 +312,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
 
         {/* What We Do - Dashboard Preview Style */}
-        <section id="what-we-do" className="py-12 sm:py-16 px-2">
+        <section id="what-we-do" className="py-12 sm:py-16 px-0 sm:px-0 md:px-0">
           <div className="max-w-5xl mx-auto">
             {/* Section Header */}
             <div className="text-center mb-10 sm:mb-14">
@@ -561,7 +561,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         <div className="mt-20" />
 
         {/* See Your Potential Transformation Section */}
-        <section className="mt-12 mb-24">
+        <section className="mt-12 mb-24 px-0 sm:px-0 md:px-0">
           <h2 className="text-2xl sm:text-[2.2rem] md:text-[2.8rem] font-bold text-center text-gray-900 mb-5 leading-tight flex items-center justify-center gap-2 sm:gap-4">
             <span className="inline-flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600 text-white font-extrabold text-base sm:text-xl flex-shrink-0">2</span>
             <span className="block">{t('transformation.headline')}</span>
@@ -599,7 +599,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
 
         {/* Personalized Weekly Plan Section (Visual with Book Covers) */}
-        <section className="mt-36 mb-12">
+        <section className="mt-36 mb-12 px-0 sm:px-0 md:px-0">
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-6 leading-tight flex items-center justify-center gap-2 sm:gap-4">
             <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-green-600 text-white font-extrabold text-base sm:text-lg flex-shrink-0">3</span>
             <span className="block">{t('habit.header')}</span>
@@ -631,7 +631,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </div>
 
         {/* How It Works - Visual Process */}
-        <section id="how-it-works" className="py-12 sm:py-16 px-4 mt-8">
+        <section id="how-it-works" className="py-12 sm:py-16 px-0 sm:px-0 md:px-0 mt-8">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16 sm:mb-20">
               <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -784,7 +784,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
 
         {/* Social Proof - Simplified and restyled */}
-        <section className="py-20 sm:py-24 px-4">
+        <section className="py-20 sm:py-24 px-0 sm:px-0 md:px-0">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
               {t('proof.header')}
@@ -812,7 +812,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
 
         {/* Contact Section - Restyled */}
-        <section id="contact" className="pt-20 pb-24 px-4">
+        <section id="contact" className="pt-20 pb-24 px-0 sm:px-0 md:px-0">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">{t('cta.header')}</h2>
             <p className="text-lg md:text-xl text-gray-600 mb-12">{t('cta.subheader')}</p>
@@ -857,7 +857,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
         </section>
         
         {/* Footer */}
-        <footer className="bg-transparent py-8 px-4">
+        <footer className="bg-transparent py-8 px-0 sm:px-0 md:px-0">
             <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
                 {t('footer.copyright')}
             </div>

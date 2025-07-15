@@ -304,39 +304,41 @@ export const QuizStep: React.FC<QuizStepProps> = ({
         return (
           <>
             {isBMIQuestion && (
-              <div className="mb-6 p-4 bg-blue-50 rounded-xl flex flex-col sm:flex-row gap-4 items-end">
-                <div className="flex flex-col flex-1">
-                  <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.weight')}</label>
-                  <input
-                    type="number"
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={t('quizUi.weightPlaceholder')}
-                    min={1}
-                  />
-                </div>
-                <div className="flex flex-col flex-1">
-                  <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.height')}</label>
-                  <input
-                    type="number"
-                    value={heightCm}
-                    onChange={(e) => setHeightCm(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={t('quizUi.heightPlaceholder')}
-                    min={1}
-                  />
+              <div className="mb-6 p-4 bg-blue-50 rounded-xl flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex flex-col flex-1">
+                    <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.weight')}</label>
+                    <input
+                      type="number"
+                      value={weightKg}
+                      onChange={(e) => setWeightKg(e.target.value)}
+                      className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      placeholder={t('quizUi.weightPlaceholder')}
+                      min={1}
+                    />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.height')}</label>
+                    <input
+                      type="number"
+                      value={heightCm}
+                      onChange={(e) => setHeightCm(e.target.value)}
+                      className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                      placeholder={t('quizUi.heightPlaceholder')}
+                      min={1}
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleBMICalc}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-semibold shadow w-full mt-2 text-base"
                 >
                   {t('quizUi.calculate')}
                 </button>
                 {calculatedBMI && (
-                  <div className="text-center sm:text-left sm:ml-4 mt-4 sm:mt-0">
-                    <div className="text-sm font-medium text-gray-700">BMI: {calculatedBMI.toFixed(1)}</div>
+                  <div className="text-center mt-3">
+                    <div className="text-base font-medium text-gray-700">BMI: {calculatedBMI.toFixed(1)}</div>
                   </div>
                 )}
               </div>
