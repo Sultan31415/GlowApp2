@@ -197,11 +197,11 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               </Button>
             </div>
             {/* Mobile Hamburger */}
-            <div className="md:hidden flex flex-col items-end gap-2">
+            <div className="md:hidden flex flex-row items-center gap-2">
               {/* Language Switcher Button (Mobile) */}
               <button
                 onClick={handleLanguageSwitch}
-                className={`mb-1 px-3 py-1.5 rounded-full border-2 border-purple-500 font-semibold text-xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2
+                className={`px-3 py-1.5 rounded-full border-2 border-purple-500 font-semibold text-xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2
                   ${language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
                 aria-label="Switch language"
               >
