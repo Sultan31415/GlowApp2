@@ -4,6 +4,7 @@ import { Question, QuizAnswer } from '../../types';
 import { QuizStep } from './QuizStep';
 import { PhotoUpload } from './PhotoUpload';
 import { LoadingScreen } from '../screens/LoadingScreen';
+import { useTranslation } from 'react-i18next';
 
 interface TestModalProps {
   isOpen: boolean;
@@ -47,6 +48,8 @@ export const TestModal: React.FC<TestModalProps> = ({
   error
 }) => {
   if (!isOpen) return null;
+
+  const { t } = useTranslation();
 
   // Reference to the scrollable container so we can scroll to top on question change
   const modalRef = useRef<HTMLDivElement>(null);
@@ -109,7 +112,7 @@ export const TestModal: React.FC<TestModalProps> = ({
       <button
         onClick={onClose}
         className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 shadow-lg transition-colors"
-        aria-label="Close modal"
+        aria-label={t('quizUi.closeModal')}
       >
         <X className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>

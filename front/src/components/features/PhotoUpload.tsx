@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Upload, Image, X, ChevronLeft, Camera, Sparkles, Shield, CheckCircle, AlertCircle, Info, CameraOff, Eye, Lightbulb, ChevronDown } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface PhotoUploadProps {
   onPhotoUpload: (file: File) => void;
@@ -23,6 +24,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isTipsOpen, setIsTipsOpen] = useState(false);
+  const { t } = useTranslation();
 
   // Camera capture states
   const [mode, setMode] = useState<'upload' | 'capture'>('upload');
@@ -172,8 +174,8 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-base sm:text-lg font-bold text-gray-900">Photo Analysis</h1>
-                <p className="text-xs sm:text-sm text-gray-500">Capture your natural glow</p>
+                <h1 className="text-base sm:text-lg font-bold text-gray-900">{t('photo.title')}</h1>
+                <p className="text-xs sm:text-sm text-gray-500">{t('photo.subtitle')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -201,7 +203,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               }`}
             >
               <Upload className="w-5 h-5" />
-              Upload Photo
+              {t('photo.upload')}
             </button>
             <button
               type="button"
@@ -213,7 +215,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               }`}
             >
               <Camera className="w-5 h-5" />
-              Take Photo
+              {t('photo.takePhoto')}
             </button>
           </div>
 
@@ -227,16 +229,16 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={openFileDialog}
-                  aria-label="Click or drag and drop to upload photo"
+                  aria-label={t('photo.clickToUpload')}
                 >
                   <div className={`mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 bg-gray-200/80 group-hover:bg-indigo-100`}>
                     <Upload className={`w-7 h-7 transition-transform duration-300 text-gray-500 group-hover:text-indigo-600`} />
                   </div>
                   <h3 className="text-base font-semibold text-gray-900 mb-1">
-                    {dragOver ? 'Drop your photo here' : 'Click to upload or drag & drop'}
+                    {dragOver ? t('photo.dropHere') : t('photo.clickToUpload')}
                   </h3>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, or WebP (max 10MB)
+                    {t('photo.fileTypes')}
                   </p>
                   <input
                     ref={fileInputRef}
@@ -251,7 +253,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                 <div className="text-center">
                   {cameraError ? (
                     <div className="max-w-md mx-auto p-4 bg-red-50 rounded-lg text-red-800">
-                      <h3 className="font-semibold">Camera Access Required</h3>
+                      <h3 className="font-semibold">{t('photo.cameraAccess')}</h3>
                       <p className="text-sm">{cameraError}</p>
                     </div>
                   ) : (
@@ -268,7 +270,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                         onClick={handleCapture}
                         className="w-full sm:w-auto px-6 py-3 rounded-lg font-semibold transition-colors duration-300 text-white bg-indigo-600 hover:bg-indigo-700"
                       >
-                        Capture Photo
+                        {t('photo.capturePhoto')}
                       </button>
                     </div>
                   )}
@@ -286,14 +288,14 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   <button
                     onClick={removePhoto}
                     className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1.5 shadow-lg"
-                    aria-label="Remove photo"
+                    aria-label={t('photo.removePhoto')}
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="bg-green-50 rounded-lg p-3 text-sm text-green-800 flex items-center justify-center gap-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="font-semibold">Photo ready for analysis!</span>
+                  <span className="font-semibold">{t('photo.ready')}</span>
                 </div>
               </div>
             )}
@@ -309,7 +311,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               </div>
               <div className="flex-1">
                 <h4 className="font-semibold text-red-800 text-sm">
-                  {validationError ? 'Upload Error' : 'Processing Error'}
+                  {validationError ? t('photo.uploadError') : t('photo.processingError')}
                 </h4>
                 <p className="text-red-700 text-xs sm:text-sm leading-relaxed">
                   {validationError || error}
@@ -332,7 +334,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
                   <Lightbulb className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 text-left">
-                  Get the Best Results
+                  {t('photo.getBestResults')}
                 </h2>
               </div>
               <ChevronDown className={`w-6 h-6 text-gray-500 transition-transform duration-300 sm:hidden ${isTipsOpen ? 'rotate-180' : ''}`} />
@@ -345,18 +347,18 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               {[
                 {
                   icon: Eye,
-                  title: "Clear visibility",
-                  description: "Use natural lighting"
+                  title: t('photo.tips.visibility'),
+                  description: t('photo.tips.visibilityDesc')
                 },
                 {
                   icon: Image,
-                  title: "Natural photo",
-                  description: "Avoid filters or makeup"
+                  title: t('photo.tips.natural'),
+                  description: t('photo.tips.naturalDesc')
                 },
                 {
                   icon: CheckCircle,
-                  title: "High quality",
-                  description: "Use a sharp image"
+                  title: t('photo.tips.quality'),
+                  description: t('photo.tips.qualityDesc')
                 }
               ].map((tip, index) => (
                 <div key={index} className="bg-white/80 rounded-lg p-3 sm:p-4 border border-gray-200/50 flex sm:flex-col items-center sm:text-center gap-3">
@@ -380,9 +382,9 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
               <Shield className="w-6 h-6 text-indigo-600" />
             </div>
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Privacy & Security</h3>
+              <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{t('photo.privacyTitle')}</h3>
               <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
-                Your photo is processed securely and automatically deleted after analysis. We only use it to provide personalized insights.
+                {t('photo.privacyDesc')}
               </p>
             </div>
           </div>
@@ -395,7 +397,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
             className="w-full sm:w-auto flex items-center justify-center px-6 py-3 rounded-xl font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors duration-200"
           >
             <ChevronLeft className="w-5 h-5 mr-1" />
-            Back to Quiz
+            {t('photo.backToQuiz')}
           </button>
 
           <button
@@ -406,12 +408,12 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white mr-2"></div>
-                <span>Analyzing...</span>
+                <span>{t('photo.analyzing')}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                <span>Generate My Results</span>
+                <span>{t('photo.generateResults')}</span>
               </>
             )}
           </button>

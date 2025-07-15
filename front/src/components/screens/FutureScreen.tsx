@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, Zap, Eye, TrendingUp, ArrowRight, Star, RotateCcw, Target, Calendar, CheckCircle, Sparkles, Activity } from 'lucide-react';
 import { AssessmentResults, FutureProjection } from '../../types';
 import { useApi } from '../../utils/useApi';
+import { useTranslation } from 'react-i18next';
 
 interface FutureScreenProps {
   results: AssessmentResults;
@@ -22,6 +23,7 @@ interface FutureScreenProps {
 const clamp = (val: number) => Math.max(0, Math.min(100, val));
 
 export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { makeRequest } = useApi();
   const [projection, setProjection] = useState<FutureProjection | null>(null);
@@ -85,7 +87,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
         <main className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-4 mt-6 relative z-10">
           <div className="text-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading your transformation projections...</p>
+            <p className="text-gray-600">{t('future.loading')}</p>
           </div>
         </main>
       </div>
@@ -101,7 +103,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Star className="w-8 h-8 text-red-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Projection Not Available</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">{t('future.projectionNotAvailable')}</h3>
             <p className="text-gray-600 mb-6">{error}</p>
             <div className="space-y-4">
               <button
@@ -112,12 +114,12 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
                 {generating ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Generating...
+                    {t('future.generating')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />
-                    Generate Transformation Plan
+                    {t('future.generate')}
                   </>
                 )}
               </button>
@@ -127,7 +129,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
                   className="bg-white hover:bg-gray-100 text-gray-700 font-semibold py-3 px-6 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 inline-flex items-center"
                 >
                   <RotateCcw className="w-5 h-5 mr-2" />
-                  Back to Dashboard
+                  {t('future.backToDashboard')}
                 </button>
               </div>
             </div>
@@ -149,13 +151,13 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
       <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg overflow-y-auto overflow-x-hidden transition-all duration-300">
         <main className="lg:max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 pb-4 mt-6 relative z-10">
           <div className="text-center py-20">
-            <p className="text-red-600">Invalid projection data format.</p>
+            <p className="text-red-600">{t('future.invalidData')}</p>
             <button
               onClick={onBack}
               className="mt-4 bg-white hover:bg-gray-100 text-gray-700 font-semibold py-3 px-6 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 inline-flex items-center"
             >
               <RotateCcw className="w-5 h-5 mr-2" />
-              Back to Dashboard
+              {t('future.backToDashboard')}
             </button>
           </div>
         </main>
@@ -177,15 +179,15 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
         <div className="relative w-full max-w-none px-0 py-0">
           {/* Beta Version Label - centered above header */}
           <div className="flex justify-center items-center pt-4 pb-1">
-            <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">Beta Version</span>
+            <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">{t('future.beta')}</span>
           </div>
           <div className="flex items-center px-4 sm:px-6 lg:px-8 py-2">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 sm:mr-4 border border-gray-200/50">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-slate-600" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">Your Transformation journey</h1>
-              <p className="text-slate-500 text-xs sm:text-sm">Your wellness journey continues</p>
+              <h1 className="text-sm sm:text-lg lg:text-xl font-medium text-slate-700">{t('future.header')}</h1>
+              <p className="text-slate-500 text-xs sm:text-sm">{t('future.subheader')}</p>
             </div>
           </div>
         </div>
@@ -197,9 +199,9 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
           <div className="flex flex-row md:flex-row justify-center items-center gap-0 md:gap-0 overflow-x-auto md:overflow-x-visible px-1 md:px-0">
             {/* Current Score */}
             <div className="flex flex-col items-center min-w-[90px] sm:min-w-[120px] mx-1 sm:mx-2">
-              <span className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">Current</span>
+              <span className="text-[10px] sm:text-xs text-gray-500 mb-0.5 sm:mb-1">{t('future.current')}</span>
               <span className="text-[2rem] sm:text-[2.8rem] md:text-[4.5rem] font-extrabold text-gray-900 drop-shadow-[0_2px_8px_rgba(80,80,80,0.10)]">{currentScore}</span>
-              <span className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">Now</span>
+              <span className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">{t('future.now')}</span>
             </div>
             {/* Arrow */}
             <div className="flex-shrink-0 flex items-center mx-0.5 sm:mx-1 md:mx-6">
@@ -209,10 +211,10 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             <div className="flex flex-col items-center min-w-[90px] sm:min-w-[120px] mx-1 sm:mx-2">
               <span className="flex items-center mb-0.5 sm:mb-1">
                 <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 mr-0.5 sm:mr-1" />
-                <span className="text-green-600 font-semibold text-[10px] sm:text-xs">7-Day Quick Win</span>
+                <span className="text-green-600 font-semibold text-[10px] sm:text-xs">{t('future.quickWin')}</span>
               </span>
               <span className="text-[2rem] sm:text-[2.8rem] md:text-[4.5rem] font-extrabold text-green-500 drop-shadow-[0_2px_12px_rgba(34,197,94,0.18)]">{sevenDayScore}</span>
-              <span className="text-[10px] sm:text-xs text-green-600 mt-0.5 sm:mt-1 font-medium">+{sevenDayScore - currentScore} in 7 days</span>
+              <span className="text-[10px] sm:text-xs text-green-600 mt-0.5 sm:mt-1 font-medium">+{sevenDayScore - currentScore} {t('future.in7days')}</span>
             </div>
             {/* Arrow */}
             <div className="flex-shrink-0 flex items-center mx-0.5 sm:mx-1 md:mx-6">
@@ -222,10 +224,10 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             <div className="flex flex-col items-center min-w-[90px] sm:min-w-[120px] mx-1 sm:mx-2">
               <span className="flex items-center mb-0.5 sm:mb-1">
                 <Star className="w-3 h-3 sm:w-4 sm:h-4 text-pink-400 mr-0.5 sm:mr-1" />
-                <span className="text-pink-600 font-semibold text-[10px] sm:text-xs">30-Day Transformation</span>
+                <span className="text-pink-600 font-semibold text-[10px] sm:text-xs">{t('future.transformation')}</span>
               </span>
               <span className="text-[2rem] sm:text-[2.8rem] md:text-[4.5rem] font-extrabold text-pink-500 drop-shadow-[0_2px_12px_rgba(236,72,153,0.18)]">{thirtyDayScore}</span>
-              <span className="text-[10px] sm:text-xs text-pink-500 mt-0.5 sm:mt-1 font-medium">+{thirtyDayScore - currentScore} in 30 days</span>
+              <span className="text-[10px] sm:text-xs text-pink-500 mt-0.5 sm:mt-1 font-medium">+{thirtyDayScore - currentScore} {t('future.in30days')}</span>
             </div>
           </div>
         </div>
@@ -245,12 +247,12 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
                 </div>
                 {/* Future avatar message */}
                 <div className="mt-3 text-xs text-purple-500 text-center font-medium">
-                  Future avatar will be ready soon — stay tuned to see your transformation!
+                  {t('future.avatarSoon')}
                 </div>
               </div>
               <div className="text-center">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">Sultan in 30 days</h3>
-                <div className="text-2xl font-bold text-green-600 mb-1">+{thirtyDayScore - currentScore} points</div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{t('future.in30daysLabel', { name: 'Sultan' })}</h3>
+                <div className="text-2xl font-bold text-green-600 mb-1">+{thirtyDayScore - currentScore} {t('future.points')}</div>
                 <div className="text-lg font-semibold text-gray-700">{thirtyDayScore}/100</div>
               </div>
             </div>
@@ -260,16 +262,16 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50 p-4 sm:p-6 h-full">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">Category Stats</h3>
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{t('future.categoryStats')}</h3>
                 </div>
                 <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg mt-2 sm:mt-0">
                   <TrendingUp className="w-4 h-4 mr-2" />
-                  Projected
+                  {t('future.projected')}
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 {['physicalVitality', 'emotionalHealth', 'visualAppearance'].map((key) => {
-                  const label = key === 'physicalVitality' ? 'Physical Vitality' : key === 'emotionalHealth' ? 'Emotional Health' : 'Visual Appearance';
+                  const label = key === 'physicalVitality' ? t('future.physicalVitality') : key === 'emotionalHealth' ? t('future.emotionalHealth') : t('future.visualAppearance');
                   const Icon = key === 'physicalVitality' ? Zap : key === 'emotionalHealth' ? Heart : Eye;
                   const current = clamp(categoryScores[key as keyof typeof categoryScores] ?? 0);
                   const potential = clamp(projectionResult.thirtyDay?.projectedScores?.[key] ?? current);
@@ -289,7 +291,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
                       {/* Minimal Comparison Row */}
                       <div className="flex items-center justify-between mb-4 gap-2">
                         <div className="flex flex-col items-center min-w-[40px]">
-                          <span className="text-xs text-gray-400 font-medium mb-0.5">Now</span>
+                          <span className="text-xs text-gray-400 font-medium mb-0.5">{t('future.nowLabel')}</span>
                           <span className="text-lg font-bold text-gray-700">{current}</span>
                         </div>
                         <div className="flex flex-col items-center min-w-[40px]">
@@ -299,7 +301,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
                           </span>
                         </div>
                         <div className="flex flex-col items-center min-w-[40px]">
-                          <span className={`text-xs font-medium mb-0.5 ${futureText}`}>Future</span>
+                          <span className={`text-xs font-medium mb-0.5 ${futureText}`}>{t('future.future')}</span>
                           <span className={`text-2xl font-extrabold ${futureText}`}>{potential}</span>
                         </div>
                       </div>
@@ -323,7 +325,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
           <div className="mt-16">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-pink-200" />
-              <h2 className="text-2xl font-extrabold text-purple-700 text-center whitespace-nowrap">Message from Your Future Self</h2>
+              <h2 className="text-2xl font-extrabold text-purple-700 text-center whitespace-nowrap">{t('future.messageFromFutureSelf')}</h2>
               <div className="flex-1 h-px bg-gradient-to-l from-purple-200 to-pink-200" />
             </div>
             <div className="bg-white/80 rounded-2xl shadow-lg p-6">
@@ -337,14 +339,14 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
           <div className="mt-16">
             <div className="mb-6 flex items-center gap-3">
               <div className="flex-1 h-px bg-gradient-to-r from-purple-200 to-pink-200" />
-              <h2 className="text-2xl font-extrabold text-purple-700 text-center whitespace-nowrap">Your Action Plan</h2>
+              <h2 className="text-2xl font-extrabold text-purple-700 text-center whitespace-nowrap">{t('future.actionPlan')}</h2>
               <div className="flex-1 h-px bg-gradient-to-l from-purple-200 to-pink-200" />
             </div>
             <div className="bg-white/80 rounded-2xl shadow-lg p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {projectionResult.weeklyBackbone.map((weekObj: any, idx: number) => (
                   <div key={idx} className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                    <div className="font-semibold text-purple-800 mb-2">Week {weekObj.week}: {weekObj.theme}</div>
+                    <div className="font-semibold text-purple-800 mb-2">{t('future.week', { week: weekObj.week, theme: weekObj.theme })}</div>
                     <div className="text-gray-700 text-sm">{weekObj.focus}</div>
                   </div>
                 ))}
@@ -360,7 +362,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-md transition-all duration-300 transform hover:scale-105 inline-flex items-center mb-4"
           >
             <Calendar className="w-5 h-5 mr-2" />
-            View Your 7-Day Daily Plan
+            {t('future.view7DayPlan')}
           </button>
         </div>
 
@@ -371,7 +373,7 @@ export const FutureScreen: React.FC<FutureScreenProps> = ({ results, onBack }) =
             className="bg-white hover:bg-gray-100 text-gray-700 font-semibold py-3 px-6 border border-gray-300 rounded-full shadow-sm hover:shadow-md transition-all duration-300 transform hover:scale-105 inline-flex items-center"
           >
             <RotateCcw className="w-5 h-5 mr-2" />
-            Back to Dashboard
+            {t('future.backToDashboard')}
           </button>
         </div>
       </main>

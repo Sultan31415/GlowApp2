@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface LoadingStep {
   id: string;
@@ -28,34 +29,36 @@ interface LoadingScreenProps {
 // Default configuration
 // --------------------------------------------------
 
-const DEFAULT_STEPS: LoadingStep[] = [
-  {
-    id: 'quiz',
-    label: 'Processing Quiz',
-    icon: FileText,
-  },
-  {
-    id: 'photo',
-    label: 'Analyzing Photo',
-    icon: Camera,
-  },
-  {
-    id: 'score',
-    label: 'Calculating Score',
-    icon: TrendingUp,
-  },
-  {
-    id: 'plan',
-    label: 'Generating Results',
-    icon: Target,
-  },
-];
-
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
   isLoading = true,
   currentStep = 'score',
   steps,
 }) => {
+  const { t } = useTranslation();
+
+  const DEFAULT_STEPS: LoadingStep[] = React.useMemo(() => [
+    {
+      id: 'quiz',
+      label: t('loading.processingQuiz'),
+      icon: FileText,
+    },
+    {
+      id: 'photo',
+      label: t('loading.analyzingPhoto'),
+      icon: Camera,
+    },
+    {
+      id: 'score',
+      label: t('loading.calculatingScore'),
+      icon: TrendingUp,
+    },
+    {
+      id: 'plan',
+      label: t('loading.generatingResults'),
+      icon: Target,
+    },
+  ], [t]);
+
   // --------------------------------------------------
   // Auto-progression state
   // --------------------------------------------------
@@ -86,7 +89,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
     }, 3000); // 3 seconds per step
 
     return () => clearTimeout(timer);
-  }, [autoCurrentStep, isAutoProgressing, isLoading, steps]);
+  }, [autoCurrentStep, isAutoProgressing, isLoading, steps, DEFAULT_STEPS]);
 
   /* -----------------------------------------------------------------
    * Derive loading state.
@@ -104,7 +107,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
       return { ...step, status } as LoadingStep;
     });
-  }, [steps, effectiveCurrentStep]);
+  }, [steps, effectiveCurrentStep, DEFAULT_STEPS]);
 
   const activeStep = loadingSteps.find((step) => step.status === 'active');
 
@@ -116,7 +119,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center" role="status" aria-live="polite">
             <Loader2 className="w-6 h-6 text-indigo-500 animate-spin mr-3" />
-            <h1 className="text-lg lg:text-xl font-medium text-slate-700">Processing your results…</h1>
+            <h1 className="text-lg lg:text-xl font-medium text-slate-700">{t('loading.processingResults')}</h1>
           </div>
         </div>
       </div>
@@ -135,7 +138,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
                <h2 className="text-xl font-medium text-gray-900 mb-2" aria-live="polite">
                  {activeStep.label}
                </h2>
-               <p className="text-sm text-gray-500">Please wait while we process your data.</p>
+               <p className="text-sm text-gray-500">{t('loading.pleaseWait')}</p>
              </div>
            )}
 
@@ -164,7 +167,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({
 
                  {/* Steps Overview */}
          <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-lg border border-white/50 p-6">
-           <h3 className="font-medium text-gray-900 mb-4 text-center">Steps</h3>
+           <h3 className="font-medium text-gray-900 mb-4 text-center">{t('loading.steps')}</h3>
           
           <div className="space-y-4">
             {loadingSteps.map((step, index) => {

@@ -2,14 +2,24 @@ import React, { useEffect, useState } from 'react';
 import { RotateCcw, Sun } from 'lucide-react';
 import { useApi } from '../../utils/useApi';
 import { DayCard } from './DayCard';
+import { useTranslation } from 'react-i18next';
 
-const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const dayNames = [
+  'daily.days.monday',
+  'daily.days.tuesday',
+  'daily.days.wednesday',
+  'daily.days.thursday',
+  'daily.days.friday',
+  'daily.days.saturday',
+  'daily.days.sunday',
+];
 
 interface DailyPlanScreenProps {
   onBack: () => void;
 }
 
 export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const { makeRequest } = useApi();
   const [plan, setPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -75,8 +85,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
             <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">Loading your daily plan</h3>
-          <p className="text-gray-600 px-4">Preparing your personalized schedule...</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
+          <p className="text-gray-600 px-4">{t('daily.preparing')}</p>
         </div>
       </div>
     );
@@ -90,13 +100,13 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <RotateCcw className="w-8 h-8 text-red-600" />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Oops! Something went wrong</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.error')}</h3>
             <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
             <button
               onClick={onBack}
               className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
             >
-              Go Back
+              {t('daily.goBack')}
             </button>
           </div>
         </div>
@@ -114,19 +124,19 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <RotateCcw className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No Daily Plan Found</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.noPlan')}</h3>
               <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
               >
-                Try Again
+                {t('daily.tryAgain')}
               </button>
               <button
                 onClick={onBack}
                 className="w-full mt-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
               >
-                Go Back
+                {t('daily.goBack')}
               </button>
             </div>
           </div>
@@ -141,8 +151,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
             <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">Loading your daily plan</h3>
-          <p className="text-gray-600 px-4">Preparing your personalized schedule...</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
+          <p className="text-gray-600 px-4">{t('daily.preparing')}</p>
         </div>
       </div>
     );
@@ -152,7 +162,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
     <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-x-hidden transition-all duration-300 pb-24">
       {/* Beta Version Label - centered above header */}
       <div className="flex justify-center items-center pt-4 pb-1">
-        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">Beta Version</span>
+        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">{t('daily.beta')}</span>
       </div>
       {/* Header */}
       <div className="relative overflow-hidden mt-4 w-full">
@@ -163,8 +173,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               <Sun className="w-6 h-6 text-yellow-500" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-slate-700">Your Weekly Plan</h1>
-              <p className="text-slate-500 text-xs sm:text-base">All your habits, deep work, and routines in one place</p>
+              <h1 className="text-lg sm:text-2xl font-bold text-slate-700">{t('daily.header')}</h1>
+              <p className="text-slate-500 text-xs sm:text-base">{t('daily.subheader')}</p>
             </div>
           </div>
         </div>
@@ -180,7 +190,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             </div>
             <div>
               <h2 className="text-xl font-extrabold text-yellow-700 mb-2 flex items-center">
-                Morning Routine for the Week
+                {t('daily.morningRoutine')}
               </h2>
               <ul className="list-none space-y-2 text-gray-700">
                 {(typeof plan.morningLaunchpad === 'string' 
@@ -202,18 +212,18 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             <div className="flex-1">
               <h2 className="text-lg font-semibold text-purple-900 mb-3 flex items-center">
                 <span className="mr-2">🏆</span>
-                Weekly Challenges
+                {t('daily.weeklyChallenges')}
               </h2>
               <ul className="space-y-3">
                 {plan.challenges.map((challenge: any, idx: number) => (
                   <li key={idx} className="border-l-2 border-purple-300 pl-3 py-1 bg-purple-50/30 rounded shadow-none">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{challenge.category}</span>
-                      <span className="text-sm font-semibold text-purple-900">{challenge.title}</span>
+                      <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{t('daily.category', { category: challenge.category })}</span>
+                      <span className="text-sm font-semibold text-purple-900">{t('daily.title', { title: challenge.title })}</span>
                     </div>
-                    <div className="text-gray-800 text-sm mb-0.5">{challenge.description}</div>
+                    <div className="text-gray-800 text-sm mb-0.5">{t('daily.description', { description: challenge.description })}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600 mb-0.5">
-                      <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {challenge.estimatedTime}</span>
+                      <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {t('daily.estimatedTime', { time: challenge.estimatedTime })}</span>
                     </div>
                   </li>
                 ))}
@@ -227,7 +237,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       <div className="w-full mx-auto px-8 lg:px-24">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
           {plan.days.map((day: any, idx: number) => (
-            <DayCard key={idx} day={day} dayName={dayNames[idx] || `Day ${idx + 1}`} />
+            <DayCard key={idx} day={day} dayName={t(dayNames[idx] || 'daily.day', { day: idx + 1 })} />
           ))}
           {/* Invisible placeholder to fill the last cell of the first row and push last 3 cards to next row */}
           <div className="hidden lg:block" style={{ gridColumn: '4' }}></div>
@@ -238,7 +248,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       <div className="text-center mt-12">
         <button onClick={onBack} className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-full inline-flex items-center transition-colors duration-300">
           <RotateCcw className="w-5 h-5 mr-2" />
-          <span>Go Back</span>
+          <span>{t('daily.goBack')}</span>
         </button>
       </div>
     </div>

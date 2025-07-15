@@ -21,7 +21,8 @@ export const useQuiz = () => {
     quizSections.flatMap((section: QuizSection) => 
       section.questions.map((question: any) => ({
         ...question,
-        sectionTitle: section.title
+        sectionTitle: section.title,
+        sectionId: section.id
       }))
     )
   , [quizSections]);

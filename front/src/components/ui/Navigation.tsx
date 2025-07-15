@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Home, 
   PanelLeftOpen, 
@@ -41,10 +41,19 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
   const { t } = useTranslation();
   const [language, setLanguage] = useState<'en' | 'ru'>(i18n.language as 'en' | 'ru');
 
+  useEffect(() => {
+    const storedLang = localStorage.getItem('appLang');
+    if (storedLang && storedLang !== language) {
+      setLanguage(storedLang as 'en' | 'ru');
+      i18n.changeLanguage(storedLang);
+    }
+  }, []);
+
   const handleLanguageSwitch = () => {
     const newLang = language === 'en' ? 'ru' : 'en';
     setLanguage(newLang);
     i18n.changeLanguage(newLang);
+    localStorage.setItem('appLang', newLang);
   };
 
   // Helper function to check if a route is active

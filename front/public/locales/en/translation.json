@@ -207,5 +207,275 @@
     "aiCoachDesc": "Personalized guidance & tips",
     "futureSelf": "Talk to Future Self",
     "futureSelfDesc": "Get motivation from your transformed self"
+  },
+  "quiz": {
+    "vitality-foundation": {
+      "title": "Your Vitality Foundation",
+      "q1": {
+        "text": "How would you rate your overall energy levels throughout the day?",
+        "option1": "Consistently high energy all day",
+        "option2": "Good energy with minor afternoon dips",
+        "option3": "Moderate energy, noticeable ups and downs",
+        "option4": "Low energy, often tired",
+        "option5": "Chronically exhausted"
+      },
+      "q2": {
+        "text": "How many hours of quality sleep do you typically get per night?",
+        "option1": "7-9 hours of deep, restorative sleep",
+        "option2": "6-7 hours, mostly good quality",
+        "option3": "5-6 hours or restless sleep",
+        "option4": "4-5 hours or poor quality",
+        "option5": "Less than 4 hours or severely disrupted"
+      },
+      "q3": {
+        "text": "How often do you engage in physical activity that makes you breathe harder or sweat?",
+        "option1": "5+ times per week (150+ min/week)",
+        "option2": "3-4 times per week (90-150 min/week)",
+        "option3": "2-3 times per week (60-90 min/week)",
+        "option4": "Once per week or less (30-60 min/week)",
+        "option5": "Rarely or never (less than 30 min/week)"
+      },
+      "q4": {
+        "text": "Which best describes your typical daily nutrition pattern?",
+        "option1": "Whole foods, vegetables, lean proteins, minimal processing",
+        "option2": "Mostly healthy with occasional processed foods",
+        "option3": "Mixed diet, some healthy and some processed foods",
+        "option4": "Frequent processed foods, limited vegetables",
+        "option5": "Predominantly fast food and ultra-processed foods"
+      },
+      "q5": {
+        "text": "What is your relationship with tobacco products?",
+        "option1": "Never used tobacco products",
+        "option2": "Quit 5+ years ago",
+        "option3": "Quit 1-5 years ago",
+        "option4": "Quit within the last year",
+        "option5": "Occasional use (social/stress)",
+        "option6": "Regular use (daily/weekly)"
+      }
+    },
+    "mental-resilience": {
+      "title": "Mental Resilience & Emotional Balance",
+      "q6": {
+        "text": "How effectively do you manage stress in your daily life?",
+        "option1": "I have excellent stress management strategies and rarely feel overwhelmed",
+        "option2": "I manage stress well most of the time",
+        "option3": "I manage stress adequately but sometimes feel overwhelmed",
+        "option4": "I struggle with stress management and often feel overwhelmed",
+        "option5": "I feel chronically stressed and have poor coping mechanisms"
+      },
+      "q7": {
+        "text": "How would you rate your overall emotional well-being?",
+        "option1": "Consistently positive, resilient, and emotionally stable",
+        "option2": "Generally positive with good emotional regulation",
+        "option3": "Balanced but with some emotional ups and downs",
+        "option4": "Often struggle with negative emotions or mood swings",
+        "option5": "Frequently experience anxiety, depression, or emotional instability"
+      },
+      "q8": {
+        "text": "How satisfied are you with your social connections and support system?",
+        "option1": "I have strong, meaningful relationships and excellent social support",
+        "option2": "I have good relationships and adequate social support",
+        "option3": "I have some relationships but wish for deeper connections",
+        "option4": "I have limited social connections and support",
+        "option5": "I feel socially isolated and lack meaningful connections"
+      },
+      "q9": {
+        "text": "How often do you engage in activities that bring you joy and fulfillment?",
+        "option1": "Daily - I regularly engage in meaningful, enjoyable activities",
+        "option2": "Several times per week",
+        "option3": "Weekly - I make time for enjoyable activities",
+        "option4": "Occasionally - I sometimes make time for enjoyable activities",
+        "option5": "Rarely - I feel disconnected from activities I enjoy"
+      }
+    },
+    "self-perception": {
+      "title": "Self-Image & Confidence",
+      "q10": {
+        "text": "How do you feel about your physical appearance and body image?",
+        "option1": "Very confident and satisfied with my appearance",
+        "option2": "Generally confident with minor concerns",
+        "option3": "Neutral feelings, some areas of concern",
+        "option4": "Often dissatisfied with my appearance",
+        "option5": "Very insecure and avoid mirrors/photos"
+      },
+      "q11": {
+        "text": "How would you rate your skin health and appearance?",
+        "option1": "Excellent - clear, healthy, glowing skin",
+        "option2": "Good - generally healthy with minor concerns",
+        "option3": "Average - some skin concerns but manageable",
+        "option4": "Poor - frequent skin issues or concerns",
+        "option5": "Very poor - significant ongoing skin problems"
+      }
+    },
+    "health-indicators": {
+      "title": "Key Health Indicators",
+      "q12": {
+        "text": "How often do you experience physical symptoms like headaches, digestive issues, muscle tension, or frequent colds?",
+        "option1": "Rarely or never - I feel physically well",
+        "option2": "Occasionally - minor issues that don't impact daily life",
+        "option3": "Sometimes - noticeable but manageable symptoms",
+        "option4": "Frequently - symptoms that affect my daily activities",
+        "option5": "Constantly - chronic symptoms that significantly impact my life"
+      },
+      "q13": {
+        "text": "How would you describe your alcohol consumption pattern?",
+        "option1": "I don't drink alcohol",
+        "option2": "1-2 drinks per week or less",
+        "option3": "3-7 drinks per week",
+        "option4": "8-14 drinks per week",
+        "option5": "15+ drinks per week"
+      },
+      "q14": {
+        "text": "What is your current Body Mass Index (BMI) category?",
+        "option1": "Underweight (BMI < 18.5)",
+        "option2": "Normal weight (BMI 18.5-24.9)",
+        "option3": "Overweight (BMI 25-29.9)",
+        "option4": "Obese (BMI ≥ 30)",
+        "option5": "I don't know my BMI"
+      },
+      "q18": {
+        "text": "How much water do you typically drink per day?",
+        "option1": "8+ glasses (2+ liters)",
+        "option2": "6-7 glasses (1.5-2 liters)",
+        "option3": "4-5 glasses (1-1.5 liters)",
+        "option4": "2-3 glasses (0.5-1 liter)",
+        "option5": "Less than 2 glasses (under 0.5 liter)"
+      }
+    },
+    "demographics": {
+      "title": "About You",
+      "q15": {
+        "text": "What is your current age?"
+      },
+      "q16": {
+        "text": "What is your biological sex?",
+        "option1": "Female",
+        "option2": "Male",
+        "option3": "Other/Prefer not to say"
+      },
+      "q17": {
+        "text": "In which country do you currently live?"
+      }
+    }
+  },
+  "quizUi": {
+    "pressEnterToContinue": "Press Enter to continue after selecting an answer or use the Next button",
+    "pressEnterToContinueOrNext": "Press Enter to continue or use the Next button",
+    "pleaseEnterNumber": "Please enter a number between {{min}} and {{max}}",
+    "noCountriesFound": "No countries found",
+    "typeToSearchOrDropdown": "Type to search or click the dropdown arrow to select your country",
+    "assessmentInProgress": "Assessment in Progress",
+    "chooseOption": "Choose the option that best describes you ✨",
+    "previous": "Previous",
+    "next": "Next",
+    "continue": "Continue",
+    "turnOffAutoAdvance": "Turn off auto-advance",
+    "turnOnAutoAdvance": "Turn on auto-advance",
+    "autoAdvance": "Auto-advance {{state}}",
+    "on": "ON",
+    "off": "OFF",
+    "closeModal": "Close modal",
+    "weight": "Weight (kg)",
+    "height": "Height (cm)",
+    "weightPlaceholder": "e.g., 70",
+    "heightPlaceholder": "e.g., 175",
+    "calculate": "Calculate",
+    "selectCountry": "Select your country"
+  },
+  "photo": {
+    "title": "Photo Analysis",
+    "subtitle": "Capture your natural glow",
+    "upload": "Upload Photo",
+    "takePhoto": "Take Photo",
+    "clickToUpload": "Click to upload or drag & drop",
+    "dropHere": "Drop your photo here",
+    "fileTypes": "PNG, JPG, or WebP (max 10MB)",
+    "cameraAccess": "Camera Access Required",
+    "capturePhoto": "Capture Photo",
+    "removePhoto": "Remove photo",
+    "ready": "Photo ready for analysis!",
+    "getBestResults": "Get the Best Results",
+    "tips": {
+      "visibility": "Clear visibility",
+      "visibilityDesc": "Use natural lighting",
+      "natural": "Natural photo",
+      "naturalDesc": "Avoid filters or makeup",
+      "quality": "High quality",
+      "qualityDesc": "Use a sharp image"
+    },
+    "privacyTitle": "Privacy & Security",
+    "privacyDesc": "Your photo is processed securely and automatically deleted after analysis. We only use it to provide personalized insights.",
+    "backToQuiz": "Back to Quiz",
+    "analyzing": "Analyzing...",
+    "generateResults": "Generate My Results",
+    "uploadError": "Upload Error",
+    "processingError": "Processing Error"
+  },
+  "loading": {
+    "processingResults": "Processing your results...",
+    "processingQuiz": "Processing Quiz",
+    "analyzingPhoto": "Analyzing Photo",
+    "calculatingScore": "Calculating Score",
+    "generatingResults": "Generating Results",
+    "pleaseWait": "Please wait while we process your data.",
+    "steps": "Steps"
+  },
+  "future": {
+    "loading": "Loading your transformation projections...",
+    "projectionNotAvailable": "Projection Not Available",
+    "generate": "Generate Transformation Plan",
+    "generating": "Generating...",
+    "backToDashboard": "Back to Dashboard",
+    "invalidData": "Invalid projection data format.",
+    "beta": "Beta Version",
+    "header": "Your Transformation journey",
+    "subheader": "Your wellness journey continues",
+    "current": "Current",
+    "now": "Now",
+    "quickWin": "7-Day Quick Win",
+    "in7days": "in 7 days",
+    "transformation": "30-Day Transformation",
+    "in30days": "in 30 days",
+    "in30daysLabel": "{{name}} in 30 days",
+    "points": "points",
+    "avatarSoon": "Future avatar will be ready soon — stay tuned to see your transformation!",
+    "categoryStats": "Category Stats",
+    "projected": "Projected",
+    "physicalVitality": "Physical Vitality",
+    "emotionalHealth": "Emotional Health",
+    "visualAppearance": "Visual Appearance",
+    "nowLabel": "Now",
+    "future": "Future",
+    "messageFromFutureSelf": "Message from Your Future Self",
+    "actionPlan": "Your Action Plan",
+    "week": "Week {{week}}: {{theme}}",
+    "view7DayPlan": "View Your 7-Day Daily Plan"
+  },
+  "daily": {
+    "loading": "Loading your daily plan",
+    "preparing": "Preparing your personalized schedule...",
+    "error": "Oops! Something went wrong",
+    "noPlan": "No Daily Plan Found",
+    "tryAgain": "Try Again",
+    "goBack": "Go Back",
+    "beta": "Beta Version",
+    "header": "Your Weekly Plan",
+    "subheader": "All your habits, deep work, and routines in one place",
+    "morningRoutine": "Morning Routine for the Week",
+    "weeklyChallenges": "Weekly Challenges",
+    "category": "{{category}}",
+    "title": "{{title}}",
+    "description": "{{description}}",
+    "estimatedTime": "{{time}}",
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "day": "Day {{day}}"
   }
 } 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle, Clock, Sparkles, HelpCircle, Heart, Utensils, Activity, Coffee, Zap, ZapOff, Search, ChevronDown } from 'lucide-react';
 import { Question, Option } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface QuizStepProps {
   question: Question;
@@ -294,6 +295,9 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     'bg-rose-100 text-rose-700 border-rose-200'
   ];
 
+  const { t } = useTranslation();
+  const sectionId = (question as any).sectionId || 'unknown-section';
+
   const renderQuestionInput = () => {
     switch (question.type) {
       case 'single-choice':
@@ -302,24 +306,24 @@ export const QuizStep: React.FC<QuizStepProps> = ({
             {isBMIQuestion && (
               <div className="mb-6 p-4 bg-blue-50 rounded-xl flex flex-col sm:flex-row gap-4 items-end">
                 <div className="flex flex-col flex-1">
-                  <label className="text-sm font-medium text-gray-700 mb-1">Weight (kg)</label>
+                  <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.weight')}</label>
                   <input
                     type="number"
                     value={weightKg}
                     onChange={(e) => setWeightKg(e.target.value)}
                     className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., 70"
+                    placeholder={t('quizUi.weightPlaceholder')}
                     min={1}
                   />
                 </div>
                 <div className="flex flex-col flex-1">
-                  <label className="text-sm font-medium text-gray-700 mb-1">Height (cm)</label>
+                  <label className="text-sm font-medium text-gray-700 mb-1">{t('quizUi.height')}</label>
                   <input
                     type="number"
                     value={heightCm}
                     onChange={(e) => setHeightCm(e.target.value)}
                     className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g., 175"
+                    placeholder={t('quizUi.heightPlaceholder')}
                     min={1}
                   />
                 </div>
@@ -328,7 +332,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                   onClick={handleBMICalc}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow"
                 >
-                  Calculate
+                  {t('quizUi.calculate')}
                 </button>
                 {calculatedBMI && (
                   <div className="text-center sm:text-left sm:ml-4 mt-4 sm:mt-0">
@@ -340,6 +344,9 @@ export const QuizStep: React.FC<QuizStepProps> = ({
             <div className="space-y-3 mb-6">
               {question.options?.map((option: Option, index: number) => {
                 const isSelected = selectedAnswer === option.value;
+                const optionKey = `quiz.${sectionId}.${question.id}.option${index + 1}`;
+                const optionLabel = t(optionKey);
+                const displayLabel = optionLabel === optionKey ? option.label : optionLabel;
                 return (
                   <div
                     key={index}
@@ -348,7 +355,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     }`}
                   >
                     <button
-                      onClick={() => onAnswerSelect(option.value, option.label)}
+                      onClick={() => onAnswerSelect(option.value, displayLabel)}
                       className={`w-full p-4 sm:p-5 rounded-2xl text-left transition-all duration-300 border-2 min-h-[4rem] relative group ${
                         isSelected
                           ? 'bg-blue-50 text-slate-800 border-blue-200 shadow-md ring-2 ring-blue-100'
@@ -371,7 +378,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                             <div className={`font-medium text-base sm:text-lg transition-all duration-300 ${
                               isSelected ? 'text-slate-800' : 'text-gray-900'
                             }`}>
-                              {option.label}
+                              {displayLabel}
                             </div>
                             {option.description && (
                               <div className={`text-sm transition-all duration-300 leading-relaxed ${
@@ -402,7 +409,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                 );
               })}
               <p className="text-sm text-gray-500 mt-4 text-center">
-                Press Enter to continue after selecting an answer or use the Next button
+                {t('quizUi.pressEnterToContinue')}
               </p>
             </div>
           </>
@@ -428,7 +435,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
               )}
             </div>
             <p className="text-sm text-gray-500 mt-3 text-center">
-              Press Enter to continue or use the Next button
+              {t('quizUi.pressEnterToContinueOrNext')}
             </p>
           </div>
         );
@@ -456,7 +463,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
             </div>
             {question.min !== undefined && question.max !== undefined && (
               <p className="text-sm text-gray-500 mt-3 text-center">
-                Please enter a number between {question.min} and {question.max}
+                {t('quizUi.pleaseEnterNumber', { min: question.min, max: question.max })}
               </p>
             )}
           </div>
@@ -474,7 +481,11 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                   onChange={handleCountrySearch}
                   onKeyPress={handleKeyPress}
                   onClick={toggleCountryDropdown}
-                  placeholder={question.placeholder}
+                  placeholder={(function() {
+                    const key = 'quizUi.selectCountry';
+                    const translated = t(key);
+                    return translated === key ? (question.placeholder || '') : translated;
+                  })()}
                   className="w-full p-5 sm:p-6 rounded-3xl border-2 border-gray-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 transition-all duration-300 text-base sm:text-lg bg-white/95 backdrop-blur-sm shadow-xl shadow-gray-500/10 placeholder-gray-400 min-h-[3.5rem] pr-16"
                   autoFocus
                 />
@@ -507,14 +518,14 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     ))
                   ) : (
                     <div className="px-4 py-3 text-gray-500 text-center">
-                      No countries found
+                      {t('quizUi.noCountriesFound')}
                     </div>
                   )}
                 </div>
               )}
             </div>
             <p className="text-sm text-gray-500 mt-3 text-center">
-              Type to search or click the dropdown arrow to select your country
+              {t('quizUi.typeToSearchOrDropdown')}
             </p>
           </div>
         );
@@ -532,14 +543,18 @@ export const QuizStep: React.FC<QuizStepProps> = ({
           <div className="flex items-center justify-between h-16 sm:h-20">
             <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                <Sparkles className="w-5 h-5 sm:w-6 h-6 text-blue-600" />
               </div>
               <div>
                 <h1 className="font-semibold text-sm sm:text-base text-gray-800 leading-tight">
-                  {sectionTitle}
+                  {(() => {
+                    const sectionTitleKey = `quiz.${sectionId}.title`;
+                    const translated = t(sectionTitleKey);
+                    return translated === sectionTitleKey ? sectionTitle : translated;
+                  })()}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-500 font-medium">
-                  Assessment in Progress
+                  {t('quizUi.assessmentInProgress')}
                 </p>
               </div>
             </div>
@@ -566,7 +581,11 @@ export const QuizStep: React.FC<QuizStepProps> = ({
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-lg border border-white/50 mb-4 sm:mb-6">
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
-                {question.text}
+                {(() => {
+                  const questionKey = `quiz.${sectionId}.${question.id}.text`;
+                  const translated = t(questionKey);
+                  return translated === questionKey ? question.text : translated;
+                })()}
               </h1>
             </div>
           </div>
@@ -575,7 +594,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-lg border border-white/50">
             <div className="text-center mb-6">
               <p className="text-gray-600 text-sm sm:text-base max-w-3xl mx-auto">
-                Choose the option that best describes you ✨
+                {t('quizUi.chooseOption')}
               </p>
             </div>
             
@@ -593,7 +612,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 hover:bg-gray-100"
                   >
                     <ChevronLeft className="w-5 h-5 mr-1" />
-                    Previous
+                    {t('quizUi.previous')}
                   </button>
                 </div>
 
@@ -607,10 +626,10 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                           ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                           : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                       }`}
-                      title={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
+                      title={autoAdvanceEnabled ? t('quizUi.turnOffAutoAdvance') : t('quizUi.turnOnAutoAdvance')}
                     >
                       {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
-                      <span>Auto-advance {autoAdvanceEnabled ? 'ON' : 'OFF'}</span>
+                      <span>{t('quizUi.autoAdvance', { state: autoAdvanceEnabled ? t('quizUi.on') : t('quizUi.off') })}</span>
                     </button>
                   )}
                 </div>
@@ -622,7 +641,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     disabled={!canGoNext}
                     className="flex items-center px-4 py-2 rounded-lg font-semibold transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    {currentQuestionIndex === totalQuestions - 1 ? 'Continue' : 'Next'}
+                    {currentQuestionIndex === totalQuestions - 1 ? t('quizUi.continue') : t('quizUi.next')}
                     <ChevronRight className="w-5 h-5 ml-1" />
                   </button>
                 </div>
@@ -640,10 +659,10 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                           ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                           : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
                       }`}
-                      title={autoAdvanceEnabled ? 'Turn off auto-advance' : 'Turn on auto-advance'}
+                      title={autoAdvanceEnabled ? t('quizUi.turnOffAutoAdvance') : t('quizUi.turnOnAutoAdvance')}
                     >
                       {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
-                      <span>Auto-advance {autoAdvanceEnabled ? 'ON' : 'OFF'}</span>
+                      <span>{t('quizUi.autoAdvance', { state: autoAdvanceEnabled ? t('quizUi.on') : t('quizUi.off') })}</span>
                     </button>
                   )}
                 </div>
@@ -663,7 +682,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     disabled={!canGoNext}
                     className="flex-[2] flex items-center justify-center px-4 py-3 rounded-xl font-semibold transition-colors duration-200 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
                   >
-                    <span>{currentQuestionIndex === totalQuestions - 1 ? 'Continue' : 'Next'}</span>
+                    <span>{currentQuestionIndex === totalQuestions - 1 ? t('quizUi.continue') : t('quizUi.next')}</span>
                     <ChevronRight className="w-5 h-5 ml-2" />
                   </button>
                 </div>

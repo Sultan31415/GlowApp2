@@ -105,6 +105,14 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const storedLang = localStorage.getItem('appLang');
+    if (storedLang && storedLang !== language) {
+      setLanguage(storedLang as 'en' | 'ru');
+      i18n.changeLanguage(storedLang);
+    }
+  }, []);
+
   const scrollToSection = useCallback((e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);
@@ -119,6 +127,13 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
       });
     }
   }, []);
+
+  const handleLanguageSwitch = () => {
+    const newLang = language === 'en' ? 'ru' : 'en';
+    setLanguage(newLang);
+    i18n.changeLanguage(newLang);
+    localStorage.setItem('appLang', newLang);
+  };
 
   return (
     <AuroraBackground>
@@ -167,11 +182,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
               ))}
               {/* Language Switcher Button */}
               <button
-                onClick={() => {
-                  const newLang = language === 'en' ? 'ru' : 'en';
-                  setLanguage(newLang);
-                  i18n.changeLanguage(newLang);
-                }}
+                onClick={handleLanguageSwitch}
                 className={`ml-2 px-3 py-1.5 rounded-full border-2 border-purple-500 font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2
                   ${language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
                 aria-label="Switch language"
@@ -189,11 +200,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
             <div className="md:hidden flex flex-col items-end gap-2">
               {/* Language Switcher Button (Mobile) */}
               <button
-                onClick={() => {
-                  const newLang = language === 'en' ? 'ru' : 'en';
-                  setLanguage(newLang);
-                  i18n.changeLanguage(newLang);
-                }}
+                onClick={handleLanguageSwitch}
                 className={`mb-1 px-3 py-1.5 rounded-full border-2 border-purple-500 font-semibold text-xs transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2
                   ${language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
                 aria-label="Switch language"
