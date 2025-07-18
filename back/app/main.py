@@ -4,6 +4,7 @@ import uvicorn
 
 from app.config.settings import settings
 from app.api.endpoints import router
+from app.api.chat_ws import router as chat_ws_router
 from app.db.session import Base, engine
 from app.models.user import User # Import model to register with Base
 
@@ -26,8 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API routes
+# Include API routes (REST)
 app.include_router(router, prefix=settings.API_V1_STR)
+
+# Include WebSocket routes (no prefix so path stays /ws/*)
+app.include_router(chat_ws_router)
 
 @app.get("/")
 async def root():

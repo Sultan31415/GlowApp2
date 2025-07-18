@@ -30,6 +30,7 @@ import { useApi } from '../../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
+import ChatWidget from '../features/ChatWidget';
 
 
 interface DashboardScreenProps {}
@@ -551,7 +552,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   };
 
   return (
-    <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg flex flex-col overflow-x-hidden transition-all duration-300 sm:pb-0">
+    <>
       <ShareCard ref={shareCardRef} results={results} userData={userData} />
       
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
@@ -1037,6 +1038,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-[110]">
         <ShareResults targetRef={shareCardRef} />
       </div>
-    </div>
+      <ChatWidget />
+    </>
   );
 };
