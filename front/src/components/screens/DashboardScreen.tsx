@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Sparkles, 
   Heart, 
@@ -30,7 +30,7 @@ import { useApi } from '../../utils/useApi';
 import { useUser } from '@clerk/clerk-react';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useTranslation } from 'react-i18next';
-import ChatWidget from '../features/ChatWidget';
+import { AIChatScreen } from './AIChatScreen';
 
 
 interface DashboardScreenProps {}
@@ -40,6 +40,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const shareCardRef = useRef<HTMLDivElement>(null);
   const { makeRequest } = useApi();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const showChat = searchParams.get('chat') === 'open';
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -552,7 +554,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   };
 
   return (
-    <>
+    <div className="relative sm:ml-[var(--sidebar-width)] aurora-bg flex flex-col overflow-x-hidden transition-all duration-300 sm:pb-0">
       <ShareCard ref={shareCardRef} results={results} userData={userData} />
       
       {/* Clean Glow Score Badge with Potential - Mobile Optimized */}
@@ -959,6 +961,29 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           </div>
         </div>
 
+        {/* AI Mentor CTA Section */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-indigo-50 border-2 border-purple-200/60 rounded-2xl shadow-lg p-4 sm:p-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  See Your Hidden Problems
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
+                  Talk to an AI mentor that knows you better than you.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/ai-chat')}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-sm ml-4"
+              >
+                Talk to AI →
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Quick Actions Section */}
         <div className="mb-6" id="quick-actions-section">
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-100/50 p-6 sm:p-8">
@@ -1020,12 +1045,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                 </div>
 
                 {/* Future Self Chat */}
-                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
+                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/dashboard?chat=open')}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                     </div>
-                    <span className="text-xs text-purple-600 font-medium bg-purple-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">{t('dashboard.available')}</span>
                   </div>
                   <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.futureSelf')}</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.futureSelfDesc')}</p>
@@ -1038,7 +1063,13 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
       <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-[110]">
         <ShareResults targetRef={shareCardRef} />
       </div>
-      <ChatWidget />
-    </>
+      
+      {/* AI Chat Modal */}
+      {showChat && (
+        <div className="fixed inset-0 z-[120] bg-black/50 backdrop-blur-sm">
+          <AIChatScreen onBack={() => navigate('/dashboard')} />
+        </div>
+      )}
+    </div>
   );
 };

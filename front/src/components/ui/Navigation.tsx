@@ -10,7 +10,8 @@ import {
   Activity,
   Settings,
   Image,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from 'lucide-react';
 import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -150,6 +151,16 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       tooltip: t('sidebar.habitsTooltip'),
       description: t('sidebar.habitsDescription'),
       isActive: isRouteActive('/daily-plan')
+    },
+    {
+      id: 'chat',
+      label: t('sidebar.chat'),
+      icon: MessageCircle,
+      onClick: () => navigate('/ai-chat'),
+      isAvailable: true,
+      tooltip: t('sidebar.chatTooltip'),
+      description: t('sidebar.chatDescription'),
+      isActive: isRouteActive('/ai-chat')
     },
     {
       id: 'progress',
