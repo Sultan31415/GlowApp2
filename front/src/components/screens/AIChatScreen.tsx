@@ -566,22 +566,22 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             
             {/* Main Avatar Container - Natural Shape */}
             <div className="relative w-full h-full flex items-center justify-center">
-              <img
-                src="/Oylan.png"
+          <img
+            src="/Oylan.png"
                 className="max-w-full max-h-full object-contain rounded-3xl"
                 alt={`${AI_CHARACTER_NAME} avatar`}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = document.createElement('div');
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const fallback = document.createElement('div');
                   fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-2xl rounded-3xl ' + getAvatarBackground();
                   fallback.textContent = AI_CHARACTER_NAME;
-                  target.parentNode?.appendChild(fallback);
-                }}
-              />
+              target.parentNode?.appendChild(fallback);
+            }}
+          />
             </div>
           </div>
-
+          
           {/* Simple Character Info */}
           <div className="w-full mt-6 bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
             <div className="text-center">
@@ -624,22 +624,22 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           
           {/* Main Avatar Container - Natural Shape */}
           <div className="relative w-full h-full flex items-center justify-center">
-            <img
-              src="/Oylan.png"
+          <img
+            src="/Oylan.png"
               className="max-w-full max-h-full object-contain rounded-2xl"
               alt={`${AI_CHARACTER_NAME} avatar`}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const fallback = document.createElement('div');
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const fallback = document.createElement('div');
                 fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-lg rounded-2xl ' + getAvatarBackground();
                 fallback.textContent = AI_CHARACTER_NAME;
-                target.parentNode?.appendChild(fallback);
-              }}
-            />
+              target.parentNode?.appendChild(fallback);
+            }}
+          />
           </div>
         </div>
-
+          
         {/* Simple Character Info - Mobile */}
         <div className="w-full max-w-sm mt-4 bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-lg border border-white/50">
           <div className="text-center">

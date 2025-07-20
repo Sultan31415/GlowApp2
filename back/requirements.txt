@@ -18,6 +18,9 @@ google-generativeai==0.3.2
 pillow==10.1.0
 openai==1.67.0
 
+# Vector database support
+pgvector==0.2.4
+
 # LangGraph and LangChain
 langchain==0.2.*
 langgraph==0.0.*
