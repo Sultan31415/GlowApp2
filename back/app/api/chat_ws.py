@@ -7,6 +7,7 @@ from app.models.future_projection import DailyPlan
 from typing import List, Optional
 import json
 import uuid
+import asyncio
 from datetime import datetime
 import openai
 from app.config.settings import settings
@@ -32,6 +33,178 @@ else:
     print(f"[Leo] Using OpenAI GPT-4o: {gpt_model}")
 
 clerk_sdk = Clerk(bearer_auth=settings.CLERK_SECRET_KEY)
+
+# WebSocket connection manager for keep-alive
+class WebSocketManager:
+    def __init__(self):
+        self.active_connections = {}
+        self.heartbeat_interval = 30  # seconds
+        self.connection_timeout = 60  # seconds
+    
+    async def add_connection(self, websocket: WebSocket, user_id: str):
+        """Add a new WebSocket connection"""
+        self.active_connections[user_id] = {
+            'websocket': websocket,
+            'last_activity': datetime.utcnow(),
+            'heartbeat_task': None,
+            'processing_task': None  # Track processing tasks
+        }
+        # Start heartbeat for this connection
+        self.active_connections[user_id]['heartbeat_task'] = asyncio.create_task(
+            self._heartbeat_loop(user_id)
+        )
+    
+    async def remove_connection(self, user_id: str):
+        """Remove a WebSocket connection"""
+        if user_id in self.active_connections:
+            # Cancel all tasks
+            connection = self.active_connections[user_id]
+            if connection['heartbeat_task']:
+                connection['heartbeat_task'].cancel()
+            if connection['processing_task']:
+                connection['processing_task'].cancel()
+            del self.active_connections[user_id]
+    
+    async def update_activity(self, user_id: str):
+        """Update last activity timestamp"""
+        if user_id in self.active_connections:
+            self.active_connections[user_id]['last_activity'] = datetime.utcnow()
+    
+    async def set_processing_task(self, user_id: str, task):
+        """Set the current processing task for a user"""
+        if user_id in self.active_connections:
+            # Cancel previous task if exists
+            if self.active_connections[user_id]['processing_task']:
+                self.active_connections[user_id]['processing_task'].cancel()
+            self.active_connections[user_id]['processing_task'] = task
+    
+    async def _heartbeat_loop(self, user_id: str):
+        """Send periodic heartbeat messages"""
+        try:
+            while user_id in self.active_connections:
+                await asyncio.sleep(self.heartbeat_interval)
+                if user_id in self.active_connections:
+                    websocket = self.active_connections[user_id]['websocket']
+                    try:
+                        # Send ping instead of heartbeat for compatibility
+                        await websocket.send_json({"type": "ping", "timestamp": datetime.utcnow().isoformat()})
+                        print(f"[WebSocket] Ping sent to user {user_id}")
+                    except Exception as e:
+                        print(f"[WebSocket] Failed to send ping to user {user_id}: {e}")
+                        break
+        except asyncio.CancelledError:
+            print(f"[WebSocket] Heartbeat cancelled for user {user_id}")
+        except Exception as e:
+            print(f"[WebSocket] Heartbeat error for user {user_id}: {e}")
+
+# Global WebSocket manager
+ws_manager = WebSocketManager()
+
+async def process_ai_response_background(
+    websocket: WebSocket,
+    user_id: str,
+    session_id: str,
+    user_msg: str,
+    prev_msgs: List[ChatMessage],
+    orchestrator_context: Optional[dict],
+    db: Session
+):
+    """Process AI response in background to avoid blocking WebSocket"""
+    try:
+        print(f"[Background] Starting AI processing for user {user_id}")
+        
+        # 🧠 VECTOR SEARCH INTEGRATION: Save user message with embedding and metadata
+        vector_search = VectorSearchService(db)
+        user_chat = await vector_search.save_message_with_embedding(
+            user_id=user_id,
+            session_id=session_id,
+            role="user",
+            content=user_msg
+        )
+        
+        if user_chat:
+            await websocket.send_json({"type": "user", "message": serialize_message(user_chat)})
+        else:
+            # Fallback to regular save if vector search fails
+            user_chat = ChatMessage(
+                user_id=user_id,
+                session_id=session_id,
+                role="user",
+                content=user_msg,
+                timestamp=datetime.utcnow(),
+            )
+            db.add(user_chat)
+            db.commit()
+            db.refresh(user_chat)
+            await websocket.send_json({"type": "user", "message": serialize_message(user_chat)})
+        
+        # 🧠 VECTOR MEMORY: Get conversation memory for enhanced context
+        conversation_memory = await vector_search.get_conversation_memory(
+            user_id=user_id,
+            current_query=user_msg
+        )
+        
+        # Enhance orchestrator context with vector memory
+        if conversation_memory and conversation_memory.get("relevant_history"):
+            orchestrator_context["vector_memory"] = conversation_memory
+            print(f"[Background] Vector memory loaded: {len(conversation_memory.get('relevant_history', []))} relevant messages")
+
+        # Call GPT-4o LLM with enhanced context including vector memory
+        ai_response = await gpt_chat_response(prev_msgs, user_msg, orchestrator_context)
+        
+        # 🎯 CONTEXT7 RESPONSE QUALITY CHECK
+        if not ai_response or len(ai_response.strip()) < 10:
+            print(f"[Background] Response quality issue detected for user {user_id}")
+            ai_response = "I hear you, and I want to understand better. Could you tell me more about what's on your mind right now?"
+        
+        # Ensure Leo maintains his identity
+        if any(phrase in ai_response.lower() for phrase in ['as an ai', 'i am an ai', 'my training', 'language model']):
+            print(f"[Background] Identity correction applied for user {user_id}")
+            ai_response = "I understand what you're going through. Let me share some wisdom from my own journey of transformation."
+        
+        # 🧠 VECTOR SEARCH: Save AI response with embedding and metadata
+        ai_chat = await vector_search.save_message_with_embedding(
+            user_id=user_id,
+            session_id=session_id,
+            role="ai",
+            content=ai_response
+        )
+        
+        if ai_chat:
+            await websocket.send_json({"type": "ai", "message": serialize_message(ai_chat)})
+        else:
+            # Fallback to regular save if vector search fails
+            ai_chat = ChatMessage(
+                user_id=user_id,
+                session_id=session_id,
+                role="ai",
+                content=ai_response,
+                timestamp=datetime.utcnow(),
+            )
+            db.add(ai_chat)
+            db.commit()
+            db.refresh(ai_chat)
+            await websocket.send_json({"type": "ai", "message": serialize_message(ai_chat)})
+        
+        print(f"[Background] AI processing completed for user {user_id}")
+        
+    except Exception as e:
+        print(f"[Background] Error processing AI response for user {user_id}: {e}")
+        # Send error message to user
+        try:
+            await websocket.send_json({
+                "type": "ai", 
+                "message": {
+                    "id": 0,
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "role": "ai",
+                    "content": "I apologize, but I'm having trouble processing your message right now. Please try again in a moment.",
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            })
+        except Exception as send_error:
+            print(f"[Background] Failed to send error message to user {user_id}: {send_error}")
 
 def verify_clerk_token(token: str):
     """
@@ -586,14 +759,21 @@ async def chat_ws(
     if not user:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
+    
     await websocket.accept()
     user_id = user["user_id"]
+    
+    # Add connection to manager
+    await ws_manager.add_connection(websocket, user_id)
+    print(f"[WebSocket] Connection established for user {user_id}")
+    
     # Get session_id from query params or generate
     session_id = websocket.query_params.get("session_id") or str(uuid.uuid4())
 
     # Map Clerk user_id (string) to internal User.id (integer)
     db_user = db.query(User).filter(User.user_id == user_id).first()
     if not db_user:
+        await ws_manager.remove_connection(user_id)
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
     internal_user_id = db_user.id
@@ -727,86 +907,56 @@ async def chat_ws(
 
     try:
         while True:
-            data = await websocket.receive_text()
-            msg_data = json.loads(data)
+            # Update activity timestamp
+            await ws_manager.update_activity(user_id)
+            
+            # Receive message with timeout
+            try:
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=300)  # 5 minute timeout
+            except asyncio.TimeoutError:
+                print(f"[WebSocket] Timeout waiting for message from user {user_id}")
+                break
+            except WebSocketDisconnect:
+                print(f"[WebSocket] User {user_id} disconnected")
+                break
+            
+            try:
+                msg_data = json.loads(data)
+            except json.JSONDecodeError:
+                print(f"[WebSocket] Invalid JSON from user {user_id}")
+                continue
+            
             user_msg = msg_data.get("content")
             if not user_msg:
                 continue
-            # 🧠 VECTOR SEARCH INTEGRATION: Save user message with embedding and metadata
-            vector_search = VectorSearchService(db)
-            user_chat = await vector_search.save_message_with_embedding(
-                user_id=user_id,
-                session_id=session_id,
-                role="user",
-                content=user_msg
-            )
             
-            if user_chat:
-                await websocket.send_json({"type": "user", "message": serialize_message(user_chat)})
-                prev_msgs.append(user_chat)
-            else:
-                # Fallback to regular save if vector search fails
-                user_chat = ChatMessage(
+            # Send immediate acknowledgment
+            await websocket.send_json({
+                "type": "processing", 
+                "message": "Processing your message..."
+            })
+            
+            # Process AI response in background to avoid blocking WebSocket
+            background_task = asyncio.create_task(
+                process_ai_response_background(
+                    websocket=websocket,
                     user_id=user_id,
                     session_id=session_id,
-                    role="user",
-                    content=user_msg,
-                    timestamp=datetime.utcnow(),
+                    user_msg=user_msg,
+                    prev_msgs=prev_msgs,
+                    orchestrator_context=orchestrator_context,
+                    db=db
                 )
-                db.add(user_chat)
-                db.commit()
-                db.refresh(user_chat)
-                await websocket.send_json({"type": "user", "message": serialize_message(user_chat)})
-                prev_msgs.append(user_chat)
-
-            # 🧠 VECTOR MEMORY: Get conversation memory for enhanced context
-            conversation_memory = await vector_search.get_conversation_memory(
-                user_id=user_id,
-                current_query=user_msg
             )
             
-            # Enhance orchestrator context with vector memory
-            if conversation_memory and conversation_memory.get("relevant_history"):
-                orchestrator_context["vector_memory"] = conversation_memory
-                print(f"[Leo] 🧠 Vector memory loaded: {len(conversation_memory.get('relevant_history', []))} relevant messages")
-
-            # Call GPT-4o LLM with enhanced context including vector memory
-            ai_response = await gpt_chat_response(prev_msgs, user_msg, orchestrator_context)
-            
-            # 🎯 CONTEXT7 RESPONSE QUALITY CHECK
-            if not ai_response or len(ai_response.strip()) < 10:
-                print(f"[Leo] ⚠️ Response quality issue detected for user {user_id}")
-                ai_response = "I hear you, and I want to understand better. Could you tell me more about what's on your mind right now?"
-            
-            # Ensure Leo maintains his identity
-            if any(phrase in ai_response.lower() for phrase in ['as an ai', 'i am an ai', 'my training', 'language model']):
-                print(f"[Leo] 🔧 Identity correction applied for user {user_id}")
-                ai_response = "I understand what you're going through. Let me share some wisdom from my own journey of transformation."
-            
-            # 🧠 VECTOR SEARCH: Save AI response with embedding and metadata
-            ai_chat = await vector_search.save_message_with_embedding(
-                user_id=user_id,
-                session_id=session_id,
-                role="ai",
-                content=ai_response
-            )
-            
-            if ai_chat:
-                await websocket.send_json({"type": "ai", "message": serialize_message(ai_chat)})
-                prev_msgs.append(ai_chat)
-            else:
-                # Fallback to regular save if vector search fails
-                ai_chat = ChatMessage(
-                    user_id=user_id,
-                    session_id=session_id,
-                    role="ai",
-                    content=ai_response,
-                    timestamp=datetime.utcnow(),
-                )
-                db.add(ai_chat)
-                db.commit()
-                db.refresh(ai_chat)
-                await websocket.send_json({"type": "ai", "message": serialize_message(ai_chat)})
-                prev_msgs.append(ai_chat)
+            # Track the background task
+            await ws_manager.set_processing_task(user_id, background_task)
     except WebSocketDisconnect:
-        pass 
+        print(f"[WebSocket] User {user_id} disconnected normally")
+    except Exception as e:
+        print(f"[WebSocket] Unexpected error for user {user_id}: {e}")
+    finally:
+        # Clean up connection
+        await ws_manager.remove_connection(user_id)
+        print(f"[WebSocket] Connection cleaned up for user {user_id}") 
+        

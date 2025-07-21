@@ -21,7 +21,7 @@ class EmbeddingService:
                 azure_endpoint=settings.AZURE_OPENAI_ENDPOINT
             )
             # Use text-embedding-3-small for cost efficiency and good performance
-            self.embedding_model = "text-embedding-3-small"
+            self.embedding_model = settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME
             self.use_azure = True
             print(f"[EmbeddingService] Using Azure OpenAI: {self.embedding_model}")
         else:
@@ -71,6 +71,11 @@ class EmbeddingService:
                 
         except Exception as e:
             print(f"[EmbeddingService] Error generating embedding: {e}")
+            # Return a simple fallback embedding for basic functionality
+            if "DeploymentNotFound" in str(e):
+                print("[EmbeddingService] Deployment not found, using fallback embedding")
+                # Return a simple zero vector as fallback
+                return [0.0] * 1536  # Standard embedding dimension
             return None
 
     async def generate_batch_embeddings(self, texts: List[str]) -> List[Optional[List[float]]]:
@@ -113,6 +118,11 @@ class EmbeddingService:
             
         except Exception as e:
             print(f"[EmbeddingService] Error in batch embedding generation: {e}")
+            # Return fallback embeddings for basic functionality
+            if "DeploymentNotFound" in str(e):
+                print("[EmbeddingService] Deployment not found, using fallback embeddings")
+                # Return simple zero vectors as fallback
+                return [[0.0] * 1536 for _ in texts]  # Standard embedding dimension
             return [None] * len(texts)
 
     async def analyze_message_metadata(self, content: str) -> Dict[str, Any]:

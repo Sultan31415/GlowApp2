@@ -171,7 +171,7 @@ async def ensure_user_in_db(
         "email": db_user.email,
         "first_name": db_user.first_name,
         "last_name": db_user.last_name,
-        "created_at": db_user.created_at,
+        "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
     }
 
 @router.post("/refresh-user")
@@ -190,7 +190,7 @@ async def refresh_user_data(
             "email": db_user.email,
             "first_name": db_user.first_name,
             "last_name": db_user.last_name,
-            "created_at": db_user.created_at,
+            "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
         }
     }
 

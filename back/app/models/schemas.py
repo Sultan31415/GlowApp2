@@ -1,5 +1,6 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 
 class QuizAnswer(BaseModel):
     """Schema for individual quiz answer"""
@@ -41,9 +42,27 @@ class UserAssessmentCreate(BaseModel):
     analysis_summary: Optional[str] = None
     detailed_insights: Optional[Dict[str, Any]] = None
 
-class UserAssessmentResponse(UserAssessmentCreate):
+class UserAssessmentResponse(BaseModel):
     id: int
+    overall_glow_score: int
+    biological_age: int
+    emotional_age: int
+    chronological_age: int
+    category_scores: Dict[str, float]
+    glowup_archetype: Dict[str, str]
+    micro_habits: List[str]
+    avatar_urls: Optional[Dict[str, str]] = None
+    analysis_summary: Optional[str] = None
+    detailed_insights: Optional[Dict[str, Any]] = None
     created_at: str
+
+    @field_validator('created_at', mode='before')
+    @classmethod
+    def validate_created_at(cls, v):
+        """Convert datetime to ISO string if needed"""
+        if isinstance(v, datetime):
+            return v.isoformat()
+        return v
 
     class Config:
         from_attributes = True 

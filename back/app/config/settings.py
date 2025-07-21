@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     # Separate deployments for different models (Azure OpenAI requires separate deployment names)
     AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_NAME", "gpt-4o")
     AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_GPT4O_MINI_DEPLOYMENT_NAME", "gpt-4o-mini")
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: str = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME", "text-embedding-3-small")
     
     # Optional: Separate deployment versions for different models
     AZURE_OPENAI_GPT4O_DEPLOYMENT_VERSION: str = os.getenv("AZURE_OPENAI_GPT4O_DEPLOYMENT_VERSION", "2024-05-13")

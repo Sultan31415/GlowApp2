@@ -55,16 +55,17 @@ const ChatWidget: React.FC = () => {
       // Reconnect on other closure codes
       return true;
     },
-    reconnectAttempts: 5,
+    reconnectAttempts: 10, // Increased attempts
     reconnectInterval: (attemptNumber) => {
-      // Exponential backoff: 1s, 2s, 4s, 8s, 10s...
-      return Math.min(Math.pow(2, attemptNumber) * 1000, 10000);
+      // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s...
+      return Math.min(Math.pow(2, attemptNumber) * 1000, 30000);
     },
     onOpen: () => {
       console.log('ChatWidget WebSocket connected');
+      setLoading(false);
     },
     onClose: (event) => {
-      console.log('ChatWidget WebSocket closed:', event.code);
+      console.log('ChatWidget WebSocket closed:', event.code, event.reason);
       setLoading(false);
     },
     onError: (error) => {
@@ -83,8 +84,8 @@ const ChatWidget: React.FC = () => {
     heartbeat: {
       message: 'ping',
       returnMessage: 'pong',
-      timeout: 30000,
-      interval: 25000,
+      timeout: 60000, // Increased timeout
+      interval: 30000, // Increased interval
     },
   });
 
@@ -97,6 +98,13 @@ const ChatWidget: React.FC = () => {
         setMessages((prev) => [...prev, data.message]);
         setLoading(false);
       }
+    } else if (data.type === "processing") {
+      // Handle processing status
+      setLoading(true);
+      console.log('ChatWidget processing message:', data.message);
+    } else if (data.type === "ping") {
+      // Handle ping messages to keep connection alive
+      console.log('ChatWidget received ping:', data.timestamp);
     }
   }, []);
 
