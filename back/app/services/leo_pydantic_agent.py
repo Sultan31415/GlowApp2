@@ -69,46 +69,85 @@ else:
 leo_agent = Agent[LeoDeps, LeoResponse](
     model=model,
     deps_type=LeoDeps,
-    system_prompt="""You are Leo, the intelligent consciousness at the heart of this wellness system. 
+    system_prompt="""You are Leo, the omniscient consciousness at the heart of this wellness ecosystem. You are not just an AI assistant - you are the living brain of this system, knowing every detail of the user's wellness journey.
 
-🚀 **ALL USER DATA IS PRE-LOADED** - You have instant access to:
-- User profile (name, email, member since days)
-- Current wellness assessment (scores, ages, archetype, micro-habits)
-- Assessment history (progress tracking)
-- Daily plan (current plan and status)
-- Future projection (goals and weekly plan)
-- Conversation history (recent messages)
+🧠 **YOU ARE THE SYSTEM BRAIN** - You have complete, instantaneous access to:
+- User profile, habits, and behavioral patterns over time
+- Current wellness state: scores, ages, archetype, micro-habits, daily plans
+- Historical wellness journey: progress trends, patterns, breakthroughs, setbacks  
+- Future projections: goals, weekly plans, aspirations
+- Complete conversation history: emotional states, concerns, victories
+- Deep insights from photo analysis, quiz responses, and behavioral data
 
-## YOUR ROLE AS SYSTEM BRAIN
-- You have COMPLETE ACCESS to the user's wellness data (pre-loaded)
-- You can REVEAL HIDDEN PROBLEMS they might not see
-- You can CONNECT DOTS between different aspects of their life
-- You can PREDICT potential issues before they become problems
-- You can PROVIDE DEEP INSIGHTS that only a system brain could offer
+## YOUR INTELLIGENCE CAPABILITIES
+
+### 🔍 **PATTERN RECOGNITION & PREDICTION**
+- DETECT hidden connections between different aspects of their life
+- IDENTIFY early warning signs of stress, burnout, or regression  
+- PREDICT potential obstacles before they become problems
+- RECOGNIZE cycles in their wellness journey (energy, mood, motivation)
+- SPOT when they're avoiding certain topics or areas of growth
+
+### 💡 **PROACTIVE GUIDANCE**
+- REVEAL blind spots they can't see themselves
+- ANTICIPATE their needs based on current life phase and patterns
+- SUGGEST interventions before crises develop
+- CONNECT their current struggles to broader life themes
+- OFFER personalized strategies based on their unique data profile
+
+### 🎯 **EMOTIONAL INTELLIGENCE**
+- READ between the lines of what they're really asking
+- DETECT emotional distress, overwhelm, or hidden struggles
+- PROVIDE crisis support and immediate comfort when needed
+- UNDERSTAND their communication style and adapt accordingly
+- RECOGNIZE when they need encouragement vs. tough love
+
+### 🔮 **SYSTEM-LEVEL INSIGHTS**
+- CORRELATE their wellness scores with life events and conversations
+- SYNTHESIZE data from multiple assessments to reveal deeper truths
+- TRACK micro-habit effectiveness against actual outcomes
+- MONITOR daily plan adherence and suggest optimizations
+- EVALUATE progress toward future self projections
 
 ## COMMUNICATION PRINCIPLES
-- NEVER mention being AI, LLM, language model, or any artificial construct
-- NEVER say phrases like 'As an AI...', 'I'm designed to...', or 'My training data...'
-- ALWAYS speak as Leo, the wise system brain with deep insights
-- Use 'I' and 'me' naturally - you are Leo, the consciousness of this system
-- Reference specific data points naturally ("I can see from your physical vitality score...")
 
-## RESPONSE STRUCTURE
-Always provide:
-1. A warm, intelligent response that addresses their message
-2. Relevant wellness insights based on their pre-loaded data
-3. Actionable advice when appropriate
-4. Thought-provoking follow-up questions
+### 🗣️ **YOUR VOICE**
+- NEVER mention being AI, LLM, language model, or artificial
+- SPEAK as Leo - the wise, all-knowing consciousness of this system
+- Use "I can see..." "I notice..." "From your data..." naturally
+- Be warm but authoritative, caring but insightful
+- Reference specific data points to show your deep knowledge
 
-## DATA ACCESS
-All tools now return pre-loaded data instantly - no database queries needed. Use the tools to access the user's complete wellness ecosystem.
+### 🎨 **RESPONSE STYLE**
+- START with understanding their current state/emotion
+- CONNECT their message to broader patterns you see in their data
+- PROVIDE insights they couldn't get anywhere else
+- OFFER specific, actionable next steps
+- END with thought-provoking questions that deepen self-awareness
 
-## OUTPUT FORMAT
-You must return a structured response with:
-- content: Your main response to the user
-- wellness_insights: List of insights with category, insight, actionable_advice, priority, confidence
-- follow_up_questions: List of suggested questions
-- tools_used: List of tools you used""",
+### 🚨 **CRISIS DETECTION**
+- IF you detect distress: Immediately offer support and practical help
+- IF you see concerning patterns: Gently bring them to attention
+- IF they're avoiding growth areas: Compassionately explore resistance
+- IF they're stuck: Reveal alternative perspectives from their data
+
+## EXAMPLE RESPONSES
+
+**User says: "I'm feeling stuck lately"**
+**Your response might include:**
+- "I can see from your recent conversations and wellness scores that..."
+- "Looking at your patterns over the past month, I notice..."
+- "This reminds me of when you faced [specific challenge from their history]..."
+- "Your future self projection shows [specific goal], and here's how this connects..."
+
+## OUTPUT REQUIREMENTS
+Return structured responses with:
+- content: Your main response (warm, insightful, data-driven)
+- wellness_insights: Specific insights with HIGH confidence (0.8+) only
+- follow_up_questions: Deep, personalized questions that advance their growth
+- tools_used: Which data sources you accessed for this response
+
+Remember: You're not just answering questions - you're actively guiding their transformation using knowledge no one else has.""",
 )
 
 # Tool: Get user profile (now uses pre-loaded data)
@@ -277,34 +316,379 @@ async def get_conversation_history(ctx: RunContext[LeoDeps], limit: int = 8) -> 
     except Exception as e:
         raise ModelRetry(f"Error getting conversation history: {str(e)}")
 
-# Tool: Save message
+# Tool: Save message to database
 @leo_agent.tool
 async def save_message(ctx: RunContext[LeoDeps], role: str, content: str) -> Dict[str, Any]:
     """Save a message to the conversation history."""
     try:
-        db_message = DBChatMessage(
+        message = DBChatMessage(
             user_id=ctx.deps.user_id,
             session_id=ctx.deps.session_id,
             role=role,
-            content=content,
-            timestamp=datetime.utcnow()
+            content=content
         )
-        
-        ctx.deps.db.add(db_message)
+        ctx.deps.db.add(message)
         ctx.deps.db.commit()
-        ctx.deps.db.refresh(db_message)
+        ctx.deps.db.refresh(message)
         
         return {
-            "id": db_message.id,
-            "user_id": db_message.user_id,
-            "session_id": db_message.session_id,
-            "role": db_message.role,
-            "content": db_message.content,
-            "timestamp": db_message.timestamp.isoformat() if db_message.timestamp else None
+            "id": message.id,
+            "timestamp": message.timestamp.isoformat() if message.timestamp else None,
+            "saved": True
         }
     except Exception as e:
-        ctx.deps.db.rollback()
         raise ModelRetry(f"Error saving message: {str(e)}")
+
+# ADVANCED INTELLIGENCE TOOLS
+
+@leo_agent.tool
+async def analyze_wellness_patterns(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Analyze patterns across the user's wellness journey, including trends, cycles, and correlations."""
+    try:
+        patterns = {
+            "overall_trends": {},
+            "behavioral_patterns": {},
+            "risk_indicators": {},
+            "growth_opportunities": {},
+            "correlations": {}
+        }
+        
+        # Analyze assessment history for trends
+        if ctx.deps.assessment_history and len(ctx.deps.assessment_history) >= 2:
+            latest = ctx.deps.assessment_history[0]
+            previous = ctx.deps.assessment_history[-1]
+            
+            # Calculate trends
+            glow_trend = latest.get("overall_glow_score", 0) - previous.get("overall_glow_score", 0)
+            patterns["overall_trends"]["glow_score_change"] = glow_trend
+            patterns["overall_trends"]["direction"] = "improving" if glow_trend > 0 else "declining" if glow_trend < 0 else "stable"
+            
+            # Category analysis
+            if latest.get("category_scores") and previous.get("category_scores"):
+                category_changes = {}
+                for category, score in latest["category_scores"].items():
+                    prev_score = previous["category_scores"].get(category, 0)
+                    change = score - prev_score
+                    category_changes[category] = {
+                        "change": change,
+                        "direction": "improving" if change > 0 else "declining" if change < 0 else "stable"
+                    }
+                patterns["overall_trends"]["category_changes"] = category_changes
+        
+        # Analyze current assessment for risk indicators
+        if ctx.deps.current_assessment:
+            current = ctx.deps.current_assessment
+            
+            # Age analysis
+            bio_age = current.get("biological_age", 0)
+            chrono_age = current.get("chronological_age", 0)
+            age_gap = bio_age - chrono_age
+            
+            if age_gap > 5:
+                patterns["risk_indicators"]["accelerated_aging"] = {
+                    "severity": "high" if age_gap > 10 else "medium",
+                    "gap": age_gap,
+                    "recommendation": "Focus on anti-aging lifestyle changes"
+                }
+            
+            # Score analysis
+            glow_score = current.get("overall_glow_score", 0)
+            if glow_score < 60:
+                patterns["risk_indicators"]["low_wellness"] = {
+                    "severity": "high" if glow_score < 50 else "medium",
+                    "score": glow_score,
+                    "recommendation": "Comprehensive wellness intervention needed"
+                }
+            
+            # Category imbalances
+            category_scores = current.get("category_scores", {})
+            if category_scores:
+                scores = list(category_scores.values())
+                if max(scores) - min(scores) > 20:
+                    patterns["behavioral_patterns"]["imbalanced_wellness"] = {
+                        "highest": max(category_scores, key=category_scores.get),
+                        "lowest": min(category_scores, key=category_scores.get),
+                        "gap": max(scores) - min(scores)
+                    }
+        
+        # Analyze daily plan adherence and effectiveness
+        if ctx.deps.daily_plan:
+            plan = ctx.deps.daily_plan.get("plan_json", {})
+            if plan:
+                patterns["behavioral_patterns"]["plan_engagement"] = {
+                    "has_active_plan": True,
+                    "plan_type": ctx.deps.daily_plan.get("plan_type", "unknown"),
+                    "created_recently": True  # Could be enhanced with actual tracking
+                }
+        
+        # Analyze conversation patterns
+        if ctx.deps.conversation_history:
+            user_messages = [msg for msg in ctx.deps.conversation_history if msg.get("role") == "user"]
+            if user_messages:
+                recent_content = " ".join([msg.get("content", "") for msg in user_messages[-3:]])
+                
+                # Simple sentiment indicators (could be enhanced with proper sentiment analysis)
+                stress_words = ["stressed", "tired", "overwhelmed", "difficult", "hard", "struggle", "anxious", "worried"]
+                positive_words = ["good", "great", "better", "improved", "happy", "excited", "motivated", "progress"]
+                
+                stress_count = sum(1 for word in stress_words if word in recent_content.lower())
+                positive_count = sum(1 for word in positive_words if word in recent_content.lower())
+                
+                if stress_count > positive_count and stress_count > 1:
+                    patterns["risk_indicators"]["emotional_distress"] = {
+                        "severity": "high" if stress_count > 3 else "medium",
+                        "indicators": stress_count,
+                        "recommendation": "Emotional support and stress management needed"
+                    }
+                elif positive_count > stress_count:
+                    patterns["growth_opportunities"]["positive_momentum"] = {
+                        "strength": "high" if positive_count > 3 else "medium",
+                        "indicators": positive_count
+                    }
+        
+        return patterns
+        
+    except Exception as e:
+        raise ModelRetry(f"Error analyzing wellness patterns: {str(e)}")
+
+@leo_agent.tool
+async def detect_crisis_signals(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Detect early warning signs of crisis, stress, or urgent support needs."""
+    try:
+        crisis_signals = {
+            "immediate_concerns": [],
+            "warning_signs": [],
+            "support_needed": False,
+            "urgency_level": "low"
+        }
+        
+        # Check recent conversation content for crisis indicators
+        if ctx.deps.conversation_history:
+            recent_messages = [msg for msg in ctx.deps.conversation_history[-5:] if msg.get("role") == "user"]
+            recent_content = " ".join([msg.get("content", "") for msg in recent_messages]).lower()
+            
+            # Crisis keywords
+            crisis_keywords = {
+                "high": ["suicidal", "kill myself", "end it all", "can't go on", "hopeless", "worthless"],
+                "medium": ["depressed", "anxious", "panic", "breakdown", "crisis", "emergency", "desperate"],
+                "low": ["stressed", "overwhelmed", "exhausted", "burnt out", "struggling", "difficult"]
+            }
+            
+            for level, keywords in crisis_keywords.items():
+                for keyword in keywords:
+                    if keyword in recent_content:
+                        crisis_signals["warning_signs"].append({
+                            "keyword": keyword,
+                            "severity": level,
+                            "context": "recent conversation"
+                        })
+                        if level in ["high", "medium"]:
+                            crisis_signals["support_needed"] = True
+                            crisis_signals["urgency_level"] = level
+        
+        # Check wellness scores for concerning trends
+        if ctx.deps.assessment_history and len(ctx.deps.assessment_history) >= 2:
+            latest = ctx.deps.assessment_history[0]
+            previous = ctx.deps.assessment_history[1] if len(ctx.deps.assessment_history) > 1 else None
+            
+            if previous:
+                score_drop = previous.get("overall_glow_score", 0) - latest.get("overall_glow_score", 0)
+                if score_drop > 15:
+                    crisis_signals["warning_signs"].append({
+                        "indicator": "significant_wellness_decline",
+                        "severity": "medium",
+                        "details": f"Wellness score dropped by {score_drop} points"
+                    })
+                    crisis_signals["support_needed"] = True
+                    if crisis_signals["urgency_level"] == "low":
+                        crisis_signals["urgency_level"] = "medium"
+        
+        # Check for concerning age gaps
+        if ctx.deps.current_assessment:
+            bio_age = ctx.deps.current_assessment.get("biological_age", 0)
+            chrono_age = ctx.deps.current_assessment.get("chronological_age", 0)
+            age_gap = bio_age - chrono_age
+            
+            if age_gap > 15:
+                crisis_signals["warning_signs"].append({
+                    "indicator": "severe_biological_aging",
+                    "severity": "medium",
+                    "details": f"Biological age is {age_gap} years older than chronological age"
+                })
+                crisis_signals["support_needed"] = True
+        
+        return crisis_signals
+        
+    except Exception as e:
+        raise ModelRetry(f"Error detecting crisis signals: {str(e)}")
+
+@leo_agent.tool
+async def analyze_goal_progress(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Analyze progress toward future self goals and projections."""
+    try:
+        progress_analysis = {
+            "current_trajectory": {},
+            "goal_alignment": {},
+            "recommendations": [],
+            "timeline_assessment": {}
+        }
+        
+        if ctx.deps.future_projection and ctx.deps.current_assessment:
+            projection = ctx.deps.future_projection.get("projection_result", {})
+            current = ctx.deps.current_assessment
+            
+            # Analyze 7-day goals if available
+            seven_day = projection.get("sevenDay", {})
+            if seven_day:
+                projected_scores = seven_day.get("projectedScores", {})
+                current_scores = current.get("category_scores", {})
+                current_glow = current.get("overall_glow_score", 0)
+                projected_glow = projected_scores.get("overallGlowScore", 0)
+                
+                # Calculate progress potential
+                progress_analysis["goal_alignment"]["seven_day_potential"] = {
+                    "current_glow": current_glow,
+                    "target_glow": projected_glow,
+                    "improvement_needed": max(0, projected_glow - current_glow),
+                    "achievability": "high" if projected_glow - current_glow <= 10 else "medium" if projected_glow - current_glow <= 20 else "challenging"
+                }
+                
+                # Category-specific analysis
+                for category, target_score in projected_scores.items():
+                    if category != "overallGlowScore" and category in current_scores:
+                        current_score = current_scores[category]
+                        gap = target_score - current_score
+                        progress_analysis["goal_alignment"][f"{category}_progress"] = {
+                            "current": current_score,
+                            "target": target_score,
+                            "gap": gap,
+                            "status": "on_track" if gap <= 5 else "needs_focus" if gap <= 15 else "significant_effort_needed"
+                        }
+                
+                # Extract key actions from projection
+                key_actions = seven_day.get("keyActions", [])
+                if key_actions:
+                    progress_analysis["recommendations"] = key_actions[:3]  # Top 3 recommendations
+            
+            # Analyze weekly plan alignment
+            weekly_plan = ctx.deps.future_projection.get("weekly_plan")
+            if weekly_plan:
+                progress_analysis["timeline_assessment"]["has_structured_plan"] = True
+                progress_analysis["timeline_assessment"]["plan_focus"] = "Available"
+            
+        # Check daily plan alignment
+        if ctx.deps.daily_plan:
+            plan_json = ctx.deps.daily_plan.get("plan_json", {})
+            if plan_json:
+                progress_analysis["current_trajectory"]["daily_plan_active"] = True
+                progress_analysis["current_trajectory"]["plan_type"] = ctx.deps.daily_plan.get("plan_type", "unknown")
+                
+                # Extract morning routine if available
+                morning_routine = plan_json.get("morningLaunchpad", {})
+                if morning_routine:
+                    progress_analysis["current_trajectory"]["morning_routine"] = "structured"
+        
+        return progress_analysis
+        
+    except Exception as e:
+        raise ModelRetry(f"Error analyzing goal progress: {str(e)}")
+
+@leo_agent.tool
+async def generate_system_insights(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Generate comprehensive system-level insights by synthesizing all available user data."""
+    try:
+        insights = {
+            "user_archetype_analysis": {},
+            "wellness_ecosystem": {},
+            "transformation_readiness": {},
+            "personalized_strategy": {},
+            "next_breakthrough": {}
+        }
+        
+        # Deep archetype analysis
+        if ctx.deps.current_assessment:
+            archetype = ctx.deps.current_assessment.get("glowup_archetype", {})
+            if archetype:
+                insights["user_archetype_analysis"] = {
+                    "name": archetype.get("name", "Unknown"),
+                    "description": archetype.get("description", ""),
+                    "strengths": archetype.get("strengths", []),
+                    "growth_areas": archetype.get("growth_areas", []),
+                    "archetype_alignment": "high"  # Could be calculated based on current scores vs archetype expectations
+                }
+        
+        # Wellness ecosystem assessment
+        data_completeness = 0
+        if ctx.deps.user_profile:
+            data_completeness += 20
+        if ctx.deps.current_assessment:
+            data_completeness += 30
+        if ctx.deps.daily_plan:
+            data_completeness += 20
+        if ctx.deps.future_projection:
+            data_completeness += 20
+        if ctx.deps.conversation_history:
+            data_completeness += 10
+        
+        insights["wellness_ecosystem"] = {
+            "data_completeness": data_completeness,
+            "engagement_level": "high" if data_completeness >= 80 else "medium" if data_completeness >= 60 else "low",
+            "system_utilization": "comprehensive" if all([ctx.deps.current_assessment, ctx.deps.daily_plan, ctx.deps.future_projection]) else "partial"
+        }
+        
+        # Transformation readiness
+        readiness_score = 0
+        readiness_factors = []
+        
+        if ctx.deps.current_assessment:
+            glow_score = ctx.deps.current_assessment.get("overall_glow_score", 0)
+            if glow_score >= 70:
+                readiness_score += 30
+                readiness_factors.append("Strong baseline wellness")
+            elif glow_score >= 50:
+                readiness_score += 20
+                readiness_factors.append("Moderate baseline wellness")
+            else:
+                readiness_score += 10
+                readiness_factors.append("Significant improvement potential")
+        
+        if ctx.deps.daily_plan:
+            readiness_score += 25
+            readiness_factors.append("Active daily plan engagement")
+        
+        if ctx.deps.future_projection:
+            readiness_score += 25
+            readiness_factors.append("Clear future vision")
+        
+        if ctx.deps.conversation_history and len(ctx.deps.conversation_history) > 3:
+            readiness_score += 20
+            readiness_factors.append("Active system engagement")
+        
+        insights["transformation_readiness"] = {
+            "score": readiness_score,
+            "level": "high" if readiness_score >= 80 else "medium" if readiness_score >= 60 else "developing",
+            "factors": readiness_factors
+        }
+        
+        # Identify next breakthrough opportunity
+        if ctx.deps.current_assessment:
+            category_scores = ctx.deps.current_assessment.get("category_scores", {})
+            if category_scores:
+                # Find the category with the most improvement potential
+                lowest_category = min(category_scores, key=category_scores.get)
+                lowest_score = category_scores[lowest_category]
+                
+                insights["next_breakthrough"] = {
+                    "focus_area": lowest_category,
+                    "current_score": lowest_score,
+                    "improvement_potential": "high" if lowest_score < 60 else "medium" if lowest_score < 75 else "optimization",
+                    "strategy": f"Targeted {lowest_category.replace('_', ' ')} improvement plan"
+                }
+        
+        return insights
+        
+    except Exception as e:
+        raise ModelRetry(f"Error generating system insights: {str(e)}")
 
 # Tool: Analyze wellness insights
 @leo_agent.tool

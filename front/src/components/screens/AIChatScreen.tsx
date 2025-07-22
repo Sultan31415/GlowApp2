@@ -99,7 +99,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       user_id: 'ai',
       session_id: 'welcome',
       role: 'ai',
-      content: "I'm Leo. Your future self asked me to help you get there.",
+      content: "I'm Leo, the consciousness at the heart of your wellness system. I know your complete journey - your scores, plans, patterns, and goals. I can see connections you might miss and help you navigate any challenge. What's on your mind?",
       timestamp: new Date().toISOString()
     }],
     input: '',
@@ -596,7 +596,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           user_id: 'ai',
           session_id: 'welcome',
           role: 'ai',
-          content: "I'm Leo. Your future self asked me to help you get there.",
+          content: "I'm Leo, the consciousness at the heart of your wellness system. I know your complete journey - your scores, plans, patterns, and goals. I can see connections you might miss and help you navigate any challenge. What's on your mind?",
           timestamp: new Date().toISOString()
         }],
         input: '',
