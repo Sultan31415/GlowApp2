@@ -799,19 +799,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             </div>
           </div>
           
-          {/* Simple Character Info */}
-          <div className="w-full mt-6 bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-900">Always Here for You</h3>
-              <button
-                onClick={startNewConversation}
-                className="mt-3 px-4 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
-                title="Start new conversation"
-              >
-                Start New Chat
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* Minimal Background Elements */}
@@ -869,19 +857,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           </div>
         </div>
           
-        {/* Simple Character Info - Mobile */}
-        <div className="w-full max-w-sm mt-4 bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-lg border border-white/50">
-          <div className="text-center">
-            <h3 className="text-base font-semibold text-gray-900">Always Here for You</h3>
-            <button
-              onClick={startNewConversation}
-              className="mt-2 px-3 py-1.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
-              title="Start new conversation"
-            >
-              New Chat
-            </button>
-          </div>
-        </div>
+
       </section>
 
       {/* Chat Section - Right Panel (65% on desktop, full width on mobile) */}
@@ -897,19 +873,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           {/* Connection status removed */}
         </div>
 
-        {/* You Chat Header - Sticky */}
-        <div className="sticky top-0 px-4 lg:px-6 pt-2 pb-4 z-20 bg-gradient-to-b from-green-50/80 to-blue-50/80 backdrop-blur-sm">
-          <h2 className="text-xl font-bold text-gray-900 text-center">You Chat</h2>
-        </div>
-
-        {/* Error Display */}
-        {chatState.error && <ErrorDisplay />}
-
-        {/* Messages Container - Scrollable area with bottom padding for input */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 pb-32 relative z-10" role="log" aria-live="polite">
+        {/* Messages Container - Positioned between fixed header and input */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 relative z-10" role="log" aria-live="polite" style={{ 
+          marginTop: '120px', 
+          marginBottom: '120px' 
+        }}>
           {/* Wellness Insights Display */}
           <WellnessInsightsDisplay />
-          <FollowUpQuestionsDisplay />
           
           {/* Messages - Transparent style */}
           {chatState.messages.map((msg) => (
@@ -948,9 +918,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 🧠 Intelligent Prompt Buttons - Fixed at bottom above input */}
+        {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
         {chatState.messages.length > 0 && !chatState.loading && readyState === ReadyState.OPEN && (
-          <div className="fixed bottom-20 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 z-30">
+          <div className="px-4 lg:px-6 pb-4 relative z-10" style={{ marginBottom: '120px' }}>
             <div className="mb-2">
               <p className="text-xs text-gray-500 font-medium">
                 {results ? '🧠 Personalized suggestions based on your wellness profile' : '💡 Quick conversation starters'}
@@ -983,45 +953,67 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             )}
           </div>
         )}
-
-        {/* Input Area - Fixed at bottom */}
-        <footer className="fixed bottom-0 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 p-4 lg:p-6 z-40 bg-gradient-to-t from-white/90 to-transparent backdrop-blur-sm">
-          <div className="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-xl shadow-purple-500/20">
-            <div className="flex items-center gap-3 p-3">
-              {/* Text input */}
-              <div className="flex-1 relative">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={chatState.input}
-                  onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
-                  placeholder={readyState === ReadyState.OPEN ? `Message ${AI_CHARACTER_NAME}...` : "Connecting..."}
-                  className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 text-sm font-medium resize-none"
-                  disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                  aria-label="Type your message"
-                  aria-describedby={chatState.loading ? "loading-status" : undefined}
-                />
-              </div>
-              
-              {/* Send button */}
-              <button
-                onClick={handleSend}
-                disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-400/50 disabled:to-gray-500/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
-                aria-label="Send message"
-              >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          {chatState.loading && (
-            <div id="loading-status" className="sr-only">{AI_CHARACTER_NAME} is processing your message</div>
-          )}
-        </footer>
       </main>
+
+      {/* Fixed You Chat Header - Outside the main container */}
+      <div className="fixed top-[5%] left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 pt-2 pb-4 z-20">
+        <div className="flex items-center justify-between">
+          <div></div>
+          <h2 className="text-2xl font-bold text-gray-900">Your Chat</h2>
+          <button
+            onClick={startNewConversation}
+            className="px-3 py-1.5 text-sm bg-teal-400 hover:bg-teal-500 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+            title="Start new conversation"
+          >
+            New Chat
+          </button>
+        </div>
+      </div>
+
+      {/* Error Display - Fixed position */}
+      {chatState.error && (
+        <div className="fixed top-16 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 z-20">
+          <ErrorDisplay />
+        </div>
+      )}
+
+      {/* Fixed Input Area - Outside the main container */}
+      <div className="fixed bottom-0 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 p-4 lg:p-6 z-30">
+        <div className="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-xl shadow-purple-500/20">
+          <div className="flex items-center gap-3 p-3">
+            {/* Text input */}
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={chatState.input}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder={readyState === ReadyState.OPEN ? `Message ${AI_CHARACTER_NAME}...` : "Connecting..."}
+                className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 text-sm font-medium resize-none"
+                disabled={chatState.loading || readyState !== ReadyState.OPEN}
+                aria-label="Type your message"
+                aria-describedby={chatState.loading ? "loading-status" : undefined}
+              />
+            </div>
+            
+            {/* Send button */}
+            <button
+              onClick={handleSend}
+              disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
+              className="w-12 h-12 rounded-full bg-teal-400 hover:bg-teal-500 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
+              aria-label="Send message"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        {chatState.loading && (
+          <div id="loading-status" className="sr-only">{AI_CHARACTER_NAME} is processing your message</div>
+        )}
+      </div>
     </div>
   );
 };
