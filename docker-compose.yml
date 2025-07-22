@@ -1,6 +1,10 @@
 services:
   backend:
-    build: ./back  # Uncomment for local build
+    build: 
+      context: ./back
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
     # image: ${DOCKER_USERNAME:-yourname}/glowapp-backend:${IMAGE_TAG:-latest}
     container_name: glowapp-backend
     # env_file:
@@ -8,12 +12,21 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgresql://glowuser:glowpassword@postgres:5432/glowdb
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - glowapp-net
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build: 
@@ -47,6 +60,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - glowapp-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glowuser -d glowdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
  # nginx:
    # image: nginx:alpine

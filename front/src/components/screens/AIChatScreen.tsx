@@ -32,6 +32,23 @@ interface ChatMessage {
   timestamp: string;
 }
 
+interface WellnessInsights {
+  key_insight?: string;
+  actionable_advice?: string;
+  priority?: string;
+  category?: string;
+  [key: string]: any;
+}
+
+interface FollowUpQuestions {
+  type: 'follow_up';
+  questions: string[];
+}
+
+interface AgentInsights {
+  insights: WellnessInsights;
+}
+
 interface ChatState {
   messages: ChatMessage[];
   input: string;
@@ -54,6 +71,27 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const { t } = useTranslation();
   
+  // 🎯 SESSION PERSISTENCE - Store session ID in localStorage to maintain chat history
+  const [sessionId, setSessionId] = useState<string>(() => {
+    // Try to get existing session ID from localStorage
+    const existingSessionId = localStorage.getItem(`chat_session_${user?.id}`);
+    if (existingSessionId) {
+      console.log('🔄 Restoring existing chat session:', existingSessionId);
+      return existingSessionId;
+    }
+    // Generate new session ID if none exists
+    const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🆕 Creating new chat session:', newSessionId);
+    localStorage.setItem(`chat_session_${user?.id}`, newSessionId);
+    return newSessionId;
+  });
+
+  // Debug: Log session ID changes
+  useEffect(() => {
+    console.log('🎯 Current session ID:', sessionId);
+    console.log('🎯 User ID:', user?.id);
+  }, [sessionId, user?.id]);
+  
   // Consolidated state management
   const [chatState, setChatState] = useState<ChatState>({
     messages: [{
@@ -71,6 +109,8 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   
   const [results, setResults] = useState<AssessmentResults | null>(null);
   const [userData, setUserData] = useState<any>(null);
+  const [wellnessInsights, setWellnessInsights] = useState<WellnessInsights | null>(null);
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
   
   // 🧠 Fetch user's assessment data for intelligent prompts
   useEffect(() => {
@@ -229,19 +269,22 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
     return userData?.first_name || user?.firstName || 'there';
   }, [userData?.first_name, user?.firstName]);
 
-  // Dynamic WebSocket URL with authentication token
+  // 🎯 Dynamic WebSocket URL with authentication token AND session ID
   const getSocketUrl = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) {
         throw new Error('No authentication token available');
       }
-      return `${WS_BASE_URL}?token=${token}`;
+      // Include session_id in WebSocket URL for chat history persistence
+      const wsUrl = `${WS_BASE_URL}?token=${token}&session_id=${sessionId}`;
+      console.log('🔗 WebSocket URL with session ID:', wsUrl.replace(token, '[TOKEN_HIDDEN]'));
+      return wsUrl;
     } catch (error) {
       console.error('Error getting authentication token:', error);
       throw new Error('Authentication failed');
     }
-  }, [getToken]);
+  }, [getToken, sessionId]);
 
   // WebSocket connection with react-use-websocket
   const {
@@ -314,7 +357,10 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
   // Handle incoming WebSocket messages
   const handleWebSocketMessage = useCallback((data: any) => {
+    console.log('Received WebSocket message:', data);
+    
     if (data.type === "history") {
+      console.log('Loading chat history:', data.messages?.length || 0, 'messages');
       // Preserve Leo's welcome message and add server messages after it
       const welcomeMessage = {
         id: 0,
@@ -329,7 +375,32 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         ...prev, 
         messages: [welcomeMessage, ...(data.messages || [])]
       }));
-    } else if (data.type === "user" || data.type === "ai") {
+    } else if (data.type === "user") {
+      console.log('Received user message from server:', data.message);
+      // Handle user message from server (usually confirmation)
+      if (data.message) {
+        // Check if we already have this message to avoid duplicates
+        setChatState(prev => {
+          const messageExists = prev.messages.some(msg => 
+            msg.content === data.message.content && 
+            msg.role === 'user' &&
+            Math.abs(new Date(msg.timestamp).getTime() - new Date(data.message.timestamp).getTime()) < 5000
+          );
+          
+          if (!messageExists) {
+            console.log('Adding user message from server to chat');
+            return {
+              ...prev,
+              messages: [...prev.messages, data.message]
+            };
+          }
+          console.log('User message already exists, skipping');
+          return prev;
+        });
+      }
+    } else if (data.type === "ai") {
+      console.log('Received AI response:', data.message);
+      // Handle AI response
       if (data.message) {
         setChatState(prev => ({ 
           ...prev, 
@@ -337,12 +408,26 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           loading: false 
         }));
       }
+    } else if (data.type === "processing") {
+      console.log('Received processing message:', data.message);
+      // Keep loading state true while processing
+    } else if (data.type === "insights") {
+      console.log('Received insights:', data.insights);
+      const insightsData = data as AgentInsights;
+      setWellnessInsights(insightsData.insights);
+    } else if (data.type === "follow_up") {
+      console.log('Received follow-up questions:', data.questions);
+      const followUpData = data as FollowUpQuestions;
+      setFollowUpQuestions(followUpData.questions);
     } else if (data.type === "error") {
+      console.log('Received error:', data.message);
       setChatState(prev => ({ 
         ...prev, 
         error: data.message || 'Server error occurred',
         loading: false 
       }));
+    } else {
+      console.log('Unknown message type:', data.type);
     }
   }, []);
 
@@ -368,16 +453,41 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   // Send message function
   const sendChatMessage = useCallback((content: string) => {
     if (readyState === ReadyState.OPEN && content.trim() && !chatState.loading) {
-      setChatState(prev => ({ ...prev, loading: true }));
+      console.log('Sending message:', content.trim());
+      
+      // Create user message object
+      const userMessage: ChatMessage = {
+        id: Date.now(), // Temporary ID
+        user_id: user?.id || 'user',
+        session_id: sessionId, // Use persistent session ID
+        role: 'user',
+        content: content.trim(),
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Created user message:', userMessage);
+
+      // Add user message to chat immediately
+      setChatState(prev => {
+        const newState = { 
+          ...prev, 
+          messages: [...prev.messages, userMessage],
+          loading: true,
+          input: '' 
+        };
+        console.log('Updated chat state with user message:', newState.messages.length, 'messages');
+        return newState;
+      });
+
+      // Send message to WebSocket
       sendJsonMessage({ content: content.trim() });
-      setChatState(prev => ({ ...prev, input: '' }));
     } else if (readyState !== ReadyState.OPEN) {
       setChatState(prev => ({ 
         ...prev, 
         error: 'Connection not available. Please wait for reconnection.' 
       }));
     }
-  }, [readyState, chatState.loading, sendJsonMessage]);
+  }, [readyState, chatState.loading, sendJsonMessage, user?.id, sessionId]);
 
   // Handle send button click
   const handleSend = useCallback(() => {
@@ -465,6 +575,41 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
     }
   }, [getWebSocket]);
 
+  // 🎯 Start new conversation (clears session and chat history)
+  const startNewConversation = useCallback(() => {
+    if (user?.id) {
+      // Clear the session ID from localStorage
+      localStorage.removeItem(`chat_session_${user.id}`);
+      
+      // Generate a new session ID
+      const newSessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🆕 Starting new conversation with session:', newSessionId);
+      localStorage.setItem(`chat_session_${user.id}`, newSessionId);
+      
+      // Update session ID state
+      setSessionId(newSessionId);
+      
+      // Reset chat state to initial welcome message
+      setChatState({
+        messages: [{
+          id: 0,
+          user_id: 'ai',
+          session_id: 'welcome',
+          role: 'ai',
+          content: "I'm Leo. Your future self asked me to help you get there.",
+          timestamp: new Date().toISOString()
+        }],
+        input: '',
+        loading: false,
+        error: null
+      });
+      
+      // Clear insights and follow-up questions
+      setWellnessInsights(null);
+      setFollowUpQuestions([]);
+    }
+  }, [user?.id]);
+
   // Effects
   useEffect(() => {
     fetchUserData();
@@ -516,6 +661,67 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
     </div>
   );
 
+  // Wellness insights display
+  const WellnessInsightsDisplay = () => {
+    if (!wellnessInsights) return null;
+
+    return (
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div className="flex items-center space-x-2 mb-2">
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <h3 className="text-sm font-semibold text-blue-800">Leo's Insights</h3>
+        </div>
+        {wellnessInsights.key_insight && (
+          <p className="text-sm text-blue-700 mb-2">{wellnessInsights.key_insight}</p>
+        )}
+        {wellnessInsights.actionable_advice && (
+          <div className="bg-white rounded p-2 border-l-4 border-blue-400">
+            <p className="text-xs text-blue-600 font-medium">💡 Actionable Advice:</p>
+            <p className="text-sm text-blue-800">{wellnessInsights.actionable_advice}</p>
+          </div>
+        )}
+        {wellnessInsights.priority && (
+          <div className="mt-2">
+            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+              wellnessInsights.priority === 'high' ? 'bg-red-100 text-red-800' :
+              wellnessInsights.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-green-100 text-green-800'
+            }`}>
+              {wellnessInsights.priority} priority
+            </span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const FollowUpQuestionsDisplay = () => {
+    if (!followUpQuestions.length) return null;
+
+    return (
+      <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-4">
+        <div className="flex items-center space-x-2 mb-3">
+          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <h3 className="text-sm font-semibold text-green-800">Suggested Questions</h3>
+        </div>
+        <div className="space-y-2">
+          {followUpQuestions.map((question, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setChatState(prev => ({ ...prev, input: question }));
+                inputRef.current?.focus();
+              }}
+              className="w-full text-left p-2 bg-white rounded border border-green-200 hover:bg-green-50 transition-colors text-sm text-green-800"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden">
       {/* Header - Mobile Only */}
@@ -533,7 +739,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             <h1 className="text-lg font-bold text-gray-900">Chat with {AI_CHARACTER_NAME}</h1>
             <p className="text-xs text-gray-600">Your personal wellness companion</p>
           </div>
-          <div className="w-10" /> {/* Spacer for centering */}
+          <button
+            onClick={startNewConversation}
+            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+            title="Start new conversation"
+          >
+            New Chat
+          </button>
         </header>
       )}
 
@@ -557,6 +769,11 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               </div>
             </div>
             <p className="text-base text-gray-600">Your Personal AI Mentor</p>
+            {chatState.messages.length > 1 && (
+              <div className="mt-2 text-xs text-gray-500">
+                📝 Continuing conversation
+              </div>
+            )}
           </div>
 
           {/* Avatar Display - Natural Shape */}
@@ -586,6 +803,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           <div className="w-full mt-6 bg-white/80 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-white/50">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-900">Always Here for You</h3>
+              <button
+                onClick={startNewConversation}
+                className="mt-3 px-4 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+                title="Start new conversation"
+              >
+                Start New Chat
+              </button>
             </div>
           </div>
         </div>
@@ -615,6 +839,11 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             </div>
           </div>
           <p className="text-sm text-gray-600">Your Personal AI Mentor</p>
+          {chatState.messages.length > 1 && (
+            <div className="mt-1 text-xs text-gray-500">
+              📝 Continuing conversation
+            </div>
+          )}
         </div>
 
         {/* Avatar Display - Mobile Natural Shape */}
@@ -644,6 +873,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         <div className="w-full max-w-sm mt-4 bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-lg border border-white/50">
           <div className="text-center">
             <h3 className="text-base font-semibold text-gray-900">Always Here for You</h3>
+            <button
+              onClick={startNewConversation}
+              className="mt-2 px-3 py-1.5 text-xs bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+              title="Start new conversation"
+            >
+              New Chat
+            </button>
           </div>
         </div>
       </section>
@@ -661,11 +897,20 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           {/* Connection status removed */}
         </div>
 
+        {/* You Chat Header - Sticky */}
+        <div className="sticky top-0 px-4 lg:px-6 pt-2 pb-4 z-20 bg-gradient-to-b from-green-50/80 to-blue-50/80 backdrop-blur-sm">
+          <h2 className="text-xl font-bold text-gray-900 text-center">You Chat</h2>
+        </div>
+
         {/* Error Display */}
         {chatState.error && <ErrorDisplay />}
 
-        {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 relative z-10" role="log" aria-live="polite">
+        {/* Messages Container - Scrollable area with bottom padding for input */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 pb-32 relative z-10" role="log" aria-live="polite">
+          {/* Wellness Insights Display */}
+          <WellnessInsightsDisplay />
+          <FollowUpQuestionsDisplay />
+          
           {/* Messages - Transparent style */}
           {chatState.messages.map((msg) => (
             <div
@@ -677,7 +922,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               <div className={`max-w-[80%] ${msg.role === "user" ? "" : ""}`}>
                 <div className={`rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg border ${
                   msg.role === "user"
-                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white"
+                    ? "bg-white/60 backdrop-blur-xl border-white/50 text-gray-900 shadow-xl shadow-purple-500/20 font-medium"
                     : "bg-white/90 border-gray-200 text-gray-800"
                 }`}>
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -703,9 +948,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
+        {/* 🧠 Intelligent Prompt Buttons - Fixed at bottom above input */}
         {chatState.messages.length > 0 && !chatState.loading && readyState === ReadyState.OPEN && (
-          <div className="px-4 lg:px-6 pb-4 relative z-10">
+          <div className="fixed bottom-20 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 z-30">
             <div className="mb-2">
               <p className="text-xs text-gray-500 font-medium">
                 {results ? '🧠 Personalized suggestions based on your wellness profile' : '💡 Quick conversation starters'}
@@ -739,57 +984,38 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           </div>
         )}
 
-        {/* Input Area - Transparent style */}
-        <footer className="border-t border-gray-200 bg-white/80 backdrop-blur-md p-4 lg:p-6 relative z-10">
-          <div className="flex items-end gap-3">
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={chatState.input}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder={readyState === ReadyState.OPEN ? `Message ${AI_CHARACTER_NAME}...` : "Connecting..."}
-                className="w-full px-4 py-3 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-800 placeholder-gray-500 resize-none"
-                disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                aria-label="Type your message"
-                aria-describedby={chatState.loading ? "loading-status" : undefined}
-              />
-              <div className="absolute right-3 bottom-3 flex items-center gap-1">
-                <button
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Mood picker"
-                  aria-label="Open mood picker"
+        {/* Input Area - Fixed at bottom */}
+        <footer className="fixed bottom-0 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 p-4 lg:p-6 z-40 bg-gradient-to-t from-white/90 to-transparent backdrop-blur-sm">
+          <div className="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-xl shadow-purple-500/20">
+            <div className="flex items-center gap-3 p-3">
+              {/* Text input */}
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={chatState.input}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  placeholder={readyState === ReadyState.OPEN ? `Message ${AI_CHARACTER_NAME}...` : "Connecting..."}
+                  className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 text-sm font-medium resize-none"
                   disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                >
-                  <Smile className="w-4 h-4" />
-                </button>
-                <button
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Voice input"
-                  aria-label="Voice input"
-                  disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                >
-                  <Mic className="w-4 h-4" />
-                </button>
-                <button
-                  className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                  title="Take photo"
-                  aria-label="Take photo"
-                  disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                >
-                  <Camera className="w-4 h-4" />
-                </button>
+                  aria-label="Type your message"
+                  aria-describedby={chatState.loading ? "loading-status" : undefined}
+                />
               </div>
+              
+              {/* Send button */}
+              <button
+                onClick={handleSend}
+                disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
+                className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-400/50 disabled:to-gray-500/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
+                aria-label="Send message"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
             </div>
-            <button
-              onClick={handleSend}
-              disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-gray-400/50 disabled:to-gray-500/50 text-white p-3 rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
-              aria-label="Send message"
-            >
-              <Send className="w-5 h-5" />
-            </button>
           </div>
           {chatState.loading && (
             <div id="loading-status" className="sr-only">{AI_CHARACTER_NAME} is processing your message</div>
