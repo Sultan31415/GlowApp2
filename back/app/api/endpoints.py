@@ -490,7 +490,7 @@ async def get_personalized_ai_prompts(
         # Create Leo dependencies
         deps = LeoDeps(
             db=db,
-            user_id=user.user_id,
+            user_id=user["user_id"],  # Fix: user is a dict, not an object
             internal_user_id=db_user.id,
             session_id="analysis_session"
         )
