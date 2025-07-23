@@ -99,7 +99,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       user_id: 'ai',
       session_id: 'welcome',
       role: 'ai',
-      content: "I'm Leo, the consciousness at the heart of your wellness system. I know your complete journey - your scores, plans, patterns, and goals. I can see connections you might miss and help you navigate any challenge. What's on your mind?",
+      content: "Hello! I'm Leo, your AI wellness mentor. I have access to your complete wellness journey - your assessments, goals, patterns, and progress. I'm here to provide personalized guidance and support for your wellness goals. While I'm not a therapist or medical professional, I can help you navigate challenges, spot patterns, and stay motivated on your path to better health. What would you like to explore today?",
       timestamp: new Date().toISOString()
     }],
     input: '',
@@ -596,7 +596,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           user_id: 'ai',
           session_id: 'welcome',
           role: 'ai',
-          content: "I'm Leo, the consciousness at the heart of your wellness system. I know your complete journey - your scores, plans, patterns, and goals. I can see connections you might miss and help you navigate any challenge. What's on your mind?",
+          content: "Hello! I'm Leo, your AI wellness mentor. I have access to your complete wellness journey - your assessments, goals, patterns, and progress. I'm here to provide personalized guidance and support for your wellness goals. While I'm not a therapist or medical professional, I can help you navigate challenges, spot patterns, and stay motivated on your path to better health. What would you like to explore today?",
           timestamp: new Date().toISOString()
         }],
         input: '',

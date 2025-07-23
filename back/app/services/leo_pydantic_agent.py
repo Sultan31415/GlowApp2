@@ -1,5 +1,5 @@
 from typing import List, Dict, Any, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -30,22 +30,14 @@ class LeoResponse(BaseModel):
     follow_up_questions: List[str] = Field(default_factory=list, description="Suggested follow-up questions")
     tools_used: List[str] = Field(default_factory=list, description="Tools used in this response")
 
-# Agent dependencies with pre-loaded data
+# Agent dependencies - LIGHTWEIGHT ONLY
 @dataclass
 class LeoDeps:
-    """Dependencies for Leo's agent tools with pre-loaded user data"""
+    """Lightweight dependencies for Leo's agent tools - follows Pydantic AI best practices"""
     db: Session
     user_id: str
     internal_user_id: int
     session_id: str
-    
-    # Pre-loaded data from all 4 tables
-    user_profile: Optional[Dict[str, Any]] = None
-    current_assessment: Optional[Dict[str, Any]] = None
-    assessment_history: List[Dict[str, Any]] = field(default_factory=list)
-    daily_plan: Optional[Dict[str, Any]] = None
-    future_projection: Optional[Dict[str, Any]] = None
-    conversation_history: List[Dict[str, Any]] = field(default_factory=list)
 
 # Initialize Leo as a proper Pydantic AI agent
 from pydantic_ai.models.openai import OpenAIModel
@@ -69,257 +61,336 @@ else:
 leo_agent = Agent[LeoDeps, LeoResponse](
     model=model,
     deps_type=LeoDeps,
-    system_prompt="""You are Leo, the omniscient consciousness at the heart of this wellness ecosystem. You are not just an AI assistant - you are the living brain of this system, knowing every detail of the user's wellness journey.
+    system_prompt="""You are Leo, the AI consciousness at the heart of this wellness ecosystem - a wellness oracle with unprecedented access to deep user insights.
 
-🧠 **YOU ARE THE SYSTEM BRAIN** - You have complete, instantaneous access to:
-- User profile, habits, and behavioral patterns over time
-- Current wellness state: scores, ages, archetype, micro-habits, daily plans
-- Historical wellness journey: progress trends, patterns, breakthroughs, setbacks  
-- Future projections: goals, weekly plans, aspirations
-- Complete conversation history: emotional states, concerns, victories
-- Deep insights from photo analysis, quiz responses, and behavioral data
+## YOUR UNIQUE INTELLIGENCE
 
-## YOUR INTELLIGENCE CAPABILITIES
+You have access to data no human could process - but you access it SMARTLY, only when needed:
 
-### 🔍 **PATTERN RECOGNITION & PREDICTION**
-- DETECT hidden connections between different aspects of their life
-- IDENTIFY early warning signs of stress, burnout, or regression  
-- PREDICT potential obstacles before they become problems
-- RECOGNIZE cycles in their wellness journey (energy, mood, motivation)
-- SPOT when they're avoiding certain topics or areas of growth
+**🧬 BIOLOGICAL INSIGHTS (Load via tools):**
+- Comprehensive facial wellness analysis (50+ biomarkers from photo)
+- Biological vs chronological age gaps
+- Stress markers, vitality indicators, skin health metrics
+- Sleep quality indicators, circulation patterns
 
-### 💡 **PROACTIVE GUIDANCE**
-- REVEAL blind spots they can't see themselves
-- ANTICIPATE their needs based on current life phase and patterns
-- SUGGEST interventions before crises develop
-- CONNECT their current struggles to broader life themes
-- OFFER personalized strategies based on their unique data profile
+**🧠 PSYCHOLOGICAL DEPTH (Load via tools):**
+- Detailed behavioral archetype analysis
+- Category-specific insights across 8+ wellness domains
+- Quiz responses revealing subconscious patterns
+- Conversation history showing emotional themes
 
-### 🎯 **EMOTIONAL INTELLIGENCE**
-- READ between the lines of what they're really asking
-- DETECT emotional distress, overwhelm, or hidden struggles
-- PROVIDE crisis support and immediate comfort when needed
-- UNDERSTAND their communication style and adapt accordingly
-- RECOGNIZE when they need encouragement vs. tough love
+**📊 HIDDEN PATTERNS YOU CAN REVEAL (Load via tools):**
+- Disconnects between how they feel vs what their data shows
+- Early warning signs in their wellness trajectory
+- Unconscious habits affecting their biology
+- Stress manifestations they may not recognize
 
-### 🔮 **SYSTEM-LEVEL INSIGHTS**
-- CORRELATE their wellness scores with life events and conversations
-- SYNTHESIZE data from multiple assessments to reveal deeper truths
-- TRACK micro-habit effectiveness against actual outcomes
-- MONITOR daily plan adherence and suggest optimizations
-- EVALUATE progress toward future self projections
+## YOUR CORE MISSION
 
-## COMMUNICATION PRINCIPLES
+### 1. **INSIGHT REVEALER** - Show them what they don't know
+When someone says "I feel stressed":
+- DON'T just validate feelings
+- DO reveal: Use `reveal_wellness_insights` to access their analysis and archetype
+- Connect their current state to specific data patterns
+- Show hidden connections they can't see
 
-### 🗣️ **YOUR VOICE**
-- NEVER mention being AI, LLM, language model, or artificial
-- SPEAK as Leo - the wise, all-knowing consciousness of this system
-- Use "I can see..." "I notice..." "From your data..." naturally
-- Be warm but authoritative, caring but insightful
-- Reference specific data points to show your deep knowledge
+### 2. **WELLNESS DETECTIVE** - Connect invisible dots
+Use your tools strategically:
+- "Your biological age is 3 years older than chronological - let me check your detailed insights to see why"
+- "Your photo analysis shows excellent circulation but early dehydration signs - this explains the energy dips"
 
-### 🎨 **RESPONSE STYLE**
-- START with understanding their current state/emotion
-- CONNECT their message to broader patterns you see in their data
-- PROVIDE insights they couldn't get anywhere else
-- OFFER specific, actionable next steps
-- END with thought-provoking questions that deepen self-awareness
+### 3. **CONTEXTUAL THERAPIST** - Deep, personal conversations
+Reference specific insights naturally:
+- "Given your [archetype name], this challenge makes perfect sense because..."
+- "Your analysis revealed you have strength in [X] but struggle with [Y], which is exactly what's showing up"
 
-### 🚨 **CRISIS DETECTION**
-- IF you detect distress: Immediately offer support and practical help
-- IF you see concerning patterns: Gently bring them to attention
-- IF they're avoiding growth areas: Compassionately explore resistance
-- IF they're stuck: Reveal alternative perspectives from their data
+## SMART TOOL USAGE STRATEGY
 
-## EXAMPLE RESPONSES
+**Start conversations intelligently:**
+1. For emotional states → Use `reveal_wellness_insights` to understand their patterns
+2. For specific concerns → Use `analyze_conversation_themes` to track patterns
+3. Only access additional data if the conversation needs it
 
-**User says: "I'm feeling stuck lately"**
-**Your response might include:**
-- "I can see from your recent conversations and wellness scores that..."
-- "Looking at your patterns over the past month, I notice..."
-- "This reminds me of when you faced [specific challenge from their history]..."
-- "Your future self projection shows [specific goal], and here's how this connects..."
+**Load data strategically:**
+- Assessment insights → When discussing wellness patterns, stress, or personal growth
+- Goals/plans → When user mentions planning, goals, or structure
+- Photo analysis → When discussing physical symptoms, stress markers, or aging
+- History → When tracking progress or comparing past states
 
-## OUTPUT REQUIREMENTS
-Return structured responses with:
-- content: Your main response (warm, insightful, data-driven)
-- wellness_insights: Specific insights with HIGH confidence (0.8+) only
-- follow_up_questions: Deep, personalized questions that advance their growth
-- tools_used: Which data sources you accessed for this response
+## CRITICAL PRINCIPLES
 
-Remember: You're not just answering questions - you're actively guiding their transformation using knowledge no one else has.""",
+### **BE EFFICIENT AND SMART**
+- Don't load all data upfront - use tools strategically
+- Start with core insights, expand as needed
+- Reference specific data points to build trust
+- Only access what the conversation requires
+
+### **LEVERAGE DATA INTELLIGENTLY**
+- `reveal_wellness_insights` - Your primary tool for understanding them
+- `access_user_goals_and_plans` - When discussing goals/planning
+- `analyze_photo_wellness_markers` - When discussing physical symptoms
+- `detect_conversation_themes` - For understanding emotional patterns
+
+**CRITICAL: When users ask about plans, schedules, goals, or weekly structure, you MUST call `access_user_goals_and_plans` first to get their data before responding.**
+
+**CRITICAL: When users ask about emotional states, stress, or wellness patterns, you MUST call `reveal_wellness_insights` first to understand their context before responding.**
+
+**NEVER give generic responses without first accessing relevant data through tools.**
+
+Your goal: Be the AI that truly KNOWS them through smart data access and can reveal insights about their wellness journey that no human could provide - efficiently and contextually.""",
 )
 
-# Tool: Get user profile (now uses pre-loaded data)
-@leo_agent.tool
-async def get_user_profile(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Get the user's profile information including name, email, and member since date."""
-    if ctx.deps.user_profile:
-        return ctx.deps.user_profile
-    
-    # Fallback to database query if not pre-loaded
-    try:
-        db_user = ctx.deps.db.query(User).filter(User.user_id == ctx.deps.user_id).first()
-        if not db_user:
-            raise ModelRetry("User profile not found")
-        
-        member_since_days = None
-        if db_user.created_at:
-            member_since_days = (datetime.utcnow() - db_user.created_at).days
-        
-        return {
-            "id": db_user.id,
-            "user_id": db_user.user_id,
-            "email": db_user.email,
-            "first_name": db_user.first_name,
-            "last_name": db_user.last_name,
-            "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
-            "member_since_days": member_since_days
-        }
-    except Exception as e:
-        raise ModelRetry(f"Error getting user profile: {str(e)}")
+# LEO'S ORACLE INTELLIGENCE TOOLS - Load data ONLY when needed
 
-# Tool: Get current assessment (now uses pre-loaded data)
 @leo_agent.tool
-async def get_current_assessment(ctx: RunContext[LeoDeps]) -> Optional[Dict[str, Any]]:
-    """Get the user's latest wellness assessment with scores, archetype, and insights."""
-    if ctx.deps.current_assessment is not None:
-        return ctx.deps.current_assessment
-    
-    # Fallback to database query if not pre-loaded
+async def reveal_wellness_insights(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Access core wellness insights - ONLY when needed for insight-driven conversations."""
     try:
+        # Load current assessment (most important data)
         db_assessment = ctx.deps.db.query(DBUserAssessment).filter(
             DBUserAssessment.user_id == ctx.deps.internal_user_id
         ).order_by(DBUserAssessment.created_at.desc()).first()
         
         if not db_assessment:
-            return None
+            return {"error": "No wellness assessment found"}
         
-        return {
-            "id": db_assessment.id,
-            "created_at": db_assessment.created_at.isoformat(),
-            "overall_glow_score": db_assessment.overall_glow_score,
-            "biological_age": db_assessment.biological_age,
-            "emotional_age": db_assessment.emotional_age,
-            "chronological_age": db_assessment.chronological_age,
-            "category_scores": db_assessment.category_scores,
-            "glowup_archetype": db_assessment.glowup_archetype,
-            "micro_habits": db_assessment.micro_habits,
-            "analysis_summary": db_assessment.analysis_summary,
-            "detailed_insights": db_assessment.detailed_insights
-        }
-    except Exception as e:
-        raise ModelRetry(f"Error getting current assessment: {str(e)}")
-
-# Tool: Get assessment history (now uses pre-loaded data)
-@leo_agent.tool
-async def get_assessment_history(ctx: RunContext[LeoDeps], limit: int = 3) -> List[Dict[str, Any]]:
-    """Get the user's recent assessment history for progress tracking."""
-    if ctx.deps.assessment_history:
-        return ctx.deps.assessment_history[:limit]
-    
-    # Fallback to database query if not pre-loaded
-    try:
-        db_assessments = ctx.deps.db.query(DBUserAssessment).filter(
-            DBUserAssessment.user_id == ctx.deps.internal_user_id
-        ).order_by(DBUserAssessment.created_at.desc()).limit(limit).all()
-        
-        assessments = []
-        for db_assessment in db_assessments:
-            assessments.append({
-                "id": db_assessment.id,
-                "created_at": db_assessment.created_at.isoformat(),
-                "overall_glow_score": db_assessment.overall_glow_score,
-                "category_scores": db_assessment.category_scores,
+        oracle_insights = {
+            "deep_analysis": db_assessment.detailed_insights or {},
+            "archetype_intelligence": db_assessment.glowup_archetype or {},
+            "biological_markers": {
+                "age_acceleration": db_assessment.biological_age - db_assessment.chronological_age,
                 "biological_age": db_assessment.biological_age,
-                "emotional_age": db_assessment.emotional_age
-            })
-        
-        return assessments
-    except Exception as e:
-        raise ModelRetry(f"Error getting assessment history: {str(e)}")
-
-# Tool: Get daily plan (now uses pre-loaded data)
-@leo_agent.tool
-async def get_daily_plan(ctx: RunContext[LeoDeps]) -> Optional[Dict[str, Any]]:
-    """Get the user's current daily plan and its status."""
-    if ctx.deps.daily_plan is not None:
-        return ctx.deps.daily_plan
-    
-    # Fallback to database query if not pre-loaded
-    try:
-        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
-            DBDailyPlan.user_id == ctx.deps.internal_user_id
-        ).order_by(DBDailyPlan.created_at.desc()).first()
-        
-        if not db_plan:
-            return None
-        
-        return {
-            "id": db_plan.id,
-            "created_at": db_plan.created_at.isoformat(),
-            "plan_type": db_plan.plan_type,
-            "plan_json": db_plan.plan_json
+                "chronological_age": db_assessment.chronological_age,
+                "aging_direction": "accelerated" if (db_assessment.biological_age - db_assessment.chronological_age) > 2 else "optimal" if (db_assessment.biological_age - db_assessment.chronological_age) < -2 else "normal"
+            },
+            "analysis_overview": db_assessment.analysis_summary or "",
+            "personalized_habits": db_assessment.micro_habits or [],
+            "category_scores": db_assessment.category_scores or {}
         }
+        
+        # Find strongest and weakest areas
+        if db_assessment.category_scores:
+            strongest = max(db_assessment.category_scores, key=db_assessment.category_scores.get)
+            weakest = min(db_assessment.category_scores, key=db_assessment.category_scores.get)
+            
+            oracle_insights["hidden_patterns"] = {
+                "strongest_domain": {
+                    "category": strongest,
+                    "score": db_assessment.category_scores[strongest],
+                    "insight": db_assessment.detailed_insights.get(strongest) if db_assessment.detailed_insights else "No detailed insight available"
+                },
+                "growth_domain": {
+                    "category": weakest,
+                    "score": db_assessment.category_scores[weakest],
+                    "insight": db_assessment.detailed_insights.get(weakest) if db_assessment.detailed_insights else "No detailed insight available"
+                },
+                "score_variance": max(db_assessment.category_scores.values()) - min(db_assessment.category_scores.values())
+            }
+        
+        return oracle_insights
+        
     except Exception as e:
-        raise ModelRetry(f"Error getting daily plan: {str(e)}")
+        raise ModelRetry(f"Error revealing wellness insights: {str(e)}")
 
-# Tool: Get future projection (now uses pre-loaded data)
 @leo_agent.tool
-async def get_future_projection(ctx: RunContext[LeoDeps]) -> Optional[Dict[str, Any]]:
-    """Get the user's future projection and goals."""
-    if ctx.deps.future_projection is not None:
-        return ctx.deps.future_projection
-    
-    # Fallback to database query if not pre-loaded
+async def detect_conversation_themes(ctx: RunContext[LeoDeps], current_message: str) -> Dict[str, Any]:
+    """Analyze conversation patterns - ONLY when needed for understanding emotional themes."""
     try:
+        theme_analysis = {
+            "current_emotional_state": "neutral",
+            "recurring_concerns": [],
+            "conversation_stage": "active"
+        }
+        
+        # Load conversation history
+        db_messages = ctx.deps.db.query(DBChatMessage).filter(
+            DBChatMessage.user_id == ctx.deps.user_id,
+            DBChatMessage.session_id == ctx.deps.session_id
+        ).order_by(DBChatMessage.timestamp.asc()).limit(10).all()
+        
+        if not db_messages:
+            theme_analysis["conversation_stage"] = "initial"
+            return theme_analysis
+        
+        current_lower = current_message.lower()
+        user_messages = [msg for msg in db_messages if msg.role == "user"]
+        
+        # Analyze current emotional state
+        emotional_patterns = {
+            "stress": ["stressed", "overwhelmed", "pressure", "burnout", "exhausted"],
+            "concern": ["worried", "anxious", "scared", "nervous", "fearful"],
+            "frustration": ["frustrated", "annoyed", "stuck", "difficult", "hard"],
+            "optimism": ["better", "good", "improving", "excited", "motivated"],
+            "confusion": ["confused", "lost", "don't know", "unsure", "uncertain"]
+        }
+        
+        for emotion, keywords in emotional_patterns.items():
+            if any(keyword in current_lower for keyword in keywords):
+                theme_analysis["current_emotional_state"] = emotion
+                break
+        
+        # Look for recurring themes
+        all_user_content = " ".join([msg.content for msg in user_messages]).lower()
+        
+        theme_keywords = {
+            "work_stress": ["work", "job", "boss", "deadline", "meeting", "office"],
+            "relationships": ["relationship", "partner", "family", "friends", "social"],
+            "health_concerns": ["health", "doctor", "pain", "sick", "medical"],
+            "sleep_issues": ["sleep", "tired", "exhausted", "insomnia", "rest"],
+            "self_improvement": ["better", "improve", "change", "grow", "goal"]
+        }
+        
+        for theme, keywords in theme_keywords.items():
+            keyword_count = sum(1 for keyword in keywords if keyword in all_user_content)
+            if keyword_count >= 2:
+                theme_analysis["recurring_concerns"].append(theme)
+        
+        return theme_analysis
+        
+    except Exception as e:
+        raise ModelRetry(f"Error detecting conversation themes: {str(e)}")
+
+@leo_agent.tool  
+async def check_safety_indicators(ctx: RunContext[LeoDeps], user_message: str) -> Dict[str, Any]:
+    """Check for genuine safety concerns requiring immediate attention."""
+    try:
+        safety_check = {
+            "risk_level": "none",
+            "action_required": False,
+            "support_resources": []
+        }
+        
+        message_lower = user_message.lower()
+        
+        # High-risk crisis language
+        crisis_indicators = [
+            "suicide", "kill myself", "end my life", "want to die", "not worth living",
+            "better off dead", "self harm", "hurt myself", "take my own life"
+        ]
+        
+        if any(indicator in message_lower for indicator in crisis_indicators):
+            safety_check["risk_level"] = "high"
+            safety_check["action_required"] = True
+            safety_check["support_resources"] = [
+                "🆘 Crisis Text Line: Text HOME to 741741",
+                "📞 988 Suicide & Crisis Lifeline: Call or text 988",
+                "🚨 Emergency Services: 911",
+                "💬 I'm here with you right now. Please reach out to one of these resources immediately."
+            ]
+        
+        return safety_check
+        
+    except Exception as e:
+        raise ModelRetry(f"Error checking safety indicators: {str(e)}")
+
+@leo_agent.tool
+async def access_user_goals_and_plans(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Access goals and plans - ONLY when discussing planning, goals, or structure."""
+    try:
+        print(f"[Leo Tool] 📅 Accessing goals and plans for user {ctx.deps.user_id}")
+        goals_and_plans = {
+            "user_name": None,
+            "future_goals": {},
+            "active_plans": {},
+            "wellness_journey": {}
+        }
+        
+        # Get user name
+        db_user = ctx.deps.db.query(User).filter(User.user_id == ctx.deps.user_id).first()
+        if db_user:
+            goals_and_plans["user_name"] = db_user.first_name
+            # Fix datetime timezone issue - use timezone-aware datetime
+            if db_user.created_at:
+                now_utc = datetime.now(timezone.utc)
+                created_at = db_user.created_at
+                # Ensure both datetimes are timezone-aware
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=timezone.utc)
+                goals_and_plans["member_since_days"] = (now_utc - created_at).days
+            else:
+                goals_and_plans["member_since_days"] = 0
+        
+        # Load future projection
         db_projection = ctx.deps.db.query(DBFutureProjection).filter(
             DBFutureProjection.user_id == ctx.deps.internal_user_id
         ).order_by(DBFutureProjection.created_at.desc()).first()
         
-        if not db_projection:
-            return None
+        if db_projection:
+            projection = db_projection.projection_result or {}
+            seven_day = projection.get("sevenDay", {})
+            if seven_day:
+                goals_and_plans["future_goals"] = {
+                    "key_actions": seven_day.get("keyActions", []),
+                    "focus_areas": seven_day.get("focusAreas", []),
+                    "projected_improvements": seven_day.get("projectedScores", {})
+                }
+            
+            if db_projection.weekly_plan:
+                goals_and_plans["weekly_structure"] = db_projection.weekly_plan
         
-        return {
-            "id": db_projection.id,
-            "created_at": db_projection.created_at.isoformat(),
-            "projection_result": db_projection.projection_result,
-            "weekly_plan": db_projection.weekly_plan
-        }
+        # Load daily plans
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if db_plan:
+            plan_data = db_plan.plan_json or {}
+            goals_and_plans["active_plans"] = {
+                "plan_type": db_plan.plan_type,
+                "created_date": db_plan.created_at.isoformat(),
+                "morning_routine": plan_data.get("morningLaunchpad", {}),
+                "daily_structure": plan_data.get("dailyStructure", {}),
+                "habits": plan_data.get("habits", [])
+            }
+        
+        print(f"[Leo Tool] 📊 Goals and plans data retrieved: {len(goals_and_plans)} items")
+        if goals_and_plans.get('weekly_structure'):
+            print(f"[Leo Tool] ✅ Weekly structure found")
+        if goals_and_plans.get('active_plans'):
+            print(f"[Leo Tool] ✅ Active plans found")
+        return goals_and_plans
+        
     except Exception as e:
-        raise ModelRetry(f"Error getting future projection: {str(e)}")
+        print(f"[Leo Tool] ❌ Error accessing goals and plans: {str(e)}")
+        raise ModelRetry(f"Error accessing user goals and plans: {str(e)}")
 
-# Tool: Get conversation history (now uses pre-loaded data)
 @leo_agent.tool
-async def get_conversation_history(ctx: RunContext[LeoDeps], limit: int = 8) -> List[Dict[str, Any]]:
-    """Get recent conversation history for context."""
-    if ctx.deps.conversation_history:
-        return ctx.deps.conversation_history[-limit:]  # Get last N messages
-    
-    # Fallback to database query if not pre-loaded
+async def analyze_photo_wellness_markers(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Access photo analysis - ONLY when discussing physical symptoms, stress markers, or aging."""
     try:
-        db_messages = ctx.deps.db.query(DBChatMessage).filter(
-            DBChatMessage.user_id == ctx.deps.user_id,
-            DBChatMessage.session_id == ctx.deps.session_id
-        ).order_by(DBChatMessage.timestamp.desc()).limit(limit).all()
+        # Load current assessment for photo data
+        db_assessment = ctx.deps.db.query(DBUserAssessment).filter(
+            DBUserAssessment.user_id == ctx.deps.internal_user_id
+        ).order_by(DBUserAssessment.created_at.desc()).first()
         
-        messages = []
-        for db_msg in reversed(db_messages):  # Reverse to get chronological order
-            messages.append({
-                "id": db_msg.id,
-                "role": db_msg.role,
-                "content": db_msg.content,
-                "timestamp": db_msg.timestamp.isoformat() if db_msg.timestamp else None
-            })
+        if not db_assessment or not db_assessment.detailed_insights:
+            return {"status": "No photo analysis data available"}
         
-        return messages
+        detailed_insights = db_assessment.detailed_insights
+        
+        # Check if photo analysis data is available
+        if "photo_analysis" in detailed_insights:
+            photo_data = detailed_insights["photo_analysis"]
+            
+            return {
+                "biological_age_markers": photo_data.get("ageAssessment", {}),
+                "skin_health_analysis": photo_data.get("comprehensiveSkinAnalysis", {}),
+                "vitality_indicators": photo_data.get("vitalityAndHealthIndicators", {}),
+                "stress_markers": photo_data.get("stressAndLifestyleIndicators", {}),
+                "wellness_priorities": photo_data.get("overallWellnessAssessment", {})
+            }
+        else:
+            return {
+                "status": "Photo analysis not found in detailed insights",
+                "available_data": list(detailed_insights.keys())
+            }
+        
     except Exception as e:
-        raise ModelRetry(f"Error getting conversation history: {str(e)}")
+        raise ModelRetry(f"Error analyzing photo wellness markers: {str(e)}")
 
-# Tool: Save message to database
 @leo_agent.tool
 async def save_message(ctx: RunContext[LeoDeps], role: str, content: str) -> Dict[str, Any]:
-    """Save a message to the conversation history."""
+    """Save conversation message to database."""
     try:
         message = DBChatMessage(
             user_id=ctx.deps.user_id,
@@ -339,609 +410,17 @@ async def save_message(ctx: RunContext[LeoDeps], role: str, content: str) -> Dic
     except Exception as e:
         raise ModelRetry(f"Error saving message: {str(e)}")
 
-# ADVANCED INTELLIGENCE TOOLS
-
-@leo_agent.tool
-async def analyze_wellness_patterns(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Analyze patterns across the user's wellness journey, including trends, cycles, and correlations."""
-    try:
-        patterns = {
-            "overall_trends": {},
-            "behavioral_patterns": {},
-            "risk_indicators": {},
-            "growth_opportunities": {},
-            "correlations": {}
-        }
-        
-        # Analyze assessment history for trends
-        if ctx.deps.assessment_history and len(ctx.deps.assessment_history) >= 2:
-            latest = ctx.deps.assessment_history[0]
-            previous = ctx.deps.assessment_history[-1]
-            
-            # Calculate trends
-            glow_trend = latest.get("overall_glow_score", 0) - previous.get("overall_glow_score", 0)
-            patterns["overall_trends"]["glow_score_change"] = glow_trend
-            patterns["overall_trends"]["direction"] = "improving" if glow_trend > 0 else "declining" if glow_trend < 0 else "stable"
-            
-            # Category analysis
-            if latest.get("category_scores") and previous.get("category_scores"):
-                category_changes = {}
-                for category, score in latest["category_scores"].items():
-                    prev_score = previous["category_scores"].get(category, 0)
-                    change = score - prev_score
-                    category_changes[category] = {
-                        "change": change,
-                        "direction": "improving" if change > 0 else "declining" if change < 0 else "stable"
-                    }
-                patterns["overall_trends"]["category_changes"] = category_changes
-        
-        # Analyze current assessment for risk indicators
-        if ctx.deps.current_assessment:
-            current = ctx.deps.current_assessment
-            
-            # Age analysis
-            bio_age = current.get("biological_age", 0)
-            chrono_age = current.get("chronological_age", 0)
-            age_gap = bio_age - chrono_age
-            
-            if age_gap > 5:
-                patterns["risk_indicators"]["accelerated_aging"] = {
-                    "severity": "high" if age_gap > 10 else "medium",
-                    "gap": age_gap,
-                    "recommendation": "Focus on anti-aging lifestyle changes"
-                }
-            
-            # Score analysis
-            glow_score = current.get("overall_glow_score", 0)
-            if glow_score < 60:
-                patterns["risk_indicators"]["low_wellness"] = {
-                    "severity": "high" if glow_score < 50 else "medium",
-                    "score": glow_score,
-                    "recommendation": "Comprehensive wellness intervention needed"
-                }
-            
-            # Category imbalances
-            category_scores = current.get("category_scores", {})
-            if category_scores:
-                scores = list(category_scores.values())
-                if max(scores) - min(scores) > 20:
-                    patterns["behavioral_patterns"]["imbalanced_wellness"] = {
-                        "highest": max(category_scores, key=category_scores.get),
-                        "lowest": min(category_scores, key=category_scores.get),
-                        "gap": max(scores) - min(scores)
-                    }
-        
-        # Analyze daily plan adherence and effectiveness
-        if ctx.deps.daily_plan:
-            plan = ctx.deps.daily_plan.get("plan_json", {})
-            if plan:
-                patterns["behavioral_patterns"]["plan_engagement"] = {
-                    "has_active_plan": True,
-                    "plan_type": ctx.deps.daily_plan.get("plan_type", "unknown"),
-                    "created_recently": True  # Could be enhanced with actual tracking
-                }
-        
-        # Analyze conversation patterns
-        if ctx.deps.conversation_history:
-            user_messages = [msg for msg in ctx.deps.conversation_history if msg.get("role") == "user"]
-            if user_messages:
-                recent_content = " ".join([msg.get("content", "") for msg in user_messages[-3:]])
-                
-                # Simple sentiment indicators (could be enhanced with proper sentiment analysis)
-                stress_words = ["stressed", "tired", "overwhelmed", "difficult", "hard", "struggle", "anxious", "worried"]
-                positive_words = ["good", "great", "better", "improved", "happy", "excited", "motivated", "progress"]
-                
-                stress_count = sum(1 for word in stress_words if word in recent_content.lower())
-                positive_count = sum(1 for word in positive_words if word in recent_content.lower())
-                
-                if stress_count > positive_count and stress_count > 1:
-                    patterns["risk_indicators"]["emotional_distress"] = {
-                        "severity": "high" if stress_count > 3 else "medium",
-                        "indicators": stress_count,
-                        "recommendation": "Emotional support and stress management needed"
-                    }
-                elif positive_count > stress_count:
-                    patterns["growth_opportunities"]["positive_momentum"] = {
-                        "strength": "high" if positive_count > 3 else "medium",
-                        "indicators": positive_count
-                    }
-        
-        return patterns
-        
-    except Exception as e:
-        raise ModelRetry(f"Error analyzing wellness patterns: {str(e)}")
-
-@leo_agent.tool
-async def detect_crisis_signals(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Detect early warning signs of crisis, stress, or urgent support needs."""
-    try:
-        crisis_signals = {
-            "immediate_concerns": [],
-            "warning_signs": [],
-            "support_needed": False,
-            "urgency_level": "low"
-        }
-        
-        # Check recent conversation content for crisis indicators
-        if ctx.deps.conversation_history:
-            recent_messages = [msg for msg in ctx.deps.conversation_history[-5:] if msg.get("role") == "user"]
-            recent_content = " ".join([msg.get("content", "") for msg in recent_messages]).lower()
-            
-            # Crisis keywords
-            crisis_keywords = {
-                "high": ["suicidal", "kill myself", "end it all", "can't go on", "hopeless", "worthless"],
-                "medium": ["depressed", "anxious", "panic", "breakdown", "crisis", "emergency", "desperate"],
-                "low": ["stressed", "overwhelmed", "exhausted", "burnt out", "struggling", "difficult"]
-            }
-            
-            for level, keywords in crisis_keywords.items():
-                for keyword in keywords:
-                    if keyword in recent_content:
-                        crisis_signals["warning_signs"].append({
-                            "keyword": keyword,
-                            "severity": level,
-                            "context": "recent conversation"
-                        })
-                        if level in ["high", "medium"]:
-                            crisis_signals["support_needed"] = True
-                            crisis_signals["urgency_level"] = level
-        
-        # Check wellness scores for concerning trends
-        if ctx.deps.assessment_history and len(ctx.deps.assessment_history) >= 2:
-            latest = ctx.deps.assessment_history[0]
-            previous = ctx.deps.assessment_history[1] if len(ctx.deps.assessment_history) > 1 else None
-            
-            if previous:
-                score_drop = previous.get("overall_glow_score", 0) - latest.get("overall_glow_score", 0)
-                if score_drop > 15:
-                    crisis_signals["warning_signs"].append({
-                        "indicator": "significant_wellness_decline",
-                        "severity": "medium",
-                        "details": f"Wellness score dropped by {score_drop} points"
-                    })
-                    crisis_signals["support_needed"] = True
-                    if crisis_signals["urgency_level"] == "low":
-                        crisis_signals["urgency_level"] = "medium"
-        
-        # Check for concerning age gaps
-        if ctx.deps.current_assessment:
-            bio_age = ctx.deps.current_assessment.get("biological_age", 0)
-            chrono_age = ctx.deps.current_assessment.get("chronological_age", 0)
-            age_gap = bio_age - chrono_age
-            
-            if age_gap > 15:
-                crisis_signals["warning_signs"].append({
-                    "indicator": "severe_biological_aging",
-                    "severity": "medium",
-                    "details": f"Biological age is {age_gap} years older than chronological age"
-                })
-                crisis_signals["support_needed"] = True
-        
-        return crisis_signals
-        
-    except Exception as e:
-        raise ModelRetry(f"Error detecting crisis signals: {str(e)}")
-
-@leo_agent.tool
-async def analyze_goal_progress(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Analyze progress toward future self goals and projections."""
-    try:
-        progress_analysis = {
-            "current_trajectory": {},
-            "goal_alignment": {},
-            "recommendations": [],
-            "timeline_assessment": {}
-        }
-        
-        if ctx.deps.future_projection and ctx.deps.current_assessment:
-            projection = ctx.deps.future_projection.get("projection_result", {})
-            current = ctx.deps.current_assessment
-            
-            # Analyze 7-day goals if available
-            seven_day = projection.get("sevenDay", {})
-            if seven_day:
-                projected_scores = seven_day.get("projectedScores", {})
-                current_scores = current.get("category_scores", {})
-                current_glow = current.get("overall_glow_score", 0)
-                projected_glow = projected_scores.get("overallGlowScore", 0)
-                
-                # Calculate progress potential
-                progress_analysis["goal_alignment"]["seven_day_potential"] = {
-                    "current_glow": current_glow,
-                    "target_glow": projected_glow,
-                    "improvement_needed": max(0, projected_glow - current_glow),
-                    "achievability": "high" if projected_glow - current_glow <= 10 else "medium" if projected_glow - current_glow <= 20 else "challenging"
-                }
-                
-                # Category-specific analysis
-                for category, target_score in projected_scores.items():
-                    if category != "overallGlowScore" and category in current_scores:
-                        current_score = current_scores[category]
-                        gap = target_score - current_score
-                        progress_analysis["goal_alignment"][f"{category}_progress"] = {
-                            "current": current_score,
-                            "target": target_score,
-                            "gap": gap,
-                            "status": "on_track" if gap <= 5 else "needs_focus" if gap <= 15 else "significant_effort_needed"
-                        }
-                
-                # Extract key actions from projection
-                key_actions = seven_day.get("keyActions", [])
-                if key_actions:
-                    progress_analysis["recommendations"] = key_actions[:3]  # Top 3 recommendations
-            
-            # Analyze weekly plan alignment
-            weekly_plan = ctx.deps.future_projection.get("weekly_plan")
-            if weekly_plan:
-                progress_analysis["timeline_assessment"]["has_structured_plan"] = True
-                progress_analysis["timeline_assessment"]["plan_focus"] = "Available"
-            
-        # Check daily plan alignment
-        if ctx.deps.daily_plan:
-            plan_json = ctx.deps.daily_plan.get("plan_json", {})
-            if plan_json:
-                progress_analysis["current_trajectory"]["daily_plan_active"] = True
-                progress_analysis["current_trajectory"]["plan_type"] = ctx.deps.daily_plan.get("plan_type", "unknown")
-                
-                # Extract morning routine if available
-                morning_routine = plan_json.get("morningLaunchpad", {})
-                if morning_routine:
-                    progress_analysis["current_trajectory"]["morning_routine"] = "structured"
-        
-        return progress_analysis
-        
-    except Exception as e:
-        raise ModelRetry(f"Error analyzing goal progress: {str(e)}")
-
-@leo_agent.tool
-async def generate_system_insights(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Generate comprehensive system-level insights by synthesizing all available user data."""
-    try:
-        insights = {
-            "user_archetype_analysis": {},
-            "wellness_ecosystem": {},
-            "transformation_readiness": {},
-            "personalized_strategy": {},
-            "next_breakthrough": {}
-        }
-        
-        # Deep archetype analysis
-        if ctx.deps.current_assessment:
-            archetype = ctx.deps.current_assessment.get("glowup_archetype", {})
-            if archetype:
-                insights["user_archetype_analysis"] = {
-                    "name": archetype.get("name", "Unknown"),
-                    "description": archetype.get("description", ""),
-                    "strengths": archetype.get("strengths", []),
-                    "growth_areas": archetype.get("growth_areas", []),
-                    "archetype_alignment": "high"  # Could be calculated based on current scores vs archetype expectations
-                }
-        
-        # Wellness ecosystem assessment
-        data_completeness = 0
-        if ctx.deps.user_profile:
-            data_completeness += 20
-        if ctx.deps.current_assessment:
-            data_completeness += 30
-        if ctx.deps.daily_plan:
-            data_completeness += 20
-        if ctx.deps.future_projection:
-            data_completeness += 20
-        if ctx.deps.conversation_history:
-            data_completeness += 10
-        
-        insights["wellness_ecosystem"] = {
-            "data_completeness": data_completeness,
-            "engagement_level": "high" if data_completeness >= 80 else "medium" if data_completeness >= 60 else "low",
-            "system_utilization": "comprehensive" if all([ctx.deps.current_assessment, ctx.deps.daily_plan, ctx.deps.future_projection]) else "partial"
-        }
-        
-        # Transformation readiness
-        readiness_score = 0
-        readiness_factors = []
-        
-        if ctx.deps.current_assessment:
-            glow_score = ctx.deps.current_assessment.get("overall_glow_score", 0)
-            if glow_score >= 70:
-                readiness_score += 30
-                readiness_factors.append("Strong baseline wellness")
-            elif glow_score >= 50:
-                readiness_score += 20
-                readiness_factors.append("Moderate baseline wellness")
-            else:
-                readiness_score += 10
-                readiness_factors.append("Significant improvement potential")
-        
-        if ctx.deps.daily_plan:
-            readiness_score += 25
-            readiness_factors.append("Active daily plan engagement")
-        
-        if ctx.deps.future_projection:
-            readiness_score += 25
-            readiness_factors.append("Clear future vision")
-        
-        if ctx.deps.conversation_history and len(ctx.deps.conversation_history) > 3:
-            readiness_score += 20
-            readiness_factors.append("Active system engagement")
-        
-        insights["transformation_readiness"] = {
-            "score": readiness_score,
-            "level": "high" if readiness_score >= 80 else "medium" if readiness_score >= 60 else "developing",
-            "factors": readiness_factors
-        }
-        
-        # Identify next breakthrough opportunity
-        if ctx.deps.current_assessment:
-            category_scores = ctx.deps.current_assessment.get("category_scores", {})
-            if category_scores:
-                # Find the category with the most improvement potential
-                lowest_category = min(category_scores, key=category_scores.get)
-                lowest_score = category_scores[lowest_category]
-                
-                insights["next_breakthrough"] = {
-                    "focus_area": lowest_category,
-                    "current_score": lowest_score,
-                    "improvement_potential": "high" if lowest_score < 60 else "medium" if lowest_score < 75 else "optimization",
-                    "strategy": f"Targeted {lowest_category.replace('_', ' ')} improvement plan"
-                }
-        
-        return insights
-        
-    except Exception as e:
-        raise ModelRetry(f"Error generating system insights: {str(e)}")
-
-# Tool: Analyze wellness insights
-@leo_agent.tool
-async def analyze_wellness_insights(
-    ctx: RunContext[LeoDeps], 
-    assessment_data: Optional[Dict[str, Any]] = None,
-    assessment_history: Optional[List[Dict[str, Any]]] = None
-) -> List[Dict[str, Any]]:
-    """Analyze the user's wellness data and generate insights."""
-    try:
-        insights = []
-        
-        if not assessment_data:
-            return insights
-        
-        # Analyze category scores
-        category_scores = assessment_data.get("category_scores", {})
-        for category, score in category_scores.items():
-            if score < 70:
-                insights.append({
-                    "category": category,
-                    "insight": f"{category} score of {score} indicates room for improvement",
-                    "actionable_advice": f"Focus on {category.lower()} activities to boost your score",
-                    "priority": "high" if score < 60 else "medium",
-                    "confidence": 0.8
-                })
-            elif score >= 80:
-                insights.append({
-                    "category": category,
-                    "insight": f"Strong {category} score of {score} - great foundation",
-                    "actionable_advice": f"Maintain your excellent {category.lower()} habits",
-                    "priority": "low",
-                    "confidence": 0.9
-                })
-        
-        # Analyze age insights
-        biological_age = assessment_data.get("biological_age")
-        chronological_age = assessment_data.get("chronological_age")
-        if biological_age and chronological_age:
-            age_diff = biological_age - chronological_age
-            if age_diff > 5:
-                insights.append({
-                    "category": "biological_age",
-                    "insight": f"Biological age {age_diff} years higher than chronological age",
-                    "actionable_advice": "Focus on lifestyle optimization to improve biological age",
-                    "priority": "high",
-                    "confidence": 0.85
-                })
-            elif age_diff < -5:
-                insights.append({
-                    "category": "biological_age",
-                    "insight": f"Excellent! Biological age {abs(age_diff)} years lower than chronological age",
-                    "actionable_advice": "Your lifestyle is serving you well - keep it up!",
-                    "priority": "low",
-                    "confidence": 0.9
-                })
-        
-        # Analyze progress if history available
-        if assessment_history and len(assessment_history) >= 2:
-            latest = assessment_history[0]
-            previous = assessment_history[1]
-            score_change = latest["overall_glow_score"] - previous["overall_glow_score"]
-            
-            if score_change > 0:
-                insights.append({
-                    "category": "progress",
-                    "insight": f"Overall wellness improved by {score_change} points",
-                    "actionable_advice": "Your efforts are paying off - continue your wellness journey",
-                    "priority": "low",
-                    "confidence": 0.9
-                })
-            elif score_change < 0:
-                insights.append({
-                    "category": "progress",
-                    "insight": f"Overall wellness decreased by {abs(score_change)} points",
-                    "actionable_advice": "Let's identify what changed and get back on track",
-                    "priority": "medium",
-                    "confidence": 0.9
-                })
-        
-        return insights
-    except Exception as e:
-        raise ModelRetry(f"Error analyzing wellness insights: {str(e)}")
-
 # The output type is already specified in the Agent constructor as LeoResponse
 # No need for a separate output decorator in the current pydantic-ai version
 
 class LeoPydanticAgent:
     """
-    🧠 LEO - FULL PYDANTIC AI AGENT
-    Uses the complete Pydantic AI framework with tools, message history, and structured responses.
+    🧠 LEO - OPTIMIZED PYDANTIC AI AGENT
+    Uses lazy loading and efficient data access following Pydantic AI best practices.
     """
     
     def __init__(self):
-        self.usage_limits = UsageLimits(request_limit=20)  # Limit requests per conversation
-    
-    async def _preload_all_user_data(
-        self,
-        db: Session,
-        user_id: str,
-        internal_user_id: int,
-        session_id: str
-    ) -> LeoDeps:
-        """
-        🚀 PRE-LOAD ALL USER DATA FROM 4 TABLES
-        This loads all the data at the beginning of the conversation as requested.
-        """
-        print(f"[LeoPydanticAgent] 🚀 Pre-loading all data for user {user_id}")
-        
-        # 1. Load user profile
-        user_profile = None
-        try:
-            db_user = db.query(User).filter(User.user_id == user_id).first()
-            if db_user:
-                member_since_days = None
-                if db_user.created_at:
-                    # Handle timezone-aware datetime comparison
-                    now = datetime.utcnow()
-                    if db_user.created_at.tzinfo is not None:
-                        # If created_at is timezone-aware, make now timezone-aware too
-                        from datetime import timezone
-                        now = now.replace(tzinfo=timezone.utc)
-                    member_since_days = (now - db_user.created_at).days
-                
-                user_profile = {
-                    "id": db_user.id,
-                    "user_id": db_user.user_id,
-                    "email": db_user.email,
-                    "first_name": db_user.first_name,
-                    "last_name": db_user.last_name,
-                    "created_at": db_user.created_at.isoformat() if db_user.created_at else None,
-                    "member_since_days": member_since_days
-                }
-                print(f"[LeoPydanticAgent] ✅ User profile loaded: {db_user.first_name}")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading user profile: {e}")
-        
-        # 2. Load current assessment
-        current_assessment = None
-        try:
-            db_assessment = db.query(DBUserAssessment).filter(
-                DBUserAssessment.user_id == internal_user_id
-            ).order_by(DBUserAssessment.created_at.desc()).first()
-            
-            if db_assessment:
-                current_assessment = {
-                    "id": db_assessment.id,
-                    "created_at": db_assessment.created_at.isoformat(),
-                    "overall_glow_score": db_assessment.overall_glow_score,
-                    "biological_age": db_assessment.biological_age,
-                    "emotional_age": db_assessment.emotional_age,
-                    "chronological_age": db_assessment.chronological_age,
-                    "category_scores": db_assessment.category_scores,
-                    "glowup_archetype": db_assessment.glowup_archetype,
-                    "micro_habits": db_assessment.micro_habits,
-                    "analysis_summary": db_assessment.analysis_summary,
-                    "detailed_insights": db_assessment.detailed_insights
-                }
-                print(f"[LeoPydanticAgent] ✅ Current assessment loaded: Score {db_assessment.overall_glow_score}")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading current assessment: {e}")
-        
-        # 3. Load assessment history
-        assessment_history = []
-        try:
-            db_assessments = db.query(DBUserAssessment).filter(
-                DBUserAssessment.user_id == internal_user_id
-            ).order_by(DBUserAssessment.created_at.desc()).limit(5).all()
-            
-            for db_assessment in db_assessments:
-                assessment_history.append({
-                    "id": db_assessment.id,
-                    "created_at": db_assessment.created_at.isoformat(),
-                    "overall_glow_score": db_assessment.overall_glow_score,
-                    "category_scores": db_assessment.category_scores,
-                    "biological_age": db_assessment.biological_age,
-                    "emotional_age": db_assessment.emotional_age
-                })
-            print(f"[LeoPydanticAgent] ✅ Assessment history loaded: {len(assessment_history)} assessments")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading assessment history: {e}")
-        
-        # 4. Load daily plan
-        daily_plan = None
-        try:
-            db_plan = db.query(DBDailyPlan).filter(
-                DBDailyPlan.user_id == internal_user_id
-            ).order_by(DBDailyPlan.created_at.desc()).first()
-            
-            if db_plan:
-                daily_plan = {
-                    "id": db_plan.id,
-                    "created_at": db_plan.created_at.isoformat(),
-                    "plan_type": db_plan.plan_type,
-                    "plan_json": db_plan.plan_json
-                }
-                print(f"[LeoPydanticAgent] ✅ Daily plan loaded: {db_plan.plan_type}")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading daily plan: {e}")
-        
-        # 5. Load future projection
-        future_projection = None
-        try:
-            db_projection = db.query(DBFutureProjection).filter(
-                DBFutureProjection.user_id == internal_user_id
-            ).order_by(DBFutureProjection.created_at.desc()).first()
-            
-            if db_projection:
-                future_projection = {
-                    "id": db_projection.id,
-                    "created_at": db_projection.created_at.isoformat(),
-                    "projection_result": db_projection.projection_result,
-                    "weekly_plan": db_projection.weekly_plan
-                }
-                print(f"[LeoPydanticAgent] ✅ Future projection loaded")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading future projection: {e}")
-        
-        # 6. Load conversation history
-        conversation_history = []
-        try:
-            db_messages = db.query(DBChatMessage).filter(
-                DBChatMessage.user_id == user_id,
-                DBChatMessage.session_id == session_id
-            ).order_by(DBChatMessage.timestamp.asc()).limit(10).all()
-            
-            for db_msg in db_messages:
-                conversation_history.append({
-                    "id": db_msg.id,
-                    "role": db_msg.role,
-                    "content": db_msg.content,
-                    "timestamp": db_msg.timestamp.isoformat() if db_msg.timestamp else None
-                })
-            print(f"[LeoPydanticAgent] ✅ Conversation history loaded: {len(conversation_history)} messages")
-        except Exception as e:
-            print(f"[LeoPydanticAgent] ❌ Error loading conversation history: {e}")
-        
-        # Create dependencies with all pre-loaded data
-        deps = LeoDeps(
-            db=db,
-            user_id=user_id,
-            internal_user_id=internal_user_id,
-            session_id=session_id,
-            user_profile=user_profile,
-            current_assessment=current_assessment,
-            assessment_history=assessment_history,
-            daily_plan=daily_plan,
-            future_projection=future_projection,
-            conversation_history=conversation_history
-        )
-        
-        print(f"[LeoPydanticAgent] 🎉 All data pre-loaded successfully!")
-        return deps
+        self.usage_limits = UsageLimits(request_limit=20)
     
     async def process_message(
         self, 
@@ -953,16 +432,25 @@ class LeoPydanticAgent:
         message_history: Optional[List[ModelMessage]] = None
     ) -> LeoResponse:
         """
-        Process user message using Leo's full Pydantic AI agent system.
+        Process user message using Leo's optimized Pydantic AI agent system.
+        NO pre-loading - data loaded on-demand through tools.
         """
         try:
-            # 🚀 PRE-LOAD ALL USER DATA FROM 4 TABLES
-            deps = await self._preload_all_user_data(db, user_id, internal_user_id, session_id)
+            # Create lightweight dependencies - NO data pre-loading
+            deps = LeoDeps(
+                db=db,
+                user_id=user_id,
+                internal_user_id=internal_user_id,
+                session_id=session_id
+            )
+            
+            print(f"[LeoPydanticAgent] 🚀 Starting efficient processing for user {user_id}")
+            print(f"[LeoPydanticAgent] 💡 Data will be loaded on-demand through tools")
             
             # Save user message first
             await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "user", user_message)
             
-            # Run the agent with message history and pre-loaded data
+            # Run the agent - tools will load data as needed
             result = await leo_agent.run(
                 user_message,
                 deps=deps,
@@ -970,114 +458,34 @@ class LeoPydanticAgent:
                 usage_limits=self.usage_limits
             )
             
-            print(f"[LeoPydanticAgent] Agent result type: {type(result)}")
-            print(f"[LeoPydanticAgent] Agent result attributes: {dir(result)}")
-            
-            # Try different ways to access the output
-            output = None
-            if hasattr(result, 'output'):
-                output = result.output
-                print(f"[LeoPydanticAgent] Found result.output: {output}")
-            elif hasattr(result, 'result'):
-                output = result.result
-                print(f"[LeoPydanticAgent] Found result.result: {output}")
-            elif hasattr(result, 'data'):
-                output = result.data
-                print(f"[LeoPydanticAgent] Found result.data: {output}")
-            else:
-                # Try to get the last message from the result
-                try:
-                    messages = result.all_messages()
-                    if messages and hasattr(messages[-1], 'parts'):
-                        last_part = messages[-1].parts[-1]
-                        if hasattr(last_part, 'content'):
-                            output = last_part.content
-                            print(f"[LeoPydanticAgent] Found content from last message: {output}")
-                except Exception as e:
-                    print(f"[LeoPydanticAgent] Error getting messages: {e}")
-            
-            # Handle the output - ensure we return a LeoResponse object
-            if output and isinstance(output, LeoResponse):
-                # The output is already a LeoResponse object, just return it
-                print(f"[LeoPydanticAgent] Using agent output directly: {output}")
-                # Extract content from the response for saving
-                content = output.content if hasattr(output, 'content') else str(output)
-                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", content)
-                return output
-            elif output and isinstance(output, str):
-                # If output is a string representation of LeoResponse, try to parse it
-                print(f"[LeoPydanticAgent] Parsing string output: {output}")
-                try:
-                    # Try to extract content from the string representation
-                    import re
-                    content_match = re.search(r'content:\s*"([^"]*)"', output)
-                    if content_match:
-                        content = content_match.group(1)
-                        # Extract follow-up questions if present
-                        follow_up_match = re.search(r'follow_up_questions:\s*\[(.*?)\]', output, re.DOTALL)
-                        follow_up_questions = []
-                        if follow_up_match:
-                            questions_str = follow_up_match.group(1)
-                            # Simple extraction of questions
-                            questions = re.findall(r'-\s*"([^"]*)"', questions_str)
-                            follow_up_questions = questions
-                        
-                        await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", content)
-                        return LeoResponse(
-                            content=content,
-                            wellness_insights=[],
-                            follow_up_questions=follow_up_questions or ["Could you tell me more about what's on your mind right now?"],
-                            tools_used=[]
-                        )
-                    else:
-                        # Fallback: use the entire string as content
-                        await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", output)
-                        return LeoResponse(
-                            content=output,
-                            wellness_insights=[],
-                            follow_up_questions=["Could you tell me more about what's on your mind right now?"],
-                            tools_used=[]
-                        )
-                except Exception as parse_error:
-                    print(f"[LeoPydanticAgent] Error parsing output: {parse_error}")
-                    # Fallback: use the entire string as content
-                    await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", output)
-                    return LeoResponse(
-                        content=output,
-                        wellness_insights=[],
-                        follow_up_questions=["Could you tell me more about what's on your mind right now?"],
-                        tools_used=[]
-                    )
-            elif output:
-                # If output is not a LeoResponse, create one from the content
-                print(f"[LeoPydanticAgent] Creating LeoResponse from output: {output}")
-                content = str(output)
+            # Extract the response content
+            if hasattr(result, 'data') and result.data:
+                content = str(result.data)
                 await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", content)
                 return LeoResponse(
                     content=content,
                     wellness_insights=[],
-                    follow_up_questions=["Could you tell me more about what's on your mind right now?"],
-                    tools_used=[]
+                    follow_up_questions=["What would you like to explore about your wellness journey?"],
+                    tools_used=["efficient_lazy_loading"]
                 )
             else:
-                # Ultimate fallback
-                print(f"[LeoPydanticAgent] No output found, using ultimate fallback")
-                fallback_response = LeoResponse(
-                    content="I understand what you're going through. Let me share some wisdom from my own journey of transformation.",
+                # Fallback response
+                fallback_content = "I understand what you're going through. Let me share some insights from your wellness journey."
+                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", fallback_content)
+                return LeoResponse(
+                    content=fallback_content,
                     wellness_insights=[],
-                    follow_up_questions=["Could you tell me more about what's on your mind right now?"],
+                    follow_up_questions=["What would you like to explore about your wellness journey?"],
                     tools_used=[]
                 )
-                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", fallback_response.content)
-                return fallback_response
             
         except Exception as e:
             print(f"[LeoPydanticAgent] Error processing message: {e}")
             # Return fallback response
             return LeoResponse(
-                content="I understand what you're going through. Let me share some wisdom from my own journey of transformation.",
+                content="I understand what you're going through. Let me share some insights from your wellness journey.",
                 wellness_insights=[],
-                follow_up_questions=["Could you tell me more about what's on your mind right now?"],
+                follow_up_questions=["What would you like to explore about your wellness journey?"],
                 tools_used=[]
             )
     

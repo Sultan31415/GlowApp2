@@ -113,12 +113,12 @@ async def process_ai_response_background(
     internal_user_id: int,
     message_history: Optional[List[ModelMessage]] = None
 ):
-    """Process AI response using Leo's full Pydantic AI agent system with pre-loaded data"""
+    """Process AI response using Leo's optimized Pydantic AI agent system with lazy loading"""
     try:
-        print(f"[Background] 🚀 Starting Leo Pydantic AI processing for user {user_id}")
-        print(f"[Background] 📊 Will pre-load all data from 4 tables before processing")
+        print(f"[Background] 🚀 Starting Leo optimized AI processing for user {user_id}")
+        print(f"[Background] 💡 Using efficient lazy loading - data loaded only when needed")
         
-        # Process with Leo Pydantic agent (data will be pre-loaded)
+        # Process with Leo Pydantic agent (data loaded on-demand through tools)
         agent_response = await leo_pydantic_agent.process_message(
             user_message=user_msg,
             db=db,
@@ -283,11 +283,11 @@ async def chat_ws(
         return
     internal_user_id = db_user.id
 
-    # Initialize Leo agent context - data will be pre-loaded at conversation start
-    print(f"[Leo] 🧠 Agent system initialized for user {user_id}")
+    # Initialize Leo agent context - efficient lazy loading approach
+    print(f"[Leo] 🧠 Optimized agent system initialized for user {user_id}")
     print(f"[Leo] 👤 User: {db_user.first_name or 'User'}")
     print(f"[Leo] 📊 Assessment: {'Available' if get_latest_user_assessment(db, internal_user_id) else 'Not available'}")
-    print(f"[Leo] 🚀 Data will be pre-loaded from 4 tables at conversation start")
+    print(f"[Leo] 💡 Data will be loaded efficiently on-demand through tools")
 
     # Send previous messages
     prev_msgs = db.query(DBChatMessage).filter_by(user_id=user_id, session_id=session_id).order_by(DBChatMessage.timestamp).all()
