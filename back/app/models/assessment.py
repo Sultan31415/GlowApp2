@@ -20,5 +20,6 @@ class UserAssessment(Base):
     avatar_urls = Column(JSON, nullable=True)
     analysis_summary = Column(String, nullable=True)
     detailed_insights = Column(JSON, nullable=True)
+    quiz_answers = Column(JSON, nullable=True)
 
     user = relationship("User", backref="assessments") 

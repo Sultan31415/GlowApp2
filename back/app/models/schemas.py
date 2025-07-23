@@ -41,6 +41,7 @@ class UserAssessmentCreate(BaseModel):
     avatar_urls: Optional[Dict[str, str]] = None
     analysis_summary: Optional[str] = None
     detailed_insights: Optional[Dict[str, Any]] = None
+    quiz_answers: Optional[List[Dict[str, Any]]] = None
 
 class UserAssessmentResponse(BaseModel):
     id: int
@@ -54,6 +55,7 @@ class UserAssessmentResponse(BaseModel):
     avatar_urls: Optional[Dict[str, str]] = None
     analysis_summary: Optional[str] = None
     detailed_insights: Optional[Dict[str, Any]] = None
+    quiz_answers: Optional[List[Dict[str, Any]]] = None
     created_at: str
 
     @field_validator('created_at', mode='before')

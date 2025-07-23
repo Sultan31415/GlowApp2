@@ -112,6 +112,12 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const [wellnessInsights, setWellnessInsights] = useState<WellnessInsights | null>(null);
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
   
+  // 🎯 Personalized problem-focused prompts state
+  const [personalizedPrompts, setPersonalizedPrompts] = useState<string[]>([]);
+  const [userProblems, setUserProblems] = useState<any[]>([]);
+  const [hiddenPatterns, setHiddenPatterns] = useState<any[]>([]);
+  const [hasPersonalizedData, setHasPersonalizedData] = useState(false);
+  
   // 🧠 Fetch user's assessment data for intelligent prompts
   useEffect(() => {
     const fetchAssessmentData = async () => {
@@ -130,10 +136,42 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
     fetchAssessmentData();
   }, [user?.id, makeRequest]);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const didUnmount = useRef(false);
+
+  // 🎯 Fetch personalized AI mentor prompts based on problems analysis
+  useEffect(() => {
+    const fetchPersonalizedPrompts = async () => {
+      if (!user?.id) return;
+      
+      try {
+        console.log('🔍 Fetching personalized AI mentor prompts...');
+        const response = await makeRequest('ai-mentor-prompts', { method: 'GET' });
+        
+        if (response) {
+          setPersonalizedPrompts(response.personalized_prompts || []);
+          setUserProblems(response.user_problems || []);
+          setHiddenPatterns(response.hidden_patterns || []);
+          setHasPersonalizedData(response.has_assessment || false);
+          
+          console.log('🎯 Personalized prompts loaded:', {
+            prompts: response.personalized_prompts?.length || 0,
+            problems: response.user_problems?.length || 0,
+            patterns: response.hidden_patterns?.length || 0
+          });
+        }
+      } catch (error) {
+        console.log('Could not fetch personalized prompts:', error);
+        // Set fallback problem-focused prompts
+        setPersonalizedPrompts([
+          "Leo, what problems do I have that I'm not even aware of?",
+          "What's the biggest thing holding me back that I can't see?",
+          "Tell me the hard truth about what needs to change in my life",
+          "What should I focus on first to improve my wellness?"
+        ]);
+      }
+    };
+
+    fetchPersonalizedPrompts();
+  }, [user?.id, makeRequest]);
 
   // 🧠 INTELLIGENT PROMPT SYSTEM - Context-aware prompts based on user's wellness state
   const suggestedPrompts = useMemo(() => {
@@ -176,50 +214,55 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       );
     }
 
-    // Emotional Wellness Focus (if emotional health is low)
+    // Emotional Health Focus (if emotional health is low)
     if (emotionalHealth < 70) {
       intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} for help with my emotional balance (${emotionalHealth}/100)`,
-        `What does ${AI_CHARACTER_NAME} suggest for stress management?`
+        `Ask ${AI_CHARACTER_NAME} how to improve my emotional state (currently ${emotionalHealth}/100)`,
+        `What does ${AI_CHARACTER_NAME} suggest for managing stress and emotions?`
       );
     } else {
       intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to maintain my emotional well-being`,
-        `What does ${AI_CHARACTER_NAME} think about my mental health journey?`
+        `Ask ${AI_CHARACTER_NAME} about maintaining emotional wellness`,
+        `What does ${AI_CHARACTER_NAME} suggest for emotional growth?`
       );
     }
 
-    // Visual & Confidence Focus (if visual appearance is low)
+    // Visual Appearance Focus (if visual appearance is low)
     if (visualAppearance < 70) {
       intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about my appearance confidence (${visualAppearance}/100)`,
-        `What does ${AI_CHARACTER_NAME} suggest for my visual wellness?`
+        `Ask ${AI_CHARACTER_NAME} about improving my appearance (currently ${visualAppearance}/100)`,
+        `What does ${AI_CHARACTER_NAME} suggest for looking and feeling better?`
       );
     } else {
       intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to enhance my natural radiance`,
-        `What does ${AI_CHARACTER_NAME} think about my appearance journey?`
-      );
-    }
-
-    // Overall Progress & Motivation
-    if (overallScore < 70) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} for a personalized pep talk (${overallScore}/100)`,
-        `What does ${AI_CHARACTER_NAME} think I should prioritize right now?`
-      );
-    } else {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to maintain my wellness momentum`,
-        `What does ${AI_CHARACTER_NAME} think about my transformation progress?`
+        `Ask ${AI_CHARACTER_NAME} about enhancing my appearance further`,
+        `What does ${AI_CHARACTER_NAME} suggest for maintaining my appearance?`
       );
     }
 
     // Archetype-specific prompts
     if (archetype) {
       intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about my ${archetype} archetype journey`,
-        `What does ${AI_CHARACTER_NAME} think about my ${archetype} potential?`
+        `Ask ${AI_CHARACTER_NAME} about my ${archetype} archetype and what it means`,
+        `What does ${AI_CHARACTER_NAME} suggest for someone with the ${archetype} archetype?`
+      );
+    }
+
+    // Overall wellness prompts
+    if (overallScore < 60) {
+      intelligentPrompts.push(
+        `Ask ${AI_CHARACTER_NAME} what I should prioritize with my ${overallScore}/100 score`,
+        `Get ${AI_CHARACTER_NAME}'s pep talk for improving overall wellness`
+      );
+    } else if (overallScore >= 80) {
+      intelligentPrompts.push(
+        `Ask ${AI_CHARACTER_NAME} how to maintain my excellent ${overallScore}/100 score`,
+        `Get ${AI_CHARACTER_NAME}'s advice for reaching the next level`
+      );
+    } else {
+      intelligentPrompts.push(
+        `Ask ${AI_CHARACTER_NAME} how to push my ${overallScore}/100 score higher`,
+        `Get ${AI_CHARACTER_NAME}'s guidance for reaching excellent wellness`
       );
     }
 
@@ -268,6 +311,10 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const userDisplayName = useMemo(() => {
     return userData?.first_name || user?.firstName || 'there';
   }, [userData?.first_name, user?.firstName]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const didUnmount = useRef(false);
 
   // 🎯 Dynamic WebSocket URL with authentication token AND session ID
   const getSocketUrl = useCallback(async () => {
@@ -921,33 +968,94 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
         {chatState.messages.length > 0 && !chatState.loading && readyState === ReadyState.OPEN && (
           <div className="px-4 lg:px-6 pb-4 relative z-10" style={{ marginBottom: '120px' }}>
+            {/* Problem Analysis Display */}
+            {hasPersonalizedData && (userProblems.length > 0 || hiddenPatterns.length > 0) && (
+              <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <h3 className="text-sm font-semibold text-orange-800">
+                    🔍 Problems Leo Identified in Your Data
+                  </h3>
+                </div>
+                
+                {userProblems.length > 0 && (
+                  <div className="mb-3">
+                    <div className="grid gap-2">
+                      {userProblems.slice(0, 3).map((problem, index) => (
+                        <div key={index} className="bg-white/60 rounded-lg p-2 border-l-4 border-orange-400">
+                          <div className="text-xs font-medium text-orange-700 capitalize">
+                            {problem.category.replace(/_/g, ' ')}
+                          </div>
+                          <div className="text-sm text-orange-800">{problem.problem}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {hiddenPatterns.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-orange-700 mb-1">Hidden Patterns:</div>
+                    {hiddenPatterns.slice(0, 2).map((pattern, index) => (
+                      <div key={index} className="text-xs text-orange-600 mb-1">
+                        • {pattern.description}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <div className="mb-2">
               <p className="text-xs text-gray-500 font-medium">
-                {results ? '🧠 Personalized suggestions based on your wellness profile' : '💡 Quick conversation starters'}
+                {personalizedPrompts.length > 0 && hasPersonalizedData
+                  ? '🎯 Problem-focused suggestions based on your assessment' 
+                  : results ? '🧠 Personalized suggestions based on your wellness profile' 
+                  : '💡 Quick conversation starters'
+                }
               </p>
             </div>
+            
             <div className="flex flex-wrap gap-2" role="group" aria-label="Intelligent conversation starters">
-              {suggestedPrompts.slice(0, 4).map((prompt, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSuggestedPrompt(prompt)}
-                  className={`backdrop-blur-md border rounded-full px-4 py-2 text-sm transition-all duration-200 shadow-lg ${
-                    results 
-                      ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-pink-100 hover:border-purple-300' 
-                      : 'bg-white/80 border-gray-200 text-gray-700 hover:bg-white hover:border-purple-300'
-                  }`}
-                  disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                >
-                  {prompt}
-                </button>
-              ))}
+              {/* Prioritize personalized problem-focused prompts */}
+              {personalizedPrompts.length > 0 && hasPersonalizedData ? (
+                personalizedPrompts.slice(0, 4).map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestedPrompt(prompt)}
+                    className="backdrop-blur-md border rounded-full px-4 py-2 text-sm transition-all duration-200 shadow-lg bg-gradient-to-r from-orange-50 to-red-50 border-orange-200 text-orange-700 hover:from-orange-100 hover:to-red-100 hover:border-orange-300"
+                    disabled={chatState.loading || readyState !== ReadyState.OPEN}
+                  >
+                    {prompt}
+                  </button>
+                ))
+              ) : (
+                suggestedPrompts.slice(0, 4).map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestedPrompt(prompt)}
+                    className={`backdrop-blur-md border rounded-full px-4 py-2 text-sm transition-all duration-200 shadow-lg ${
+                      results 
+                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-pink-100 hover:border-purple-300' 
+                        : 'bg-white/80 border-gray-200 text-gray-700 hover:bg-white hover:border-purple-300'
+                    }`}
+                    disabled={chatState.loading || readyState !== ReadyState.OPEN}
+                  >
+                    {prompt}
+                  </button>
+                ))
+              )}
             </div>
+            
             {results && (
               <div className="mt-2">
                 <p className="text-xs text-gray-400">
-                  Based on your scores: Physical {results.categoryScores?.physicalVitality || 0}/100, 
-                  Emotional {results.categoryScores?.emotionalHealth || 0}/100, 
-                  Visual {results.categoryScores?.visualAppearance || 0}/100
+                  {personalizedPrompts.length > 0 && hasPersonalizedData
+                    ? `Found ${userProblems.length} problems and ${hiddenPatterns.length} hidden patterns`
+                    : `Based on your scores: Physical ${results.categoryScores?.physicalVitality || 0}/100, 
+                       Emotional ${results.categoryScores?.emotionalHealth || 0}/100, 
+                       Visual ${results.categoryScores?.visualAppearance || 0}/100`
+                  }
                 </p>
               </div>
             )}

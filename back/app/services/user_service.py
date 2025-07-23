@@ -44,6 +44,7 @@ def save_user_assessment(db: Session, user_id: int, assessment_data: UserAssessm
         avatar_urls=assessment_data.avatar_urls,
         analysis_summary=assessment_data.analysis_summary,
         detailed_insights=assessment_data.detailed_insights,
+        quiz_answers=assessment_data.quiz_answers,
     )
     db.add(assessment)
     db.commit()

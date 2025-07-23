@@ -965,21 +965,63 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         <div className="mb-6">
           <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-indigo-50 border-2 border-purple-200/60 rounded-2xl shadow-lg p-4 sm:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full -translate-y-16 translate-x-16"></div>
-            <div className="relative z-10 flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                  See Your Hidden Problems
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                  Talk to an AI mentor that knows you better than you.
-                </p>
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                    🔍 Discover Your Hidden Problems
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">
+                    Leo has analyzed your complete wellness profile and identified patterns you might not see.
+                  </p>
+                  
+                  {/* Show specific indicators */}
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {categoryScores.physicalVitality < 70 && (
+                      <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">
+                        Energy Issues Detected
+                      </span>
+                    )}
+                    {categoryScores.emotionalHealth < 70 && (
+                      <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                        Stress Patterns Found
+                      </span>
+                    )}
+                    {categoryScores.visualAppearance < 70 && (
+                      <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+                        Self-Image Concerns
+                      </span>
+                    )}
+                    {results.biologicalAge > results.chronologicalAge + 2 && (
+                      <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-medium">
+                        Accelerated Aging
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/ai-chat')}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-sm ml-4"
+                >
+                  Talk to Leo →
+                </button>
               </div>
-              <button
-                onClick={() => navigate('/ai-chat')}
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-sm ml-4"
-              >
-                Talk to AI →
-              </button>
+              
+              {/* Suggested questions preview */}
+              <div className="border-t border-purple-200/50 pt-3">
+                <p className="text-xs text-purple-700 font-medium mb-2">🎯 Questions you might ask:</p>
+                <div className="flex flex-wrap gap-1 text-xs">
+                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
+                    "What problems am I not seeing?"
+                  </span>
+                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
+                    "Why am I always tired?"
+                  </span>
+                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
+                    "What's holding me back?"
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

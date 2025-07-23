@@ -160,6 +160,48 @@ async def process_ai_response_background(
                 "questions": agent_response.follow_up_questions
             })
         
+        # Enhanced therapeutic response types
+        if hasattr(agent_response, 'crisis_alert') and agent_response.crisis_alert:
+            await websocket.send_json({
+                "type": "crisis_alert",
+                "alert": {
+                    "risk_level": agent_response.crisis_alert.get("risk_level"),
+                    "support_resources": agent_response.crisis_alert.get("support_resources", []),
+                    "immediate_action": True
+                }
+            })
+        
+        if hasattr(agent_response, 'hidden_patterns') and agent_response.hidden_patterns:
+            await websocket.send_json({
+                "type": "hidden_patterns",
+                "patterns": {
+                    "biological_disconnects": agent_response.hidden_patterns.get("biological_disconnects", []),
+                    "emotional_blind_spots": agent_response.hidden_patterns.get("emotional_blind_spots", []),
+                    "lifestyle_contradictions": agent_response.hidden_patterns.get("lifestyle_contradictions", [])
+                }
+            })
+        
+        if hasattr(agent_response, 'cbt_intervention') and agent_response.cbt_intervention:
+            await websocket.send_json({
+                "type": "cbt_intervention",
+                "intervention": {
+                    "technique_used": agent_response.cbt_intervention.get("technique_used"),
+                    "reframe_suggestion": agent_response.cbt_intervention.get("reframe_suggestion"),
+                    "evidence_questions": agent_response.cbt_intervention.get("evidence_questions", []),
+                    "homework_suggestion": agent_response.cbt_intervention.get("homework_suggestion")
+                }
+            })
+        
+        if hasattr(agent_response, 'motivational_questions') and agent_response.motivational_questions:
+            await websocket.send_json({
+                "type": "motivational_interview",
+                "questions": {
+                    "open_ended": agent_response.motivational_questions.get("open_ended_questions", []),
+                    "scaling": agent_response.motivational_questions.get("scaling_questions", []),
+                    "change_talk": agent_response.motivational_questions.get("change_talk_evocation", [])
+                }
+            })
+        
         print(f"[Background] Leo Pydantic AI processing completed for user {user_id}")
         
     except Exception as e:

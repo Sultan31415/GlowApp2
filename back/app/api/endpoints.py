@@ -1,6 +1,7 @@
 import traceback
 from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.encoders import jsonable_encoder
 from app.models.schemas import AssessmentRequest, AssessmentResponse, UserAssessmentCreate, UserAssessmentResponse
 from app.services.scoring_service import ScoringService, AdvancedScoringService
 from app.services.ai_service import AIService
@@ -88,7 +89,8 @@ async def assess_results(
             micro_habits=assessment["microHabits"],
             avatar_urls=assessment.get("avatarUrls"),
             analysis_summary=assessment.get("analysisSummary"),
-            detailed_insights=assessment.get("detailedInsightsPerCategory")
+            detailed_insights=assessment.get("detailedInsightsPerCategory"),
+            quiz_answers=jsonable_encoder(request.answers)
         )
         assessment_obj = save_user_assessment(db, db_user.id, assessment_create)
         # --- End save ---
@@ -457,3 +459,143 @@ async def get_latest_daily_plan(
 
     # The plan_json should be the LLM object (with morningLaunchpad and days)
     return plan.plan_json 
+
+@router.get("/ai-mentor-prompts")
+async def get_personalized_ai_prompts(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get personalized AI mentor prompts based on user's assessment data and identified problems."""
+    try:
+        db_user = get_or_create_user(db, user)
+        assessment = get_latest_user_assessment(db, db_user.id)
+        
+        if not assessment:
+            # Return generic prompts if no assessment
+            return {
+                "personalized_prompts": [
+                    "Leo, what problems do I have that I'm not even aware of?",
+                    "What's the biggest thing holding me back that I can't see?",
+                    "Tell me the hard truth about what needs to change in my life",
+                    "What should I focus on first to improve my wellness?"
+                ],
+                "user_problems": [],
+                "hidden_patterns": [],
+                "has_assessment": False
+            }
+        
+        # Import Leo agent here to avoid circular imports
+        from app.services.leo_pydantic_agent import LeoPydanticAgent, LeoDeps
+        
+        # Create Leo dependencies
+        deps = LeoDeps(
+            db=db,
+            user_id=user.user_id,
+            internal_user_id=db_user.id,
+            session_id="analysis_session"
+        )
+        
+        # Create a mock RunContext for Leo's tool
+        from pydantic_ai import RunContext
+        from pydantic_ai.usage import Usage
+        
+        ctx = RunContext(deps=deps, model=None, usage=Usage(), prompt=None)
+        
+        # Import the tool function directly
+        from app.services.leo_pydantic_agent import analyze_quiz_problems_and_patterns
+        
+        # Analyze user's problems and patterns
+        analysis = await analyze_quiz_problems_and_patterns(ctx)
+        
+        if "error" in analysis:
+            # Fallback to generic prompts
+            return {
+                "personalized_prompts": [
+                    "Leo, what problems do I have that I'm not even aware of?",
+                    "What's the biggest thing holding me back that I can't see?",
+                    "Tell me the hard truth about what needs to change in my life",
+                    "What should I focus on first to improve my wellness?"
+                ],
+                "user_problems": [],
+                "hidden_patterns": [],
+                "has_assessment": True,
+                "error": analysis["error"]
+            }
+        
+        # Extract key information for the frontend
+        user_problems = analysis.get("identified_problems", [])
+        hidden_patterns = analysis.get("hidden_patterns", [])
+        personalized_prompts = analysis.get("personalized_prompts", [])
+        
+        # Add some context-aware prompts based on specific findings
+        contextual_prompts = []
+        
+        # Add problem-specific prompts
+        if len(user_problems) > 0:
+            contextual_prompts.append("Leo, what are my biggest problems that I need to address?")
+        
+        if len(hidden_patterns) > 0:
+            contextual_prompts.append("Leo, what hidden patterns are you seeing in my data?")
+        
+        # Add assessment-based prompts
+        if assessment.category_scores:
+            lowest_category = min(assessment.category_scores, key=assessment.category_scores.get)
+            lowest_score = assessment.category_scores[lowest_category]
+            if lowest_score < 60:
+                category_names = {
+                    "physicalVitality": "physical vitality",
+                    "emotionalHealth": "emotional health", 
+                    "visualAppearance": "visual appearance"
+                }
+                category_readable = category_names.get(lowest_category, lowest_category)
+                contextual_prompts.append(f"Leo, why is my {category_readable} score so low ({lowest_score}/100)?")
+        
+        # Combine all prompts, prioritizing personalized ones
+        final_prompts = personalized_prompts + contextual_prompts
+        
+        # Ensure we have at least some prompts
+        if len(final_prompts) == 0:
+            final_prompts = [
+                "Leo, what problems do I have that I'm not even aware of?",
+                "What's the biggest thing holding me back that I can't see?",
+                "Tell me the hard truth about what needs to change in my life",
+                "What should I focus on first to improve my wellness?"
+            ]
+        
+        return {
+            "personalized_prompts": final_prompts[:6],  # Limit to 6 prompts
+            "user_problems": [
+                {
+                    "category": p["category"],
+                    "problem": p["problem"], 
+                    "description": p["description"]
+                } for p in user_problems
+            ],
+            "hidden_patterns": [
+                {
+                    "name": p["pattern_name"],
+                    "description": p["description"]
+                } for p in hidden_patterns
+            ],
+            "has_assessment": True,
+            "assessment_scores": assessment.category_scores,
+            "biological_age_gap": (assessment.biological_age - assessment.chronological_age) if assessment.biological_age and assessment.chronological_age else 0
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating AI mentor prompts: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Return fallback prompts on error
+        return {
+            "personalized_prompts": [
+                "Leo, what problems do I have that I'm not even aware of?",
+                "What's the biggest thing holding me back that I can't see?", 
+                "Tell me the hard truth about what needs to change in my life",
+                "What should I focus on first to improve my wellness?"
+            ],
+            "user_problems": [],
+            "hidden_patterns": [],
+            "has_assessment": False,
+            "error": f"Unable to analyze your data: {str(e)}"
+        } 
