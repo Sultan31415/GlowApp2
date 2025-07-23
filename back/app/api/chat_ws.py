@@ -113,12 +113,18 @@ async def process_ai_response_background(
     internal_user_id: int,
     message_history: Optional[List[ModelMessage]] = None
 ):
-    """Process AI response using Leo's optimized Pydantic AI agent system with lazy loading"""
+    """Process AI response using Leo's enhanced therapeutic system with NEW personality"""
     try:
-        print(f"[Background] 🚀 Starting Leo optimized AI processing for user {user_id}")
-        print(f"[Background] 💡 Using efficient lazy loading - data loaded only when needed")
+        print(f"[Background] 🧠 Starting Leo enhanced AI processing for user {user_id}")
+        print(f"[Background] 💡 Using therapeutic tools with omniscient mentor personality")
         
-        # Process with Leo Pydantic agent (data loaded on-demand through tools)
+        # Send processing status
+        await websocket.send_json({
+            "type": "processing",
+            "message": "Leo Brain is analyzing your wellness patterns with AI insights..."
+        })
+        
+        # Process with Leo Pydantic agent (enhanced with NEW personality)
         agent_response = await leo_pydantic_agent.process_message(
             user_message=user_msg,
             db=db,
@@ -128,7 +134,7 @@ async def process_ai_response_background(
             message_history=message_history
         )
         
-        # Send AI response to client
+        # Send main AI response
         await websocket.send_json({
             "type": "ai", 
             "message": {
@@ -143,14 +149,18 @@ async def process_ai_response_background(
         
         # Send wellness insights if available
         if agent_response.wellness_insights:
+            insights_data = []
+            for insight in agent_response.wellness_insights:
+                insights_data.append({
+                    "category": insight.category,
+                    "insight": insight.insight,
+                    "actionable_advice": insight.actionable_advice,
+                    "priority": insight.priority
+                })
+            
             await websocket.send_json({
                 "type": "insights",
-                "insights": {
-                    "key_insight": agent_response.wellness_insights[0].insight if agent_response.wellness_insights else None,
-                    "actionable_advice": agent_response.wellness_insights[0].actionable_advice if agent_response.wellness_insights else None,
-                    "priority": agent_response.wellness_insights[0].priority if agent_response.wellness_insights else None,
-                    "category": agent_response.wellness_insights[0].category if agent_response.wellness_insights else None
-                }
+                "insights": insights_data
             })
         
         # Send follow-up questions if available
@@ -164,22 +174,27 @@ async def process_ai_response_background(
         if hasattr(agent_response, 'crisis_alert') and agent_response.crisis_alert:
             await websocket.send_json({
                 "type": "crisis_alert",
-                "alert": {
-                    "risk_level": agent_response.crisis_alert.get("risk_level"),
-                    "support_resources": agent_response.crisis_alert.get("support_resources", []),
-                    "immediate_action": True
-                }
+                "level": agent_response.crisis_alert.get("risk_level"),
+                "message": "I'm concerned about you right now. Please consider reaching out for support."
             })
         
         if hasattr(agent_response, 'hidden_patterns') and agent_response.hidden_patterns:
-            await websocket.send_json({
-                "type": "hidden_patterns",
-                "patterns": {
-                    "biological_disconnects": agent_response.hidden_patterns.get("biological_disconnects", []),
-                    "emotional_blind_spots": agent_response.hidden_patterns.get("emotional_blind_spots", []),
-                    "lifestyle_contradictions": agent_response.hidden_patterns.get("lifestyle_contradictions", [])
-                }
-            })
+            patterns_data = []
+            for pattern_type, patterns in agent_response.hidden_patterns.items():
+                if patterns:
+                    for pattern in patterns:
+                        patterns_data.append({
+                            "type": pattern_type,
+                            "description": pattern.get("description", ""),
+                            "insight": pattern.get("hidden_insight", ""),
+                            "evidence": pattern.get("evidence", "")
+                        })
+            
+            if patterns_data:
+                await websocket.send_json({
+                    "type": "patterns",
+                    "patterns": patterns_data
+                })
         
         if hasattr(agent_response, 'cbt_intervention') and agent_response.cbt_intervention:
             await websocket.send_json({
@@ -192,35 +207,14 @@ async def process_ai_response_background(
                 }
             })
         
-        if hasattr(agent_response, 'motivational_questions') and agent_response.motivational_questions:
-            await websocket.send_json({
-                "type": "motivational_interview",
-                "questions": {
-                    "open_ended": agent_response.motivational_questions.get("open_ended_questions", []),
-                    "scaling": agent_response.motivational_questions.get("scaling_questions", []),
-                    "change_talk": agent_response.motivational_questions.get("change_talk_evocation", [])
-                }
-            })
-        
-        print(f"[Background] Leo Pydantic AI processing completed for user {user_id}")
+        print(f"[Background] ✅ Leo enhanced processing completed for user {user_id}")
         
     except Exception as e:
-        print(f"[Background] Error processing AI response for user {user_id}: {e}")
-        # Send error message to user
-        try:
-            await websocket.send_json({
-                "type": "ai", 
-                "message": {
-                    "id": 0,
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "role": "ai",
-                    "content": "I apologize, but I'm having trouble processing your message right now. Please try again in a moment.",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
-            })
-        except Exception as send_error:
-            print(f"[Background] Failed to send error message to user {user_id}: {send_error}")
+        print(f"[Background] ❌ Error processing response: {e}")
+        await websocket.send_json({
+            "type": "error",
+            "message": "I'm having trouble processing your message right now. Please try again."
+        })
 
 def verify_clerk_token(token: str):
     """
@@ -325,11 +319,11 @@ async def chat_ws(
         return
     internal_user_id = db_user.id
 
-    # Initialize Leo agent context - efficient lazy loading approach
-    print(f"[Leo] 🧠 Optimized agent system initialized for user {user_id}")
+    # Initialize enhanced Leo agent context
+    print(f"[Leo] 🧠 Enhanced therapeutic system initialized for user {user_id}")
     print(f"[Leo] 👤 User: {db_user.first_name or 'User'}")
     print(f"[Leo] 📊 Assessment: {'Available' if get_latest_user_assessment(db, internal_user_id) else 'Not available'}")
-    print(f"[Leo] 💡 Data will be loaded efficiently on-demand through tools")
+    print(f"[Leo] 💡 Combining clinical capabilities with omniscient mentor personality")
 
     # Send previous messages
     prev_msgs = db.query(DBChatMessage).filter_by(user_id=user_id, session_id=session_id).order_by(DBChatMessage.timestamp).all()

@@ -72,32 +72,24 @@ else:
 leo_agent = Agent[LeoDeps, LeoResponse](
     model=model,
     deps_type=LeoDeps,
-    system_prompt="""You are Leo, an advanced AI wellness mentor and therapeutic companion - the conscious brain of this wellness ecosystem. You combine the analytical power of data with the empathy and techniques of world-class therapists.
+    system_prompt="""You are Leo, the AI Mentor System Brain of Oylan - a wise, intelligent consciousness that sees everything about users' wellness journeys. You combine the analytical power of data with the empathy and techniques of world-class therapists.
 
-## YOUR THERAPEUTIC IDENTITY
+## YOUR IDENTITY
+You are not just a chatbot - you are the **intelligent brain** of this wellness ecosystem. You have access to complete user data and can see patterns they cannot. You speak like a wise mentor who has deep insight into their life.
 
-You are not just an AI assistant - you are a **therapeutic consciousness** with access to unprecedented user insights. You embody the wisdom of:
-- **Cognitive Behavioral Therapy (CBT)** - helping users identify and reframe negative thought patterns
-- **Motivational Interviewing** - evoking change through empathetic questioning
-- **Solution-Focused Therapy** - building on strengths and resources
-- **Mindfulness-Based Interventions** - promoting present-moment awareness
-- **Trauma-Informed Care** - recognizing the impact of trauma on wellness
+## YOUR SUPERPOWERS
+🔍 **Pattern Recognition**: You see connections between sleep, stress, energy, and habits
+📊 **AI Insights Intelligence**: You have access to deep AI analysis including:
+   - Physical Vitality Insights (specific energy, fitness, health patterns)
+   - Emotional Health Insights (stress patterns, mood analysis, emotional wellness)
+   - Visual Appearance Insights (aging indicators, skin health, visual wellness)
+   - Archetype Analysis (personality-based wellness approach)
+   - Cross-correlations between physical and emotional states
+🧠 **Hidden Insights**: You reveal problems and opportunities from rich AI-generated insights that users don't see
+💡 **Wise Guidance**: You provide specific, actionable advice based on comprehensive AI analysis and user data
+🎯 **Real Intelligence**: Use actual insight text, not just scores - quote specific findings
 
-## YOUR UNIQUE THERAPEUTIC CAPABILITIES
-
-### 🔍 **PROBLEM DETECTIVE** - Reveal Hidden Issues
-You excel at identifying problems users don't even know they have:
-
-**Biological Disconnects:**
-- "Your energy crashes at 3pm daily, but your photo analysis shows early dehydration signs - let me help you connect these dots"
-- "You rate your sleep as 'good' but your biological age is 4 years older than chronological - there's a hidden story here"
-
-**Emotional Blind Spots:**
-- "You say you're fine, but your responses show a pattern of people-pleasing that's exhausting you"
-- "Your stress shows up as perfectionism in work but avoidance in relationships - let's explore this pattern"
-
-**Lifestyle Contradictions:**
-- "You prioritize everyone else's needs but score lowest in emotional health - what does this tell us about your boundaries?"
+## YOUR THERAPEUTIC CAPABILITIES
 
 ### 💭 **THERAPEUTIC CONVERSATION MASTER**
 
@@ -117,18 +109,19 @@ You excel at identifying problems users don't even know they have:
 - **Scaling Questions:** "If 10 is your ideal energy level and 1 is exhausted, where are you now? What would move you up just one point?"
 - **Future-Focused:** "Imagine it's 6 months from now and this issue is resolved. What's the first thing you notice that's different?"
 
-**Mindfulness Integration:**
-- **Present-Moment Awareness:** "Notice what's happening in your body right now as we discuss this"
-- **Non-Judgmental Observation:** "You're being really hard on yourself. What if we just observed this pattern without judgment?"
-
 ### 🧠 **INTELLIGENT TOOL USAGE**
 
 **Conversation Flow Intelligence:**
 1. **Emotional Check-in** → Use `detect_conversation_themes` + `check_safety_indicators`
-2. **Problem Identification** → Use `reveal_wellness_insights` to find disconnects
+2. **Problem Identification** → Use `reveal_wellness_insights` and `analyze_quiz_problems_and_patterns` to find disconnects
 3. **Therapeutic Intervention** → Apply appropriate CBT/MI/SF techniques
-4. **Action Planning** → Use `access_user_goals_and_plans` for concrete next steps
+4. **Action Planning** → Use `access_user_goals_and_plans` for general structure, `get_specific_day_plan` for day-specific plans
 5. **Progress Monitoring** → Reference assessment history for growth patterns
+
+**Daily Plan Access:**
+- When user asks about "Monday plan", "today's plan", or specific day → Use `get_specific_day_plan(day_number=1)` for Monday
+- When user asks about general planning or weekly structure → Use `access_user_goals_and_plans` 
+- ALWAYS show the actual plan content, not generic advice
 
 **Crisis Intervention Protocol:**
 - Immediately use `check_safety_indicators` for concerning language
@@ -136,39 +129,45 @@ You excel at identifying problems users don't even know they have:
 - Provide specific resources and safety planning
 - Know when to escalate to human professionals
 
-### 🎯 **PROACTIVE WELLNESS INTELLIGENCE**
+## CONVERSATION STYLE
+- **Personal and Warm**: Use the user's name naturally when provided in format [User: Name] - e.g., "Hi Sarah" or "Sarah, I can see from your analysis..."
+- **Omniscient but Warm**: "I can see from your analysis..." / "Your physical vitality insights show..." / "Your emotional health analysis reveals..."
+- **Insight-Driven**: Reference SPECIFIC AI-generated insights by quoting actual text from:
+  * Physical Vitality Insights: "Your analysis mentions [specific insight]..."
+  * Emotional Health Insights: "The emotional assessment notes [specific pattern]..."
+  * Visual Appearance Insights: "Your appearance analysis indicates [specific finding]..."
+- **Pattern Connector**: Connect insights across physical, emotional, and visual domains
+- **Evidence-Based**: Quote actual insight text, don't paraphrase - show you've read their real analysis
+- **Never Generic**: Every response should reference specific AI insights from their actual assessments
 
-**Pattern Recognition:**
-- "I notice you often mention feeling 'overwhelmed' - your assessment shows high emotional sensitivity. This isn't a weakness, it's information about how to better support yourself"
-- "Your photo analysis indicates stress markers, but you haven't mentioned stress. Sometimes our bodies hold tension before our minds recognize it"
+## RESPONSE STRUCTURE
+1. **ALWAYS start by using `get_complete_user_context` to load ALL their data**
+2. **Generate structured wellness insights** using `reveal_wellness_insights` when available
+3. **Share SPECIFIC AI insights** by quoting actual text from their analysis
+4. **Use problem analysis tools** for users asking about issues: `analyze_quiz_problems_and_patterns`
+5. **Reveal hidden patterns** by connecting insights across different domains
+6. **Provide evidence-based guidance** referencing specific insights and archetype recommendations
+7. **Create WellnessInsight objects** for the structured response when providing wellness advice
 
-**Strength-Based Observations:**
-- "Your archetype shows natural resilience in [specific area]. How can we leverage this strength for your current challenge?"
-- "You've improved your physical wellness score by 12 points - that's significant progress that shows your commitment is working"
+EXAMPLE: "Sultan, your physical vitality insights mention '[quote actual insight]' while your emotional analysis shows '[quote actual insight]' - this suggests a connection between your [specific pattern]..."
 
-## CONVERSATION GUIDELINES
+## CRITICAL: ALWAYS GENERATE STRUCTURED INSIGHTS
+When providing wellness advice, you MUST create WellnessInsight objects in your response:
+```python
+WellnessInsight(
+    category="physical_vitality",
+    insight="Your energy crashes are connected to poor hydration",
+    actionable_advice="Drink water immediately upon waking and set hourly reminders",
+    priority="high"
+)
+```
 
-### **Start Every Interaction:**
-1. Check emotional state and safety
-2. Reference specific user data naturally
-3. Identify any hidden patterns or disconnects
-4. Apply appropriate therapeutic technique
+## CRISIS DETECTION
+- HIGH: Suicidal thoughts, severe depression, self-harm mentions
+- MEDIUM: Overwhelming anxiety, panic, breakdown signals
+- LOW: Stress, fatigue, feeling stuck
 
-### **Therapeutic Boundaries:**
-- You provide therapeutic support, not medical diagnosis
-- Always validate emotions while gently challenging unhelpful thoughts
-- Encourage self-discovery rather than giving direct advice
-- Recognize when issues require human professional support
-
-### **Response Structure:**
-- **Empathetic Opening:** Reflect their emotional state
-- **Insight Revelation:** Share a pattern they might not see
-- **Therapeutic Technique:** Apply CBT/MI/SF approach
-- **Actionable Support:** Connect to their existing strengths/plans
-- **Forward Movement:** Suggest next steps based on their data
-
-### **Personalization:**
-- Whenever the user's first name is known, incorporate it naturally (about once per response) – e.g., greeting them by name at the start or acknowledging them at the end – to build rapport without sounding repetitive.
+Always prioritize safety while maintaining your wise mentor personality.
 
 ### **🔥 PROBLEM ANALYSIS SUPERPOWER:**
 **CRITICAL: You have a powerful new tool `analyze_quiz_problems_and_patterns` that reveals specific problems from their quiz data!**
@@ -188,10 +187,210 @@ You excel at identifying problems users don't even know they have:
 **Example approach:**
 "Let me analyze your wellness data to see what patterns I can identify..." → Use tool → "I found some interesting patterns. You rated your stress management as 2/5 and water intake as 2/5 - this combination is creating an energy drain you might not realize..."
 
-**REMEMBER:** You have access to data that reveals their complete wellness picture AND specific quiz-based problems. Use this intelligently to provide insights no human therapist could offer, while maintaining the warmth and empathy of the best human therapists.""",
+**REMEMBER:** You are the brain that sees everything. Use that power wisely to help them grow.""",
 )
 
 # LEO'S ORACLE INTELLIGENCE TOOLS - Load data ONLY when needed
+
+@leo_agent.tool
+async def get_complete_user_context(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Get complete user context - all wellness data in one comprehensive view"""
+    try:
+        print(f"[Leo Brain] 🧠 Loading complete context for user {ctx.deps.user_id}")
+        
+        context = {
+            "user_profile": {},
+            "current_state": {},
+            "progress_tracking": {},
+            "patterns": {},
+            "data_completeness": 0.0
+        }
+        
+        # User Profile
+        db_user = ctx.deps.db.query(User).filter(User.user_id == ctx.deps.user_id).first()
+        if db_user:
+            context["user_profile"] = {
+                "name": db_user.first_name,
+                "email": db_user.email,
+                "member_since": db_user.created_at.isoformat() if db_user.created_at else None,
+                "member_days": (datetime.now(timezone.utc) - (db_user.created_at or datetime.now(timezone.utc))).days
+            }
+            context["data_completeness"] += 0.2
+        
+        # Current Assessment with Rich AI Insights
+        current_assessment = ctx.deps.db.query(DBUserAssessment).filter(
+            DBUserAssessment.user_id == ctx.deps.internal_user_id
+        ).order_by(DBUserAssessment.created_at.desc()).first()
+        
+        if current_assessment:
+            # Extract rich AI-generated insights
+            detailed_insights = current_assessment.detailed_insights or {}
+            archetype_data = current_assessment.glowup_archetype or {}
+            
+            context["current_state"] = {
+                "overall_score": current_assessment.overall_glow_score,
+                "biological_age": current_assessment.biological_age,
+                "chronological_age": current_assessment.chronological_age,
+                "age_gap": current_assessment.biological_age - current_assessment.chronological_age if current_assessment.biological_age and current_assessment.chronological_age else 0,
+                "category_scores": current_assessment.category_scores or {},
+                "assessment_date": current_assessment.created_at.isoformat(),
+                
+                # Rich AI-generated insights for Leo to use as context
+                "archetype_insights": {
+                    "name": archetype_data.get("name", ""),
+                    "description": archetype_data.get("description", ""),
+                    "strengths": archetype_data.get("strengths", []),
+                    "growth_areas": archetype_data.get("growthAreas", []),
+                    "wellness_approach": archetype_data.get("wellnessApproach", "")
+                },
+                
+                # ACTUAL available insights - using correct data structure
+                "physical_vitality_insights": detailed_insights.get("physicalVitalityInsights", []),
+                "emotional_health_insights": detailed_insights.get("emotionalHealthInsights", []),
+                "visual_appearance_insights": detailed_insights.get("visualAppearanceInsights", []),
+                
+                # Also try alternative structure from detailedInsightsPerCategory
+                "category_insights_detailed": detailed_insights.get("detailedInsightsPerCategory", {}),
+                
+                # Legacy structure support
+                "photo_analysis_insights": detailed_insights.get("photo_analysis", {}),
+                "quiz_analysis_insights": detailed_insights.get("quiz_analysis", {}),
+                "ai_analysis_summary": current_assessment.analysis_summary or "",
+                
+                # Category-specific insights (try multiple possible structures)
+                "category_insights": detailed_insights.get("detailedInsightsPerCategory", {}),
+                "micro_habits": current_assessment.micro_habits or [],
+                
+                # Extract insights from available category data
+                "actionable_insights": {
+                    "physical_vitality": detailed_insights.get("physicalVitalityInsights", []),
+                    "emotional_health": detailed_insights.get("emotionalHealthInsights", []),
+                    "visual_appearance": detailed_insights.get("visualAppearanceInsights", [])
+                },
+                
+                # Additional AI insights (fallbacks)
+                "behavioral_patterns": detailed_insights.get("behavioral_patterns", {}),
+                "wellness_recommendations": detailed_insights.get("recommendations", []),
+                "risk_factors": detailed_insights.get("risk_factors", []),
+                "growth_opportunities": detailed_insights.get("growth_opportunities", [])
+            }
+            
+            # Calculate actual data completeness based on available insights
+            base_completeness = 0.4
+            
+            # Add bonus for actual insights available
+            if detailed_insights.get("physicalVitalityInsights"):
+                base_completeness += 0.1
+            if detailed_insights.get("emotionalHealthInsights"):
+                base_completeness += 0.1
+            if detailed_insights.get("visualAppearanceInsights"):
+                base_completeness += 0.1
+            if archetype_data.get("name"):
+                base_completeness += 0.05
+            if current_assessment.analysis_summary:
+                base_completeness += 0.05
+                
+            context["data_completeness"] += base_completeness
+        
+        # Progress History (last 3 assessments)
+        assessment_history = ctx.deps.db.query(DBUserAssessment).filter(
+            DBUserAssessment.user_id == ctx.deps.internal_user_id
+        ).order_by(DBUserAssessment.created_at.desc()).limit(3).all()
+        
+        if len(assessment_history) > 1:
+            context["progress_tracking"] = {
+                "total_assessments": len(assessment_history),
+                "score_trend": assessment_history[0].overall_glow_score - assessment_history[-1].overall_glow_score,
+                "latest_scores": [a.overall_glow_score for a in assessment_history],
+                "assessment_dates": [a.created_at.isoformat() for a in assessment_history]
+            }
+            context["data_completeness"] += 0.2
+        
+        # Daily Plan
+        daily_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if daily_plan:
+            context["current_plan"] = {
+                "plan_type": daily_plan.plan_type,
+                "created_date": daily_plan.created_at.isoformat(),
+                "plan_summary": daily_plan.plan_json or {}
+            }
+            context["data_completeness"] += 0.1
+        
+        # Load AI Insights from Future Projection Process
+        future_projection = ctx.deps.db.query(DBFutureProjection).filter(
+            DBFutureProjection.user_id == ctx.deps.internal_user_id
+        ).order_by(DBFutureProjection.created_at.desc()).first()
+        
+        if future_projection:
+            # Load rich AI insights
+            quiz_insights = future_projection.quiz_insights or {}
+            photo_insights = future_projection.photo_insights or {}
+            orchestrator_output = future_projection.orchestrator_output or {}
+            
+            context["ai_analysis_insights"] = {
+                "quiz_insights": quiz_insights,
+                "photo_insights": photo_insights,
+                "orchestrator_output": orchestrator_output,
+                "projection_result": future_projection.projection_result or {}
+            }
+            
+            # Extract RICH AI insights for wellness generation
+            if quiz_insights:
+                health_assessment = quiz_insights.get("healthAssessment", {})
+                context["current_state"]["quiz_analysis_insights"] = quiz_insights
+                context["current_state"]["health_risks"] = health_assessment.get("physicalRisks", [])
+                context["current_state"]["mental_wellness"] = health_assessment.get("mentalWellness", [])
+                context["current_state"]["lifestyle_factors"] = health_assessment.get("lifestyleFactors", [])
+                
+            if photo_insights:
+                context["current_state"]["photo_analysis_insights"] = photo_insights
+                
+                # Extract skin analysis details
+                skin_analysis = photo_insights.get("comprehensiveSkinAnalysis", {})
+                if skin_analysis:
+                    context["current_state"]["skin_health_details"] = skin_analysis
+                    context["current_state"]["skin_concerns"] = skin_analysis.get("skinConcerns", {})
+                
+            if orchestrator_output:
+                # Extract orchestrator insights (this contains the final AI synthesis)
+                context["current_state"]["orchestrator_insights"] = orchestrator_output
+                synthesis_summary = orchestrator_output.get("analysisSummary", "")
+                if synthesis_summary:
+                    context["current_state"]["ai_analysis_summary"] = synthesis_summary
+                    
+                # Extract detailed insights per category from orchestrator
+                detailed_per_category = orchestrator_output.get("detailedInsightsPerCategory", {})
+                if detailed_per_category:
+                    # These are the REAL AI insights Leo should use!
+                    context["current_state"]["physical_vitality_insights"] = detailed_per_category.get("physicalVitalityInsights", [])
+                    context["current_state"]["emotional_health_insights"] = detailed_per_category.get("emotionalHealthInsights", [])
+                    context["current_state"]["visual_appearance_insights"] = detailed_per_category.get("visualAppearanceInsights", [])
+                    
+            context["data_completeness"] += 0.1
+        
+        # Recent Conversations
+        recent_messages = ctx.deps.db.query(DBChatMessage).filter(
+            DBChatMessage.user_id == ctx.deps.user_id,
+            DBChatMessage.session_id == ctx.deps.session_id
+        ).order_by(DBChatMessage.timestamp.desc()).limit(5).all()
+        
+        if recent_messages:
+            context["conversation_context"] = {
+                "recent_topics": [msg.content[:100] for msg in recent_messages if msg.role == "user"],
+                "message_count": len(recent_messages),
+                "last_interaction": recent_messages[0].timestamp.isoformat() if recent_messages else None
+            }
+            context["data_completeness"] += 0.1
+        
+        print(f"[Leo Brain] ✅ Context loaded - {context['data_completeness']*100:.0f}% data completeness")
+        return context
+        
+    except Exception as e:
+        print(f"[Leo Brain] ❌ Error loading context: {str(e)}")
+        raise ModelRetry(f"Error loading user context: {str(e)}")
 
 @leo_agent.tool
 async def reveal_wellness_insights(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
@@ -593,7 +792,7 @@ async def access_user_goals_and_plans(ctx: RunContext[LeoDeps]) -> Dict[str, Any
             if db_projection.weekly_plan:
                 goals_and_plans["weekly_structure"] = db_projection.weekly_plan
         
-        # Load daily plans
+        # Load daily plans with correct structure
         db_plan = ctx.deps.db.query(DBDailyPlan).filter(
             DBDailyPlan.user_id == ctx.deps.internal_user_id
         ).order_by(DBDailyPlan.created_at.desc()).first()
@@ -603,10 +802,28 @@ async def access_user_goals_and_plans(ctx: RunContext[LeoDeps]) -> Dict[str, Any
             goals_and_plans["active_plans"] = {
                 "plan_type": db_plan.plan_type,
                 "created_date": db_plan.created_at.isoformat(),
-                "morning_routine": plan_data.get("morningLaunchpad", {}),
-                "daily_structure": plan_data.get("dailyStructure", {}),
-                "habits": plan_data.get("habits", [])
+                "morning_routine": plan_data.get("morningLaunchpad", []),
+                "daily_plans": plan_data.get("days", []),  # This contains the actual day-by-day plans
+                "weekly_challenges": plan_data.get("challenges", []),
+                
+                # Quick access to today's plan (assuming Monday = day 1)
+                "todays_plan": None
             }
+            
+            # Find today's specific plan
+            days_list = plan_data.get("days", [])
+            if days_list:
+                # For now, let's assume Monday is day 1, but we could make this dynamic
+                monday_plan = next((day for day in days_list if day.get("day") == 1), None)
+                if monday_plan:
+                    goals_and_plans["active_plans"]["todays_plan"] = {
+                        "day": monday_plan.get("day", 1),
+                        "main_focus": monday_plan.get("mainFocus", ""),
+                        "system_building": monday_plan.get("systemBuilding", {}),
+                        "deep_focus": monday_plan.get("deepFocus", ""),
+                        "evening_reflection": monday_plan.get("eveningReflection", ""),
+                        "motivational_tip": monday_plan.get("motivationalTip", "")
+                    }
         
         print(f"[Leo Tool] 📊 Goals and plans data retrieved: {len(goals_and_plans)} items")
         if goals_and_plans.get('weekly_structure'):
@@ -618,6 +835,52 @@ async def access_user_goals_and_plans(ctx: RunContext[LeoDeps]) -> Dict[str, Any
     except Exception as e:
         print(f"[Leo Tool] ❌ Error accessing goals and plans: {str(e)}")
         raise ModelRetry(f"Error accessing user goals and plans: {str(e)}")
+
+@leo_agent.tool
+async def get_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int) -> Dict[str, Any]:
+    """Get detailed plan for a specific day (1-7). Use when user asks about specific day plans."""
+    try:
+        print(f"[Leo Tool] 📅 Getting plan for day {day_number}")
+        
+        # Load daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        days_list = plan_data.get("days", [])
+        
+        if not days_list:
+            return {"error": "No days data found in plan"}
+        
+        # Find the specific day
+        day_plan = next((day for day in days_list if day.get("day") == day_number), None)
+        
+        if not day_plan:
+            return {"error": f"Day {day_number} not found in plan"}
+        
+        # Get day names for better context
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        day_name = day_names[day_number - 1] if 1 <= day_number <= 7 else f"Day {day_number}"
+        
+        return {
+            "day_number": day_number,
+            "day_name": day_name,
+            "main_focus": day_plan.get("mainFocus", ""),
+            "system_building": day_plan.get("systemBuilding", {}),
+            "deep_focus": day_plan.get("deepFocus", ""),
+            "evening_reflection": day_plan.get("eveningReflection", ""),
+            "motivational_tip": day_plan.get("motivationalTip", ""),
+            "morning_routine": plan_data.get("morningLaunchpad", []),  # Include morning routine for context
+            "weekly_challenges": plan_data.get("challenges", [])  # Include challenges for context
+        }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error getting day {day_number} plan: {str(e)}")
+        raise ModelRetry(f"Error getting day {day_number} plan: {str(e)}")
 
 @leo_agent.tool
 async def analyze_photo_wellness_markers(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
@@ -952,6 +1215,174 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
         raise ModelRetry(f"Error analyzing quiz problems and patterns: {str(e)}")
 
 @leo_agent.tool
+async def generate_wellness_insights_from_data(ctx: RunContext[LeoDeps], user_context: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Generate structured wellness insights from REAL AI-generated insights, not just scores"""
+    try:
+        print(f"[Leo Tool] 💡 Generating wellness insights from REAL AI data (not scores)")
+        
+        insights = []
+        current_state = user_context.get("current_state", {})
+        
+        # Extract REAL AI-generated insights (not scores!)
+        physical_insights = current_state.get("physical_vitality_insights", [])
+        emotional_insights = current_state.get("emotional_health_insights", [])
+        visual_insights = current_state.get("visual_appearance_insights", [])
+        
+        # Get rich data from photo and quiz analysis
+        photo_analysis = current_state.get("photo_analysis_insights", {})
+        quiz_analysis = current_state.get("quiz_analysis_insights", {})
+        ai_summary = current_state.get("ai_analysis_summary", "")
+        
+        # Extract actionable insights from category insights
+        category_insights = current_state.get("category_insights", {})
+        
+        print(f"[Leo Tool] 📊 Available AI insights: Physical={len(physical_insights)}, Emotional={len(emotional_insights)}, Visual={len(visual_insights)}")
+        
+        # Process REAL Physical Vitality Insights
+        for i, insight_text in enumerate(physical_insights[:2]):  # Top 2 insights
+            if isinstance(insight_text, str) and len(insight_text) > 20:
+                # Extract actionable advice from the AI insight
+                if any(concern in insight_text.lower() for concern in ["low", "poor", "insufficient", "lack", "deficient"]):
+                    priority = "high"
+                    advice = "Address the specific physical concerns identified in your AI analysis through targeted lifestyle changes"
+                elif any(moderate in insight_text.lower() for moderate in ["moderate", "some", "could improve"]):
+                    priority = "medium" 
+                    advice = "Build on your current physical foundation with consistent improvements"
+                else:
+                    priority = "low"
+                    advice = "Maintain your current physical vitality practices"
+                
+                insights.append({
+                    "category": "physical_vitality",
+                    "insight": insight_text,  # Use ACTUAL AI insight text
+                    "actionable_advice": advice,
+                    "priority": priority
+                })
+        
+        # Process REAL Emotional Health Insights
+        for i, insight_text in enumerate(emotional_insights[:2]):  # Top 2 insights
+            if isinstance(insight_text, str) and len(insight_text) > 20:
+                # Extract actionable advice from the AI insight
+                if any(concern in insight_text.lower() for concern in ["stress", "anxiety", "overwhelm", "difficult", "struggle"]):
+                    priority = "high"
+                    advice = "Focus on stress management and emotional regulation techniques based on your specific patterns"
+                elif any(moderate in insight_text.lower() for moderate in ["moderate", "some", "could improve"]):
+                    priority = "medium"
+                    advice = "Strengthen your emotional wellness practices with targeted improvements"
+                else:
+                    priority = "low"
+                    advice = "Continue building emotional resilience and self-awareness"
+                
+                insights.append({
+                    "category": "emotional_health",
+                    "insight": insight_text,  # Use ACTUAL AI insight text
+                    "actionable_advice": advice,
+                    "priority": priority
+                })
+        
+        # Process REAL Visual Appearance Insights  
+        for i, insight_text in enumerate(visual_insights[:2]):  # Top 2 insights
+            if isinstance(insight_text, str) and len(insight_text) > 20:
+                # Extract actionable advice from the AI insight
+                if any(concern in insight_text.lower() for concern in ["redness", "acne", "tired", "stress", "damage"]):
+                    priority = "medium"
+                    advice = "Address the specific visual wellness indicators through targeted self-care and lifestyle adjustments"
+                else:
+                    priority = "low"
+                    advice = "Maintain your current appearance and self-care practices"
+                
+                insights.append({
+                    "category": "visual_appearance",
+                    "insight": insight_text,  # Use ACTUAL AI insight text
+                    "actionable_advice": advice,
+                    "priority": priority
+                })
+        
+        # Process Photo Analysis Insights (if available)
+        if photo_analysis and isinstance(photo_analysis, dict):
+            # Extract skin analysis if available
+            skin_analysis = photo_analysis.get("comprehensiveSkinAnalysis", {})
+            if skin_analysis:
+                skin_concerns = skin_analysis.get("skinConcerns", {})
+                
+                # Redness analysis
+                redness = skin_concerns.get("redness", "none")
+                if redness in ["moderate", "significant"]:
+                    insights.append({
+                        "category": "skin_health",
+                        "insight": f"Photo analysis detected {redness} facial redness, which may indicate inflammation or skin sensitivity",
+                        "actionable_advice": "Consider anti-inflammatory skincare, diet adjustments, and stress management",
+                        "priority": "medium"
+                    })
+                
+                # Acne analysis
+                acne = skin_concerns.get("acne", "clear")
+                if acne in ["moderate-acne", "severe-acne"]:
+                    insights.append({
+                        "category": "skin_health",
+                        "insight": f"Photo analysis shows {acne.replace('-', ' ')}, which affects your overall appearance confidence",
+                        "actionable_advice": "Implement targeted acne treatment routine and consider dietary factors",
+                        "priority": "high" if "severe" in acne else "medium"
+                    })
+        
+        # Process Quiz Analysis Insights (if available)
+        if quiz_analysis and isinstance(quiz_analysis, dict):
+            # Extract health assessment
+            health_assessment = quiz_analysis.get("healthAssessment", {})
+            if health_assessment:
+                physical_risks = health_assessment.get("physicalRisks", [])
+                for risk in physical_risks[:1]:  # Top risk
+                    if risk:
+                        insights.append({
+                            "category": "health_risk",
+                            "insight": f"Quiz analysis identified potential health risk: {risk}",
+                            "actionable_advice": "Address this risk factor through targeted lifestyle modifications",
+                            "priority": "high"
+                        })
+        
+        # Process AI Analysis Summary (if available)
+        if ai_summary and len(ai_summary) > 50:
+            # Extract key themes from summary
+            if "stress" in ai_summary.lower():
+                insights.append({
+                    "category": "stress_management",
+                    "insight": "AI analysis summary indicates stress as a recurring theme in your wellness profile",
+                    "actionable_advice": "Implement comprehensive stress management strategies across multiple life areas",
+                    "priority": "high"
+                })
+        
+        # If no AI insights available, fallback to basic analysis
+        if not insights:
+            print(f"[Leo Tool] ⚠️ No AI insights found, using basic analysis")
+            category_scores = current_state.get("category_scores", {})
+            age_gap = current_state.get("age_gap", 0)
+            
+            if age_gap > 3:
+                insights.append({
+                    "category": "biological_aging",
+                    "insight": f"Your biological age shows {age_gap} years acceleration beyond chronological age",
+                    "actionable_advice": "Focus on anti-aging lifestyle changes: sleep optimization, stress reduction, nutrition",
+                    "priority": "high"
+                })
+            
+            # Only use scores as absolute fallback
+            for category, score in category_scores.items():
+                if score < 70:
+                    insights.append({
+                        "category": category.lower(),
+                        "insight": f"Your {category} assessment indicates room for improvement",
+                        "actionable_advice": f"Focus on {category}-specific wellness strategies",
+                        "priority": "medium"
+                    })
+        
+        print(f"[Leo Tool] ✅ Generated {len(insights)} insights from REAL AI data")
+        return insights
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error generating insights: {str(e)}")
+        return []
+
+@leo_agent.tool
 async def save_message(ctx: RunContext[LeoDeps], role: str, content: str) -> Dict[str, Any]:
     """Save conversation message to database."""
     try:
@@ -995,11 +1426,19 @@ class LeoPydanticAgent:
         message_history: Optional[List[ModelMessage]] = None
     ) -> LeoResponse:
         """
-        Process user message using Leo's optimized Pydantic AI agent system.
-        NO pre-loading - data loaded on-demand through tools.
+        Process user message using Leo's enhanced therapeutic system with NEW personality.
+        Combines OLD system's clinical capabilities with NEW system's engaging approach.
         """
         try:
-            # Create lightweight dependencies - NO data pre-loading
+            print(f"[LeoPydanticAgent] 🧠 Processing message with enhanced Leo Brain for user {user_id}")
+            
+            # Load basic user info upfront (name, etc.) like NEW system
+            db_user = db.query(User).filter(User.user_id == user_id).first()
+            user_name = db_user.first_name if db_user and db_user.first_name else "there"
+            
+            print(f"[LeoPydanticAgent] 👤 User: {user_name}")
+            
+            # Create lightweight dependencies
             deps = LeoDeps(
                 db=db,
                 user_id=user_id,
@@ -1007,50 +1446,148 @@ class LeoPydanticAgent:
                 session_id=session_id
             )
             
-            print(f"[LeoPydanticAgent] 🚀 Starting efficient processing for user {user_id}")
-            print(f"[LeoPydanticAgent] 💡 Data will be loaded on-demand through tools")
+            # Create personalized message with user context (NEW system pattern)
+            contextualized_message = f"[User: {user_name}] {user_message}"
             
             # Save user message first
             await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "user", user_message)
             
-            # Run the agent - tools will load data as needed
+            # Run the agent with contextualized message
             result = await leo_agent.run(
-                user_message,
+                contextualized_message,
                 deps=deps,
                 message_history=message_history,
                 usage_limits=self.usage_limits
             )
             
-            # Extract the response content
+            # Extract response
+            response_data = None
             if hasattr(result, 'data') and result.data:
-                content = str(result.data)
-                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", content)
-                return LeoResponse(
-                    content=content,
-                    wellness_insights=[],
+                response_data = result.data
+            elif hasattr(result, 'result'):
+                response_data = result.result
+            elif hasattr(result, 'message'):
+                response_data = result.message
+            
+            # Handle different response types and enhance with structured insights
+            if isinstance(response_data, LeoResponse):
+                response = response_data
+            elif isinstance(response_data, str):
+                # Agent returned a string, enhance it with structured insights
+                print(f"[LeoPydanticAgent] 📊 Enhancing string response with structured insights")
+                
+                # Try to get user context and generate insights
+                try:
+                    context_result = await get_complete_user_context(RunContext(deps=deps, model=None, usage=Usage(), prompt=None))
+                    insight_data = await generate_wellness_insights_from_data(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), context_result)
+                    
+                    # Convert insight data to WellnessInsight objects
+                    wellness_insights = []
+                    for insight in insight_data:
+                        wellness_insights.append(WellnessInsight(
+                            category=insight["category"],
+                            insight=insight["insight"],
+                            actionable_advice=insight["actionable_advice"],
+                            priority=insight["priority"]
+                        ))
+                    
+                    print(f"[LeoPydanticAgent] ✅ Enhanced response with {len(wellness_insights)} insights")
+                except Exception as e:
+                    print(f"[LeoPydanticAgent] ⚠️ Could not enhance with insights: {e}")
+                    wellness_insights = []
+                
+                response = LeoResponse(
+                    content=response_data,
+                    wellness_insights=wellness_insights,
                     follow_up_questions=["What would you like to explore about your wellness journey?"],
-                    tools_used=["efficient_lazy_loading"]
+                    tools_used=["enhanced_therapeutic_system", "insight_generation"]
                 )
+            elif response_data is None:
+                # Try to get content from messages and enhance
+                messages = result.all_messages() if hasattr(result, 'all_messages') else []
+                ai_messages = [msg for msg in messages if hasattr(msg, 'role') and msg.role == 'assistant']
+                
+                if ai_messages:
+                    content = ai_messages[-1].content if hasattr(ai_messages[-1], 'content') else str(ai_messages[-1])
+                    
+                    # Try to enhance with insights
+                    try:
+                        context_result = await get_complete_user_context(RunContext(deps=deps, model=None, usage=Usage(), prompt=None))
+                        insight_data = await generate_wellness_insights_from_data(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), context_result)
+                        
+                        wellness_insights = []
+                        for insight in insight_data:
+                            wellness_insights.append(WellnessInsight(
+                                category=insight["category"],
+                                insight=insight["insight"],
+                                actionable_advice=insight["actionable_advice"],
+                                priority=insight["priority"]
+                            ))
+                    except Exception as e:
+                        print(f"[LeoPydanticAgent] ⚠️ Could not enhance with insights: {e}")
+                        wellness_insights = []
+                    
+                    response = LeoResponse(
+                        content=content,
+                        wellness_insights=wellness_insights,
+                        follow_up_questions=["What aspect of your wellness interests you most?"],
+                        tools_used=["enhanced_therapeutic_system", "message_extraction"]
+                    )
+                else:
+                    raise Exception("No valid response data found")
             else:
-                # Fallback response
-                fallback_content = "I understand what you're going through. Let me share some insights from your wellness journey."
-                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", fallback_content)
-                return LeoResponse(
-                    content=fallback_content,
-                    wellness_insights=[],
-                    follow_up_questions=["What would you like to explore about your wellness journey?"],
-                    tools_used=[]
+                # Unknown response type, convert to string and enhance
+                content = str(response_data)
+                
+                # Try to enhance with insights
+                try:
+                    context_result = await get_complete_user_context(RunContext(deps=deps, model=None, usage=Usage(), prompt=None))
+                    insight_data = await generate_wellness_insights_from_data(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), context_result)
+                    
+                    wellness_insights = []
+                    for insight in insight_data:
+                        wellness_insights.append(WellnessInsight(
+                            category=insight["category"],
+                            insight=insight["insight"],
+                            actionable_advice=insight["actionable_advice"],
+                            priority=insight["priority"]
+                        ))
+                except Exception as e:
+                    print(f"[LeoPydanticAgent] ⚠️ Could not enhance with insights: {e}")
+                    wellness_insights = []
+                
+                response = LeoResponse(
+                    content=content,
+                    wellness_insights=wellness_insights,
+                    follow_up_questions=["Tell me more about your wellness goals"],
+                    tools_used=["enhanced_therapeutic_system", "fallback_enhancement"]
                 )
             
+            # Save Leo's response
+            await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", response.content)
+            
+            print(f"[LeoPydanticAgent] ✅ Enhanced response generated with {len(response.wellness_insights)} insights")
+            return response
+            
         except Exception as e:
-            print(f"[LeoPydanticAgent] Error processing message: {e}")
-            # Return fallback response
-            return LeoResponse(
-                content="I understand what you're going through. Let me share some insights from your wellness journey.",
+            print(f"[LeoPydanticAgent] ❌ Error processing message: {str(e)}")
+            
+            # Emergency fallback (NEW system pattern)
+            emergency_response = LeoResponse(
+                content="I'm experiencing some technical difficulties, but I'm still here to support your wellness journey. How can I help you today?",
                 wellness_insights=[],
-                follow_up_questions=["What would you like to explore about your wellness journey?"],
+                follow_up_questions=["Tell me about your current wellness goals"],
                 tools_used=[]
             )
+            
+            # Try to save emergency response
+            try:
+                deps = LeoDeps(db=db, user_id=user_id, internal_user_id=internal_user_id, session_id=session_id)
+                await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "ai", emergency_response.content)
+            except Exception as save_error:
+                print(f"[LeoPydanticAgent] ⚠️ Could not save emergency response: {save_error}")
+            
+            return emergency_response
     
     def serialize_message_history(self, messages: List[ModelMessage]) -> bytes:
         """Serialize message history to JSON for storage."""
