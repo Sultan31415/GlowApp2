@@ -954,11 +954,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                     'category': 'chronic_fatigue',
                     'problem': 'Low physical vitality and energy',
                     'description': 'Your physical vitality score is below optimal levels, which often translates to chronic fatigue and low daily energy.',
-                    'quiz_evidence': f"physicalVitality score {category_scores.get('physicalVitality', 0)}/100",
-                    'suggested_prompts': [
-                        'Why do I feel so tired during the day?',
-                        'Leo, how can I improve my physical vitality?',
-                    ]
+                    'quiz_evidence': f"physicalVitality score {category_scores.get('physicalVitality', 0)}/100"
                 })
 
             if category_scores.get('emotionalHealth', 100) < 60:
@@ -966,11 +962,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                     'category': 'chronic_stress',
                     'problem': 'Emotional stress and poor resilience',
                     'description': 'Your emotional health score indicates high stress or difficulty managing emotions.',
-                    'quiz_evidence': f"emotionalHealth score {category_scores.get('emotionalHealth', 0)}/100",
-                    'suggested_prompts': [
-                        'Leo, what stress patterns are impacting me?',
-                        'How can I improve my emotional resilience?'
-                    ]
+                    'quiz_evidence': f"emotionalHealth score {category_scores.get('emotionalHealth', 0)}/100"
                 })
 
             if category_scores.get('visualAppearance', 100) < 60:
@@ -978,11 +970,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                     'category': 'poor_self_image',
                     'problem': 'Low confidence in appearance',
                     'description': 'Your visual appearance score suggests dissatisfaction with your self-image.',
-                    'quiz_evidence': f"visualAppearance score {category_scores.get('visualAppearance', 0)}/100",
-                    'suggested_prompts': [
-                        'Why don\'t I like what I see in the mirror?',
-                        'Leo, how can I build a healthier self-image?'
-                    ]
+                    'quiz_evidence': f"visualAppearance score {category_scores.get('visualAppearance', 0)}/100"
                 })
 
         # --------------------------------------------------------------------
@@ -996,12 +984,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "chronic_fatigue",
                 "problem": "Chronic low energy and fatigue",
                 "description": "You're experiencing persistent fatigue that's affecting your daily life",
-                "quiz_evidence": f"Energy level rated {energy_answer}/5",
-                "suggested_prompts": [
-                    "Why am I always so tired even when I sleep?",
-                    "What's really causing my energy crashes?",
-                    "Leo, what hidden factors are draining my energy?"
-                ]
+                "quiz_evidence": f"Energy level rated {energy_answer}/5"
             })
         
         # 2. SLEEP QUALITY PROBLEMS
@@ -1011,12 +994,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "sleep_dysfunction",
                 "problem": "Poor sleep quality disrupting recovery",
                 "description": "Your sleep patterns are undermining your body's ability to restore and repair",
-                "quiz_evidence": f"Sleep quality rated {sleep_answer}/5",
-                "suggested_prompts": [
-                    "Why can't I get good quality sleep?",
-                    "What's keeping me from feeling rested?",
-                    "Leo, what sleep patterns are you seeing that I'm missing?"
-                ]
+                "quiz_evidence": f"Sleep quality rated {sleep_answer}/5"
             })
         
         # 3. PHYSICAL ACTIVITY PROBLEMS
@@ -1026,12 +1004,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "sedentary_lifestyle",
                 "problem": "Insufficient physical activity affecting vitality",
                 "description": "Your current activity level is too low to maintain optimal health and energy",
-                "quiz_evidence": f"Physical activity rated {activity_answer}/5",
-                "suggested_prompts": [
-                    "Why do I struggle to stay active?",
-                    "What's blocking me from being more physical?",
-                    "Leo, what movement patterns would work for my lifestyle?"
-                ]
+                "quiz_evidence": f"Physical activity rated {activity_answer}/5"
             })
         
         # 4. NUTRITION PROBLEMS
@@ -1041,12 +1014,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "poor_nutrition",
                 "problem": "Diet patterns undermining wellness goals",
                 "description": "Your food choices are working against your health and appearance goals",
-                "quiz_evidence": f"Nutrition quality rated {nutrition_answer}/5",
-                "suggested_prompts": [
-                    "Why do I keep making poor food choices?",
-                    "What's driving my unhealthy eating patterns?",
-                    "Leo, what nutrition blind spots am I missing?"
-                ]
+                "quiz_evidence": f"Nutrition quality rated {nutrition_answer}/5"
             })
         
         # 5. STRESS MANAGEMENT PROBLEMS
@@ -1056,12 +1024,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "chronic_stress",
                 "problem": "Poor stress management affecting multiple life areas",
                 "description": "Unmanaged stress is cascading into other health problems",
-                "quiz_evidence": f"Stress management rated {stress_answer}/5",
-                "suggested_prompts": [
-                    "Why does stress control my life instead of me controlling stress?",
-                    "What's the real source of my stress that I'm not seeing?",
-                    "Leo, what stress patterns am I blind to?"
-                ]
+                "quiz_evidence": f"Stress management rated {stress_answer}/5"
             })
         
         # 6. EMOTIONAL HEALTH PROBLEMS
@@ -1071,12 +1034,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "emotional_instability",
                 "problem": "Emotional volatility impacting wellbeing",
                 "description": "Emotional ups and downs are creating instability in your life",
-                "quiz_evidence": f"Emotional wellbeing rated {emotional_answer}/5",
-                "suggested_prompts": [
-                    "Why do my emotions feel out of control?",
-                    "What's behind my emotional ups and downs?",
-                    "Leo, what emotional patterns am I not recognizing?"
-                ]
+                "quiz_evidence": f"Emotional wellbeing rated {emotional_answer}/5"
             })
         
         # 7. SOCIAL CONNECTION PROBLEMS
@@ -1086,12 +1044,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "social_isolation",
                 "problem": "Insufficient social support affecting mental health",
                 "description": "Weak social connections are impacting your emotional resilience and happiness",
-                "quiz_evidence": f"Social connections rated {social_answer}/5",
-                "suggested_prompts": [
-                    "Why do I feel so lonely even around people?",
-                    "What's preventing me from building deeper connections?",
-                    "Leo, what social patterns are holding me back?"
-                ]
+                "quiz_evidence": f"Social connections rated {social_answer}/5"
             })
         
         # 8. SELF-IMAGE PROBLEMS
@@ -1101,12 +1054,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "poor_self_image",
                 "problem": "Negative body image affecting confidence",
                 "description": "How you see yourself is undermining your confidence and happiness",
-                "quiz_evidence": f"Body image satisfaction rated {appearance_answer}/5",
-                "suggested_prompts": [
-                    "Why don't I like what I see in the mirror?",
-                    "What's behind my negative self-image?",
-                    "Leo, what am I not seeing about my appearance?"
-                ]
+                "quiz_evidence": f"Body image satisfaction rated {appearance_answer}/5"
             })
         
         # 9. HYDRATION PROBLEMS
@@ -1116,12 +1064,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
                 "category": "chronic_dehydration",
                 "problem": "Insufficient hydration affecting energy and appearance",
                 "description": "Poor hydration is impacting your energy, skin, and cognitive function",
-                "quiz_evidence": f"Water intake rated {water_answer}/5",
-                "suggested_prompts": [
-                    "Why can't I remember to drink enough water?",
-                    "What's the real impact of my poor hydration?",
-                    "Leo, how is dehydration affecting me that I don't realize?"
-                ]
+                "quiz_evidence": f"Water intake rated {water_answer}/5"
             })
         
         # IDENTIFY HIDDEN PATTERNS & DISCONNECTS
@@ -1132,22 +1075,14 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
             quiz_answers.get("q1", 5) <= 2):
             analysis["hidden_patterns"].append({
                 "pattern_name": "stress_exhaustion_cycle",
-                "description": "You're caught in a cycle where stress disrupts sleep, poor sleep reduces energy, and low energy increases stress vulnerability",
-                "suggested_prompts": [
-                    "Leo, I'm stuck in a cycle of stress, poor sleep, and exhaustion. What's the way out?",
-                    "What's the root cause of my stress-sleep-energy problem?"
-                ]
+                "description": "You're caught in a cycle where stress disrupts sleep, poor sleep reduces energy, and low energy increases stress vulnerability"
             })
         
         # Pattern: Poor self-image + social isolation
         if (quiz_answers.get("q10", 5) <= 2 and quiz_answers.get("q8", 5) <= 2):
             analysis["hidden_patterns"].append({
                 "pattern_name": "appearance_social_withdrawal",
-                "description": "Dissatisfaction with your appearance may be causing you to withdraw socially, which then reinforces negative self-perception",
-                "suggested_prompts": [
-                    "Leo, is my poor self-image making me avoid social situations?",
-                    "How is my appearance anxiety affecting my relationships?"
-                ]
+                "description": "Dissatisfaction with your appearance may be causing you to withdraw socially, which then reinforces negative self-perception"
             })
         
         # Pattern: Low activity + poor nutrition + low energy
@@ -1156,11 +1091,7 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
             quiz_answers.get("q1", 5) <= 2):
             analysis["hidden_patterns"].append({
                 "pattern_name": "lifestyle_energy_drain",
-                "description": "Sedentary lifestyle and poor nutrition are creating a downward spiral of decreasing energy and motivation",
-                "suggested_prompts": [
-                    "Leo, how are my lifestyle choices creating this energy drain?",
-                    "What's the connection between my diet, activity, and energy levels?"
-                ]
+                "description": "Sedentary lifestyle and poor nutrition are creating a downward spiral of decreasing energy and motivation"
             })
         
         # BIOLOGICAL AGE CONCERNS
@@ -1168,45 +1099,8 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
             db_assessment.biological_age > db_assessment.chronological_age + 3):
             analysis["biological_concerns"].append({
                 "concern": "accelerated_aging",
-                "description": f"Your biological age ({db_assessment.biological_age}) is {db_assessment.biological_age - db_assessment.chronological_age} years older than your actual age",
-                "suggested_prompts": [
-                    "Leo, why is my body aging faster than it should?",
-                    "What's causing my accelerated biological aging?",
-                    "How can I reverse this aging acceleration?"
-                ]
+                "description": f"Your biological age ({db_assessment.biological_age}) is {db_assessment.biological_age - db_assessment.chronological_age} years older than your actual age"
             })
-        
-        # GENERATE PRIORITY PROBLEM-FOCUSED PROMPTS
-        all_problems = analysis["identified_problems"]
-        all_patterns = analysis["hidden_patterns"]
-        
-        # Select top prompts based on severity and user impact
-        priority_prompts = []
-        
-        # Add most severe individual problems
-        severe_problems = [p for p in all_problems if any(
-            quiz_answers.get(q, 5) <= 1 for q in ["q1", "q2", "q6", "q7", "q10"]
-        )]
-        
-        for problem in severe_problems[:2]:
-            priority_prompts.extend(problem["suggested_prompts"][:1])
-        
-        # Add pattern-based prompts
-        for pattern in all_patterns[:1]:
-            priority_prompts.extend(pattern["suggested_prompts"][:1])
-        
-        # Add general insight prompts
-        priority_prompts.extend([
-            "Leo, what problems do I have that I'm not even aware of?",
-            "What's the biggest thing holding me back that I can't see?",
-            "Tell me the hard truth about what needs to change in my life",
-            "What patterns in my data reveal about my real problems?"
-        ])
-        
-        analysis["personalized_prompts"] = priority_prompts[:6]  # Limit to top 6
-        
-        print(f"[Leo Tool] 📊 Found {len(all_problems)} problems, {len(all_patterns)} patterns")
-        print(f"[Leo Tool] 💡 Generated {len(priority_prompts)} personalized prompts")
         
         return analysis
         
@@ -1446,8 +1340,14 @@ class LeoPydanticAgent:
                 session_id=session_id
             )
             
-            # Create personalized message with user context (NEW system pattern)
-            contextualized_message = f"[User: {user_name}] {user_message}"
+            # Determine if this is the first user message in the session
+            is_first_message = not message_history or not any(m.role == "user" for m in message_history)
+
+            # Only prefix the first message with [User: Name]
+            if is_first_message:
+                contextualized_message = f"[User: {user_name}] {user_message}"
+            else:
+                contextualized_message = user_message
             
             # Save user message first
             await save_message(RunContext(deps=deps, model=None, usage=Usage(), prompt=None), "user", user_message)

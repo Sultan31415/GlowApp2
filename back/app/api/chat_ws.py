@@ -88,7 +88,7 @@ class WebSocketManager:
                     websocket = self.active_connections[user_id]['websocket']
                     try:
                         # Send ping instead of heartbeat for compatibility
-                        await websocket.send_json({"type": "ping", "timestamp": datetime.utcnow().isoformat()})
+                        await websocket.send_json({"type": "ping", "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z'})
                         print(f"[WebSocket] Ping sent to user {user_id}")
                     except Exception as e:
                         print(f"[WebSocket] Failed to send ping to user {user_id}: {e}")
@@ -143,7 +143,7 @@ async def process_ai_response_background(
                 "session_id": session_id,
                 "role": "ai",
                 "content": agent_response.content,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z'
             }
         })
         
@@ -285,7 +285,7 @@ def serialize_message(msg):
         "session_id": msg.session_id,
         "role": msg.role,
         "content": msg.content,
-        "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
+        "timestamp": msg.timestamp.isoformat(timespec='seconds') + 'Z' if msg.timestamp else None,
     }
 
 

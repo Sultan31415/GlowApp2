@@ -19,9 +19,13 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { AssessmentResults } from '../../types';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 
 // Character personalization
 const AI_CHARACTER_NAME = "Leo";
+// Insert a shared welcome message constant
+const WELCOME_MESSAGE = "I'm Leo. Your future self asked me to help you get there.";
 
 interface ChatMessage {
   id: number;
@@ -99,7 +103,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       user_id: 'ai',
       session_id: 'welcome',
       role: 'ai',
-      content: "Hello! I'm Leo, your AI wellness mentor. I have access to your complete wellness journey - your assessments, goals, patterns, and progress. I'm here to provide personalized guidance and support for your wellness goals. While I'm not a therapist or medical professional, I can help you navigate challenges, spot patterns, and stay motivated on your path to better health. What would you like to explore today?",
+      content: WELCOME_MESSAGE,
       timestamp: new Date().toISOString()
     }],
     input: '',
@@ -174,138 +178,12 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   }, [user?.id, makeRequest]);
 
   // 🧠 INTELLIGENT PROMPT SYSTEM - Context-aware prompts based on user's wellness state
-  const suggestedPrompts = useMemo(() => {
-    if (!results) {
-      // Fallback prompts when no assessment data is available
-      return [
-        `Ask ${AI_CHARACTER_NAME} about my energy today`,
-        `What does ${AI_CHARACTER_NAME} think I should focus on?`,
-        `Tell ${AI_CHARACTER_NAME} about my biggest challenge`,
-        `Ask ${AI_CHARACTER_NAME} for a quick pep talk`
-      ];
-    }
-
-    // Extract wellness data for intelligent prompt generation
-    const categoryScores = results.categoryScores || {};
-    const physicalVitality = categoryScores.physicalVitality || 0;
-    const emotionalHealth = categoryScores.emotionalHealth || 0;
-    const visualAppearance = categoryScores.visualAppearance || 0;
-    const overallScore = results.overallGlowScore || 0;
-    const archetype = results.glowUpArchetype?.name || '';
-    const microHabits = results.microHabits || [];
-
-    // Determine user's primary wellness focus areas
-    const lowestScore = Math.min(physicalVitality, emotionalHealth, visualAppearance);
-    const highestScore = Math.max(physicalVitality, emotionalHealth, visualAppearance);
-    
-    // Create intelligent prompts based on wellness state
-    const intelligentPrompts = [];
-
-    // Energy & Vitality Focus (if physical vitality is low)
-    if (physicalVitality < 70) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to boost my energy (currently ${physicalVitality}/100)`,
-        `What does ${AI_CHARACTER_NAME} suggest for my physical vitality?`
-      );
-    } else {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to maintain my great energy levels`,
-        `What does ${AI_CHARACTER_NAME} think about my physical wellness progress?`
-      );
-    }
-
-    // Emotional Health Focus (if emotional health is low)
-    if (emotionalHealth < 70) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to improve my emotional state (currently ${emotionalHealth}/100)`,
-        `What does ${AI_CHARACTER_NAME} suggest for managing stress and emotions?`
-      );
-    } else {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about maintaining emotional wellness`,
-        `What does ${AI_CHARACTER_NAME} suggest for emotional growth?`
-      );
-    }
-
-    // Visual Appearance Focus (if visual appearance is low)
-    if (visualAppearance < 70) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about improving my appearance (currently ${visualAppearance}/100)`,
-        `What does ${AI_CHARACTER_NAME} suggest for looking and feeling better?`
-      );
-    } else {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about enhancing my appearance further`,
-        `What does ${AI_CHARACTER_NAME} suggest for maintaining my appearance?`
-      );
-    }
-
-    // Archetype-specific prompts
-    if (archetype) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about my ${archetype} archetype and what it means`,
-        `What does ${AI_CHARACTER_NAME} suggest for someone with the ${archetype} archetype?`
-      );
-    }
-
-    // Overall wellness prompts
-    if (overallScore < 60) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} what I should prioritize with my ${overallScore}/100 score`,
-        `Get ${AI_CHARACTER_NAME}'s pep talk for improving overall wellness`
-      );
-    } else if (overallScore >= 80) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to maintain my excellent ${overallScore}/100 score`,
-        `Get ${AI_CHARACTER_NAME}'s advice for reaching the next level`
-      );
-    } else {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} how to push my ${overallScore}/100 score higher`,
-        `Get ${AI_CHARACTER_NAME}'s guidance for reaching excellent wellness`
-      );
-    }
-
-    // Habit-focused prompts
-    if (microHabits.length > 0) {
-      intelligentPrompts.push(
-        `Ask ${AI_CHARACTER_NAME} about my current habits: ${microHabits.slice(0, 2).join(', ')}`,
-        `What does ${AI_CHARACTER_NAME} suggest for my habit development?`
-      );
-    }
-
-    // Return the most relevant prompts (prioritize areas that need attention)
-    const priorityPrompts = [];
-    
-    // Add lowest score area first
-    if (physicalVitality === lowestScore && physicalVitality < 70) {
-      priorityPrompts.push(intelligentPrompts.find(p => p.includes('energy') || p.includes('physical')));
-    } else if (emotionalHealth === lowestScore && emotionalHealth < 70) {
-      priorityPrompts.push(intelligentPrompts.find(p => p.includes('emotional') || p.includes('stress')));
-    } else if (visualAppearance === lowestScore && visualAppearance < 70) {
-      priorityPrompts.push(intelligentPrompts.find(p => p.includes('appearance') || p.includes('visual')));
-    }
-    
-    // Add overall motivation prompt
-    priorityPrompts.push(intelligentPrompts.find(p => p.includes('pep talk') || p.includes('prioritize')));
-    
-    // Add archetype-specific prompt
-    if (archetype) {
-      priorityPrompts.push(intelligentPrompts.find(p => p.includes(archetype)));
-    }
-    
-    // Add habit-focused prompt
-    if (microHabits.length > 0) {
-      priorityPrompts.push(intelligentPrompts.find(p => p.includes('habits')));
-    }
-
-    // Filter out undefined and return unique prompts
-    return priorityPrompts.filter((prompt): prompt is string => 
-      prompt !== undefined && prompt !== null
-    ).filter((prompt, index, arr) => 
-      arr.indexOf(prompt) === index
-    ).slice(0, 4);
-  }, [results, AI_CHARACTER_NAME]);
+  const fixedPrompts = [
+    "Tell me what you’ve noticed about me, Leo.",
+    "I feel anxious after seeing this report.",
+    "Where do I even start to fix this?",
+    "Ask Leo for a quick pep talk"
+  ];
 
   // Memoized user display name
   const userDisplayName = useMemo(() => {
@@ -414,7 +292,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         user_id: 'ai',
         session_id: 'welcome',
         role: 'ai' as const,
-        content: "I'm Leo. Your future self asked me to help you get there.",
+        content: WELCOME_MESSAGE,
         timestamp: new Date().toISOString()
       };
       
@@ -553,8 +431,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
   // Handle suggested prompt clicks
   const handleSuggestedPrompt = useCallback((prompt: string) => {
-    sendChatMessage(prompt);
-  }, [sendChatMessage]);
+    setChatState(prev => ({ ...prev, input: prompt }));
+    inputRef.current?.focus();
+  }, []);
 
   // Handle input change
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -643,7 +522,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           user_id: 'ai',
           session_id: 'welcome',
           role: 'ai',
-          content: "Hello! I'm Leo, your AI wellness mentor. I have access to your complete wellness journey - your assessments, goals, patterns, and progress. I'm here to provide personalized guidance and support for your wellness goals. While I'm not a therapist or medical professional, I can help you navigate challenges, spot patterns, and stay motivated on your path to better health. What would you like to explore today?",
+          content: WELCOME_MESSAGE,
           timestamp: new Date().toISOString()
         }],
         input: '',
@@ -768,6 +647,8 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       </div>
     );
   };
+
+  const bodyTextClass = "text-base leading-relaxed";
 
   return (
     <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden">
@@ -926,7 +807,6 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           marginBottom: '120px' 
         }}>
           {/* Wellness Insights Display */}
-          <WellnessInsightsDisplay />
           
           {/* Messages - Transparent style */}
           {chatState.messages.map((msg) => (
@@ -937,12 +817,39 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               aria-label={`${msg.role === "user" ? "Your message" : `${AI_CHARACTER_NAME}'s response`}`}
             >
               <div className={`max-w-[80%] ${msg.role === "user" ? "" : ""}`}>
-                <div className={`rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg border ${
-                  msg.role === "user"
-                    ? "bg-white/60 backdrop-blur-xl border-white/50 text-gray-900 shadow-xl shadow-purple-500/20 font-medium"
-                    : "bg-white/90 border-gray-200 text-gray-800"
-                }`}>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <div className={`rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg border 
+                  ${msg.role === "user"
+                    ? "bg-white/90 border-white/50 text-gray-900 font-semibold shadow-purple-400/30 shadow-lg"
+                    : "bg-white/90 border-gray-200 text-gray-800 font-normal"}
+                `}>
+                  {/* Render AI messages as Markdown, user messages as plain text */}
+                  {msg.role === 'ai' ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkBreaks]}
+                      components={{
+                        h1: (props) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />, // Minimalist, bold, large
+                        h2: (props) => <h2 className="text-xl font-semibold mt-3 mb-2" {...props} />, // Minimalist, bold
+                        h3: (props) => <h3 className="text-lg font-semibold mt-2 mb-1" {...props} />, // Minimalist, bold
+                        ul: (props) => <ul className={"list-disc pl-6 my-2 " + bodyTextClass} {...props} />, // Consistent body text
+                        ol: (props) => <ol className={"list-decimal pl-6 my-2 " + bodyTextClass} {...props} />, // Consistent body text
+                        li: (props) => <li className={"mb-1 " + bodyTextClass} {...props} />, // Consistent body text
+                        code: (props) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono" {...props} />, // Minimal code
+                        pre: (props) => <pre className="bg-gray-100 rounded p-2 my-2 overflow-x-auto text-xs" {...props} />, // Minimal code block
+                        p: (props) => <p className={bodyTextClass + " whitespace-pre-wrap"} {...props} /> // Consistent body text
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  )}
+                </div>
+                {/* Message time */}
+                <div className={`mt-1 text-xs text-gray-400 pl-2 ${msg.role === 'user' ? 'text-right pr-2' : 'text-left'}`}>
+                  {(() => {
+                    const date = new Date(msg.timestamp);
+                    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                  })()}
                 </div>
               </div>
             </div>
@@ -966,99 +873,34 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         </div>
 
         {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
-        {chatState.messages.length > 0 && !chatState.loading && readyState === ReadyState.OPEN && (
+        {chatState.messages.length === 1 && !chatState.loading && readyState === ReadyState.OPEN && (
           <div className="px-4 lg:px-6 pb-4 relative z-10" style={{ marginBottom: '120px' }}>
-            {/* Problem Analysis Display */}
-            {hasPersonalizedData && (userProblems.length > 0 || hiddenPatterns.length > 0) && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                  <h3 className="text-sm font-semibold text-orange-800">
-                    🔍 Problems Leo Identified in Your Data
-                  </h3>
-                </div>
-                
-                {userProblems.length > 0 && (
-                  <div className="mb-3">
-                    <div className="grid gap-2">
-                      {userProblems.slice(0, 3).map((problem, index) => (
-                        <div key={index} className="bg-white/60 rounded-lg p-2 border-l-4 border-orange-400">
-                          <div className="text-xs font-medium text-orange-700 capitalize">
-                            {problem.category.replace(/_/g, ' ')}
-                          </div>
-                          <div className="text-sm text-orange-800">{problem.problem}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {hiddenPatterns.length > 0 && (
-                  <div>
-                    <div className="text-xs font-medium text-orange-700 mb-1">Hidden Patterns:</div>
-                    {hiddenPatterns.slice(0, 2).map((pattern, index) => (
-                      <div key={index} className="text-xs text-orange-600 mb-1">
-                        • {pattern.description}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            
             <div className="mb-2">
               <p className="text-xs text-gray-500 font-medium">
-                {personalizedPrompts.length > 0 && hasPersonalizedData
-                  ? '🎯 Problem-focused suggestions based on your assessment' 
-                  : results ? '🧠 Personalized suggestions based on your wellness profile' 
-                  : '💡 Quick conversation starters'
-                }
+                {`💡 Quick conversation starters`}
               </p>
             </div>
-            
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Intelligent conversation starters">
-              {/* Prioritize personalized problem-focused prompts */}
-              {personalizedPrompts.length > 0 && hasPersonalizedData ? (
-                personalizedPrompts.slice(0, 4).map((prompt, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestedPrompt(prompt)}
-                    className="backdrop-blur-md border rounded-full px-4 py-2 text-sm transition-all duration-200 shadow-lg bg-gradient-to-r from-orange-50 to-red-50 border-orange-200 text-orange-700 hover:from-orange-100 hover:to-red-100 hover:border-orange-300"
-                    disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                  >
-                    {prompt}
-                  </button>
-                ))
-              ) : (
-                suggestedPrompts.slice(0, 4).map((prompt, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestedPrompt(prompt)}
-                    className={`backdrop-blur-md border rounded-full px-4 py-2 text-sm transition-all duration-200 shadow-lg ${
-                      results 
-                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-pink-100 hover:border-purple-300' 
-                        : 'bg-white/80 border-gray-200 text-gray-700 hover:bg-white hover:border-purple-300'
-                    }`}
-                    disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                  >
-                    {prompt}
-                  </button>
-                ))
-              )}
+            {/* 2x2 grid, pill-shaped suggestion prompts */}
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              role="group"
+              aria-label="Intelligent conversation starters"
+            >
+              {fixedPrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestedPrompt(prompt)}
+                  className="w-full px-4 py-2 rounded-full bg-gray-50 border border-gray-200 text-gray-700 font-medium text-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95 whitespace-pre-line shadow-none"
+                  disabled={chatState.loading || readyState !== ReadyState.OPEN}
+                  style={{
+                    fontWeight: 500,
+                    letterSpacing: 0.01,
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
-            
-            {results && (
-              <div className="mt-2">
-                <p className="text-xs text-gray-400">
-                  {personalizedPrompts.length > 0 && hasPersonalizedData
-                    ? `Found ${userProblems.length} problems and ${hiddenPatterns.length} hidden patterns`
-                    : `Based on your scores: Physical ${results.categoryScores?.physicalVitality || 0}/100, 
-                       Emotional ${results.categoryScores?.emotionalHealth || 0}/100, 
-                       Visual ${results.categoryScores?.visualAppearance || 0}/100`
-                  }
-                </p>
-              </div>
-            )}
           </div>
         )}
       </main>
@@ -1070,7 +912,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           <h2 className="text-2xl font-bold text-gray-900">Your Chat</h2>
           <button
             onClick={startNewConversation}
-            className="px-3 py-1.5 text-sm bg-teal-400 hover:bg-teal-500 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
             title="Start new conversation"
           >
             New Chat
@@ -1109,7 +951,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             <button
               onClick={handleSend}
               disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
-              className="w-12 h-12 rounded-full bg-teal-400 hover:bg-teal-500 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
+              className="w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
               aria-label="Send message"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
