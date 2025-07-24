@@ -66,6 +66,17 @@ interface AIChatScreenProps {
   onBack?: () => void;
 }
 
+// Utility to filter out (Refusal: true) or similar patterns from AI message content
+function filterRefusalText(content: string): string {
+  // Remove (Refusal: true)
+  let cleaned = content.replace(/\(Refusal: ?true\)/gi, '');
+  // Remove trailing asterisks, underscores, and empty lines
+  cleaned = cleaned.replace(/([\n\r]+[ \t]*([*]{2,}|_{2,})[ \t]*)+$/g, '');
+  // Remove any trailing whitespace or empty lines
+  cleaned = cleaned.replace(/[\n\r]+$/g, '').trim();
+  return cleaned;
+}
+
 export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -827,9 +838,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                     <ReactMarkdown
                       remarkPlugins={[remarkBreaks]}
                       components={{
-                        h1: (props) => <h1 className="text-2xl font-bold mt-4 mb-2" {...props} />, // Minimalist, bold, large
-                        h2: (props) => <h2 className="text-xl font-semibold mt-3 mb-2" {...props} />, // Minimalist, bold
-                        h3: (props) => <h3 className="text-lg font-semibold mt-2 mb-1" {...props} />, // Minimalist, bold
+                        h1: (props) => <h1 className="text-xl font-bold mt-4 mb-2" {...props} />, // Main title
+                        h2: (props) => <h2 className="text-lg font-semibold mt-3 mb-2" {...props} />, // Section header
+                        h3: (props) => <h3 className="text-base font-semibold mt-2 mb-1" {...props} />, // Subsection header
                         ul: (props) => <ul className={"list-disc pl-6 my-2 " + bodyTextClass} {...props} />, // Consistent body text
                         ol: (props) => <ol className={"list-decimal pl-6 my-2 " + bodyTextClass} {...props} />, // Consistent body text
                         li: (props) => <li className={"mb-1 " + bodyTextClass} {...props} />, // Consistent body text
@@ -838,7 +849,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                         p: (props) => <p className={bodyTextClass + " whitespace-pre-wrap"} {...props} /> // Consistent body text
                       }}
                     >
-                      {msg.content}
+                      {filterRefusalText(msg.content)}
                     </ReactMarkdown>
                   ) : (
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>

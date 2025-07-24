@@ -16,6 +16,8 @@ from app.services.user_service import get_latest_user_assessment
 from app.models.user import User
 from app.services.leo_pydantic_agent import LeoPydanticAgent
 from pydantic_ai.messages import ModelMessage
+from pydantic_ai.messages import ModelRequest, ModelResponse, UserPromptPart, TextPart
+import websockets
 
 # Initialize OpenAI client (GPT-4o)
 if settings.AZURE_OPENAI_API_KEY and settings.AZURE_OPENAI_ENDPOINT:
@@ -327,7 +329,11 @@ async def chat_ws(
 
     # Send previous messages
     prev_msgs = db.query(DBChatMessage).filter_by(user_id=user_id, session_id=session_id).order_by(DBChatMessage.timestamp).all()
-    await websocket.send_json({"type": "history", "messages": [serialize_message(m) for m in prev_msgs]})
+    try:
+        await websocket.send_json({"type": "history", "messages": [serialize_message(m) for m in prev_msgs]})
+    except websockets.exceptions.ConnectionClosedError:
+        print("[WebSocket] Tried to send on closed connection (history)")
+        return
 
     try:
         while True:
@@ -360,6 +366,17 @@ async def chat_ws(
                 "message": "Processing your message..."
             })
             
+            # Load last 10 messages for this user/session, ordered by timestamp ascending
+            db_history_msgs = db.query(DBChatMessage).filter_by(user_id=user_id, session_id=session_id).order_by(DBChatMessage.timestamp.asc()).limit(10).all()
+            # Convert to ModelRequest or ModelResponse objects as per Pydantic AI docs
+            model_history = []
+            for m in db_history_msgs:
+                if m.role == "user":
+                    model_history.append(ModelRequest(parts=[UserPromptPart(content=m.content)]))
+                elif m.role in ("ai", "assistant"):
+                    model_history.append(ModelResponse(parts=[TextPart(content=m.content)]))
+                # else: skip unknown roles
+            
             # Process AI response in background to avoid blocking WebSocket
             background_task = asyncio.create_task(
                 process_ai_response_background(
@@ -369,7 +386,7 @@ async def chat_ws(
                     user_msg=user_msg,
                     db=db,
                     internal_user_id=internal_user_id,
-                    message_history=None  # Will be loaded by the agent
+                    message_history=model_history
                 )
             )
             
