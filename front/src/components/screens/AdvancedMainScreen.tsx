@@ -187,7 +187,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                   ${language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
                 aria-label="Switch language"
               >
-                {language === 'en' ? 'EN' : 'RU'}
+                {language === 'en' ? 'Рус' : 'EN'}
               </button>
               <Button 
                 onClick={handleGetStarted}
@@ -205,7 +205,7 @@ export const AdvancedMainScreen: React.FC<AdvancedMainScreenProps> = ({ onStartT
                   ${language === 'ru' ? 'bg-purple-600 text-white' : 'bg-white text-purple-600 hover:bg-purple-50'}`}
                 aria-label="Switch language"
               >
-                {language === 'en' ? 'EN' : 'RU'}
+                {language === 'en' ? 'Рус' : 'EN'}
               </button>
               <Button 
                 onClick={handleGetStarted}

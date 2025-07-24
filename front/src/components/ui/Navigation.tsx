@@ -344,7 +344,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
             }`}
             aria-label="Switch language"
           >
-            {language === 'en' ? 'EN' : 'RU'}
+            {language === 'en' ? 'Рус' : 'EN'}
           </Button>
         </div>
         {/* Account Section */}

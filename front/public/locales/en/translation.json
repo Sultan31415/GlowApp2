@@ -480,5 +480,37 @@
       "sunday": "Sunday"
     },
     "day": "Day {{day}}"
+  },
+  "aiChat": {
+    "header": "Chat with {{name}}",
+    "subheader": "Your personal wellness companion",
+    "newChat": "New Chat",
+    "yourChat": "Your Chat",
+    "quickStarters": "💡 Quick conversation starters",
+    "sendPlaceholder": "Message {{name}}...",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connectingStatus": "Connecting...",
+    "errorInvalidFormat": "Received invalid message format",
+    "errorConnection": "Connection error. Please check your internet connection.",
+    "errorLost": "Connection lost ({{code}}). Reconnecting...",
+    "errorServer": "Server error occurred",
+    "retry": "Retry connection",
+    "leoThinking": "{{name}} is thinking...",
+    "intelligentPrompt1": "Tell me what you’ve noticed about me, {{name}}.",
+    "intelligentPrompt2": "I feel anxious after seeing this report.",
+    "intelligentPrompt3": "Where do I even start to fix this?",
+    "intelligentPrompt4": "Ask {{name}} for a quick pep talk",
+    "insightsHeader": "Leo's Insights",
+    "actionableAdvice": "💡 Actionable Advice:",
+    "priorityHigh": "high priority",
+    "priorityMedium": "medium priority",
+    "priorityLow": "low priority",
+    "suggestedQuestions": "Suggested Questions",
+    "online": "Online",
+    "offline": "Offline",
+    "continuingConversation": "Continuing conversation",
+    "welcomeMessage": "I'm Leo. Your future self asked me to help you get there."
   }
 } 

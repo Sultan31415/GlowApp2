@@ -134,68 +134,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
   }, [showCountryDropdown]);
 
   // Auto-advance with confirmation period and ability to change selection
-  const [autoAdvanceTimer, setAutoAdvanceTimer] = useState<number | null>(null);
-  const [showAutoAdvanceCountdown, setShowAutoAdvanceCountdown] = useState(false);
-  const [countdown, setCountdown] = useState(2);
-  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
-
-  useEffect(() => {
-    if (selectedAnswer && (question.type === 'single-choice' || question.type === 'select-country') && autoAdvanceEnabled) {
-      // Clear any existing timer
-      if (autoAdvanceTimer) {
-        clearTimeout(autoAdvanceTimer);
-      }
-      
-      // Start countdown
-      setShowAutoAdvanceCountdown(true);
-              setCountdown(2);
-      
-      // Countdown timer
-      const countdownInterval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            setShowAutoAdvanceCountdown(false);
-            if (canGoNext) {
-              onNext();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      
-      setAutoAdvanceTimer(countdownInterval);
-      
-      return () => {
-        clearInterval(countdownInterval);
-        setShowAutoAdvanceCountdown(false);
-      };
-    } else {
-      // Reset states when no answer selected
-      setShowAutoAdvanceCountdown(false);
-      if (autoAdvanceTimer) {
-        clearTimeout(autoAdvanceTimer);
-        setAutoAdvanceTimer(null);
-      }
-    }
-  }, [selectedAnswer, question.type, canGoNext, onNext, autoAdvanceEnabled]);
-
-  const cancelAutoAdvance = () => {
-    if (autoAdvanceTimer) {
-      clearTimeout(autoAdvanceTimer);
-      setAutoAdvanceTimer(null);
-    }
-    setShowAutoAdvanceCountdown(false);
-  };
-
-  const toggleAutoAdvance = () => {
-    setAutoAdvanceEnabled(!autoAdvanceEnabled);
-    // Cancel any active countdown when disabling
-    if (autoAdvanceEnabled && autoAdvanceTimer) {
-      cancelAutoAdvance();
-    }
-  };
+  // Remove all state and logic related to autoAdvanceEnabled, autoAdvanceTimer, showAutoAdvanceCountdown, countdown, toggleAutoAdvance, cancelAutoAdvance, and their useEffects. Remove the auto-advance button and any UI related to auto-advance in both desktop and mobile navigation controls. Ensure navigation and answer selection still work as normal.
 
   const handleTextInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -262,10 +201,6 @@ export const QuizStep: React.FC<QuizStepProps> = ({
       }
       
       if (e.key === 'Enter' && canGoNext) {
-        // Cancel auto-advance if active to prevent double-advancing
-        if (showAutoAdvanceCountdown) {
-          cancelAutoAdvance();
-        }
         onNext();
       }
       if (e.key === 'ArrowLeft' && canGoBack) {
@@ -281,7 +216,7 @@ export const QuizStep: React.FC<QuizStepProps> = ({
     return () => {
       document.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [canGoNext, canGoBack, onNext, onPrevious, showAutoAdvanceCountdown, cancelAutoAdvance]);
+  }, [canGoNext, canGoBack, onNext, onPrevious]);
 
   // Letter indicators for options
   const optionIndicators = ['A', 'B', 'C', 'D', 'E'];
@@ -604,8 +539,8 @@ export const QuizStep: React.FC<QuizStepProps> = ({
 
             {/* Navigation Controls */}
             <div className="mt-6 pt-6 border-t border-gray-200/80">
-              {/* --- Desktop Navigation (3-column) --- */}
-              <div className="hidden sm:grid sm:grid-cols-3 gap-3 items-center">
+              {/* --- Desktop Navigation (2-column) --- */}
+              <div className="hidden sm:grid sm:grid-cols-2 gap-3 items-center">
                 {/* Previous Button */}
                 <div className="flex justify-start">
                   <button
@@ -616,24 +551,6 @@ export const QuizStep: React.FC<QuizStepProps> = ({
                     <ChevronLeft className="w-5 h-5 mr-1" />
                     {t('quizUi.previous')}
                   </button>
-                </div>
-
-                {/* Auto-advance controls */}
-                <div className="flex justify-center">
-                  {question.type === 'single-choice' && (
-                    <button
-                      onClick={toggleAutoAdvance}
-                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 border ${
-                        autoAdvanceEnabled
-                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                      }`}
-                      title={autoAdvanceEnabled ? t('quizUi.turnOffAutoAdvance') : t('quizUi.turnOnAutoAdvance')}
-                    >
-                      {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
-                      <span>{t('quizUi.autoAdvance', { state: autoAdvanceEnabled ? t('quizUi.on') : t('quizUi.off') })}</span>
-                    </button>
-                  )}
                 </div>
 
                 {/* Next Button */}
@@ -651,24 +568,6 @@ export const QuizStep: React.FC<QuizStepProps> = ({
 
               {/* --- Mobile Navigation (stacked with 2-button row) --- */}
               <div className="sm:hidden flex flex-col gap-4">
-                {/* Auto-advance controls */}
-                <div className="flex justify-center">
-                  {question.type === 'single-choice' && (
-                    <button
-                      onClick={toggleAutoAdvance}
-                      className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg font-medium text-xs transition-all duration-300 border ${
-                        autoAdvanceEnabled
-                          ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
-                      }`}
-                      title={autoAdvanceEnabled ? t('quizUi.turnOffAutoAdvance') : t('quizUi.turnOnAutoAdvance')}
-                    >
-                      {autoAdvanceEnabled ? <Zap className="w-4 h-4" /> : <ZapOff className="w-4 h-4" />}
-                      <span>{t('quizUi.autoAdvance', { state: autoAdvanceEnabled ? t('quizUi.on') : t('quizUi.off') })}</span>
-                    </button>
-                  )}
-                </div>
-
                 {/* Previous & Next Button Row */}
                 <div className="flex gap-3">
                   <button

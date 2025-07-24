@@ -24,6 +24,7 @@ import remarkBreaks from 'remark-breaks';
 
 // Character personalization
 const AI_CHARACTER_NAME = "Leo";
+// Remove WELCOME_MESSAGE constant, use t('aiChat.header', { name: AI_CHARACTER_NAME }) directly in render and state initialization
 // Insert a shared welcome message constant
 const WELCOME_MESSAGE = "I'm Leo. Your future self asked me to help you get there.";
 
@@ -114,7 +115,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       user_id: 'ai',
       session_id: 'welcome',
       role: 'ai',
-      content: WELCOME_MESSAGE,
+      content: t('aiChat.welcomeMessage'),
       timestamp: new Date().toISOString()
     }],
     input: '',
@@ -190,10 +191,10 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
   // 🧠 INTELLIGENT PROMPT SYSTEM - Context-aware prompts based on user's wellness state
   const fixedPrompts = [
-    "Tell me what you’ve noticed about me, Leo.",
-    "I feel anxious after seeing this report.",
-    "Where do I even start to fix this?",
-    "Ask Leo for a quick pep talk"
+    t('aiChat.intelligentPrompt1', { name: AI_CHARACTER_NAME }),
+    t('aiChat.intelligentPrompt2'),
+    t('aiChat.intelligentPrompt3'),
+    t('aiChat.intelligentPrompt4', { name: AI_CHARACTER_NAME })
   ];
 
   // Memoized user display name
@@ -303,7 +304,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         user_id: 'ai',
         session_id: 'welcome',
         role: 'ai' as const,
-        content: WELCOME_MESSAGE,
+        content: t('aiChat.welcomeMessage'),
         timestamp: new Date().toISOString()
       };
       
@@ -365,7 +366,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
     } else {
       console.log('Unknown message type:', data.type);
     }
-  }, []);
+  }, [t, AI_CHARACTER_NAME]);
 
   // Fetch user data and results
   const fetchUserData = useCallback(async () => {
@@ -455,17 +456,17 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const getConnectionStatus = useCallback(() => {
     switch (readyState) {
       case ReadyState.CONNECTING:
-        return 'Connecting...';
+        return t('aiChat.connectingStatus');
       case ReadyState.OPEN:
-        return 'Connected';
+        return t('aiChat.connected');
       case ReadyState.CLOSING:
-        return 'Disconnecting...';
+        return t('aiChat.disconnected');
       case ReadyState.CLOSED:
-        return 'Disconnected';
+        return t('aiChat.disconnected');
       default:
-        return 'Unknown';
+        return t('aiChat.disconnected');
     }
-  }, [readyState]);
+  }, [readyState, t]);
 
   // Avatar state calculation
   const getAvatarState = useCallback(() => {
@@ -533,7 +534,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           user_id: 'ai',
           session_id: 'welcome',
           role: 'ai',
-          content: WELCOME_MESSAGE,
+          content: t('aiChat.welcomeMessage'),
           timestamp: new Date().toISOString()
         }],
         input: '',
@@ -579,7 +580,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       <button
         onClick={handleRetry}
         className="ml-2 p-1 text-red-600 hover:text-red-800 transition-colors"
-        title="Retry connection"
+        title={t('aiChat.retry')}
       >
         <RefreshCw className="w-4 h-4" />
       </button>
@@ -606,14 +607,14 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-4">
         <div className="flex items-center space-x-2 mb-2">
           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <h3 className="text-sm font-semibold text-blue-800">Leo's Insights</h3>
+          <h3 className="text-sm font-semibold text-blue-800">{t('aiChat.insightsHeader')}</h3>
         </div>
         {wellnessInsights.key_insight && (
           <p className="text-sm text-blue-700 mb-2">{wellnessInsights.key_insight}</p>
         )}
         {wellnessInsights.actionable_advice && (
           <div className="bg-white rounded p-2 border-l-4 border-blue-400">
-            <p className="text-xs text-blue-600 font-medium">💡 Actionable Advice:</p>
+            <p className="text-xs text-blue-600 font-medium">{t('aiChat.actionableAdvice')}</p>
             <p className="text-sm text-blue-800">{wellnessInsights.actionable_advice}</p>
           </div>
         )}
@@ -624,7 +625,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               wellnessInsights.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
               'bg-green-100 text-green-800'
             }`}>
-              {wellnessInsights.priority} priority
+              {wellnessInsights.priority === 'high' ? t('aiChat.priorityHigh') :
+               wellnessInsights.priority === 'medium' ? t('aiChat.priorityMedium') :
+               t('aiChat.priorityLow')}
             </span>
           </div>
         )}
@@ -639,7 +642,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4 mb-4">
         <div className="flex items-center space-x-2 mb-3">
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          <h3 className="text-sm font-semibold text-green-800">Suggested Questions</h3>
+          <h3 className="text-sm font-semibold text-green-800">{t('aiChat.suggestedQuestions')}</h3>
         </div>
         <div className="space-y-2">
           {followUpQuestions.map((question, index) => (
@@ -665,31 +668,30 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
     <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden">
       {/* Header - Mobile Only */}
       {isMobile && (
-        <header className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-md border-b border-gray-200 z-10">
+        <header className="fixed top-0 left-0 right-0 flex items-center justify-center p-3 bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 h-16 shadow-sm">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
-            aria-label="Go back"
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors absolute left-3 top-1/2 -translate-y-1/2"
+            aria-label={t('aiChat.yourChat')}
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-semibold">Back</span>
+            {/* (Button content, e.g. icon, can be restored here if needed) */}
           </button>
-          <div className="text-center">
-            <h1 className="text-lg font-bold text-gray-900">Chat with {AI_CHARACTER_NAME}</h1>
-            <p className="text-xs text-gray-600">Your personal wellness companion</p>
+          <div className="text-center flex-1">
+            <h1 className="text-lg font-bold text-gray-900">{t('aiChat.header', { name: AI_CHARACTER_NAME })}</h1>
+            <p className="text-xs text-gray-600">{t('aiChat.subheader')}</p>
           </div>
           <button
             onClick={startNewConversation}
-            className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
-            title="Start new conversation"
+            className="px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl absolute right-3 top-1/2 -translate-y-1/2"
+            title={t('aiChat.newChat')}
           >
-            New Chat
+            {t('aiChat.newChat')}
           </button>
         </header>
       )}
 
       {/* Avatar Section - Fixed Left Panel (35%) */}
-      <section className="hidden lg:block lg:w-[35%] lg:fixed lg:left-[var(--sidebar-width)] lg:top-0 lg:h-screen lg:flex lg:items-start lg:justify-center lg:pt-[5%] lg:p-8 lg:z-20" aria-label={`${AI_CHARACTER_NAME} avatar section`}> 
+      <section className="hidden lg:block lg:w-[35%] lg:fixed lg:left-[var(--sidebar-width)] lg:top-0 lg:h-screen lg:flex lg:items-start lg:justify-center lg:pt-[5%] lg:p-8 lg:z-20" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
         {/* Main Avatar Container */}
         <div className="relative w-full max-w-[500px] h-[600px] flex flex-col items-center">
           {/* Simple Character Header */}
@@ -703,15 +705,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                   }`}
                 />
                 <span className="text-sm text-gray-500 font-medium">
-                  {readyState === ReadyState.OPEN ? 'Online' : 'Offline'}
+                  {readyState === ReadyState.OPEN ? t('aiChat.online') : t('aiChat.offline')}
                 </span>
               </div>
             </div>
-            <p className="text-base text-gray-600">Your Personal AI Mentor</p>
+            <p className="text-base text-gray-600">{t('aiChat.subheader')}</p>
             {chatState.messages.length > 1 && (
-              <div className="mt-2 text-xs text-gray-500">
-                📝 Continuing conversation
-              </div>
+              <div className="mt-2 text-xs text-gray-500">📝 {t('aiChat.continuingConversation')}</div>
             )}
           </div>
 
@@ -748,59 +748,44 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         </div>
       </section>
 
-      {/* Mobile Avatar - Only visible on mobile */}
-      <section className="lg:hidden w-full flex flex-col items-center p-4 relative" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
-        {/* Simple Character Header - Mobile */}
-        <div className="w-full text-center mb-4">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <h2 className="text-2xl font-bold text-gray-900">{AI_CHARACTER_NAME}</h2>
-            <div className="flex items-center gap-1">
-              <div 
-                className={`w-1.5 h-1.5 rounded-full ${
-                  readyState === ReadyState.OPEN ? 'bg-green-500' : 'bg-red-500'
-                }`}
+      {/* Mobile Avatar - Compact and elegant for mobile */}
+      {isMobile && (
+        <section className="w-full flex flex-col items-center pt-24 pb-3 relative bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-sm z-10" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
+          <div className="w-[160px] h-[160px] relative mb-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-100/40 to-pink-100/40 rounded-full blur-sm" />
+            <div className="relative w-full h-full flex items-center justify-center">
+              <img
+                src="/Oylan.png"
+                className="w-full h-full object-cover rounded-full border-2 border-white shadow-lg"
+                alt={`${AI_CHARACTER_NAME} avatar`}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-sm rounded-full ' + getAvatarBackground();
+                  fallback.textContent = AI_CHARACTER_NAME;
+                  target.parentNode?.appendChild(fallback);
+                }}
               />
-              <span className="text-xs text-gray-500 font-medium">
-                {readyState === ReadyState.OPEN ? 'Online' : 'Offline'}
-              </span>
             </div>
           </div>
-          <p className="text-sm text-gray-600">Your Personal AI Mentor</p>
-          {chatState.messages.length > 1 && (
-            <div className="mt-1 text-xs text-gray-500">
-              📝 Continuing conversation
-            </div>
-          )}
-        </div>
-
-        {/* Avatar Display - Mobile Natural Shape */}
-        <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px]">
-          {/* Subtle Background Glow */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-pink-100/20 rounded-2xl blur-lg" />
-          
-          {/* Main Avatar Container - Natural Shape */}
-          <div className="relative w-full h-full flex items-center justify-center">
-          <img
-            src="/Oylan.png"
-              className="max-w-full max-h-full object-contain rounded-2xl"
-              alt={`${AI_CHARACTER_NAME} avatar`}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = document.createElement('div');
-                fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-lg rounded-2xl ' + getAvatarBackground();
-                fallback.textContent = AI_CHARACTER_NAME;
-              target.parentNode?.appendChild(fallback);
-            }}
-          />
+          {/* Online/Offline Indicator for Mobile */}
+          <div className="flex items-center gap-1 mb-1">
+            <div 
+              className={`w-2 h-2 rounded-full ${
+                readyState === ReadyState.OPEN ? 'bg-green-500' : 'bg-red-500'
+              }`}
+            />
+            <span className="text-xs text-gray-500 font-medium">
+              {readyState === ReadyState.OPEN ? t('aiChat.online') : t('aiChat.offline')}
+            </span>
           </div>
-        </div>
-          
-
-      </section>
+          {/* Removed AI_CHARACTER_NAME below online indicator */}
+        </section>
+      )}
 
       {/* Chat Section - Right Panel (65% on desktop, full width on mobile) */}
-      <main className="flex-1 lg:ml-[35%] lg:w-[65%] flex flex-col relative" role="main" aria-label="Chat conversation">
+      <main className={`flex-1 ${isMobile ? 'w-full pt-1 pb-20' : 'lg:ml-[35%] lg:w-[65%]'} flex flex-col relative`} role="main" aria-label="Chat conversation">
         {/* Background Decorative Elements */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-20 right-20 w-40 h-40 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-2xl" />
@@ -813,9 +798,10 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         </div>
 
         {/* Messages Container - Positioned between fixed header and input */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 relative z-10" role="log" aria-live="polite" style={{ 
-          marginTop: '120px', 
-          marginBottom: '120px' 
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'px-3 py-2' : 'p-4 lg:p-6'} space-y-3 relative z-10`} role="log" aria-live="polite" style={{
+          marginTop: isMobile ? 0 : '120px',
+          marginBottom: isMobile ? 0 : '120px',
+          maxHeight: isMobile ? 'calc(100vh - 180px)' : undefined
         }}>
           {/* Wellness Insights Display */}
           
@@ -827,8 +813,8 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               role="article"
               aria-label={`${msg.role === "user" ? "Your message" : `${AI_CHARACTER_NAME}'s response`}`}
             >
-              <div className={`max-w-[80%] ${msg.role === "user" ? "" : ""}`}>
-                <div className={`rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg border 
+              <div className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'} ${msg.role === "user" ? "" : ""}`}>
+                <div className={`${isMobile ? 'rounded-xl px-3 py-2' : 'rounded-2xl px-4 py-3'} backdrop-blur-md shadow-lg border 
                   ${msg.role === "user"
                     ? "bg-white/90 border-white/50 text-gray-900 font-semibold shadow-purple-400/30 shadow-lg"
                     : "bg-white/90 border-gray-200 text-gray-800 font-normal"}
@@ -852,14 +838,16 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                       {filterRefusalText(msg.content)}
                     </ReactMarkdown>
                   ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <p className={`${isMobile ? 'text-sm' : 'text-sm'} leading-relaxed whitespace-pre-wrap`}>{msg.content}</p>
                   )}
                 </div>
                 {/* Message time */}
-                <div className={`mt-1 text-xs text-gray-400 pl-2 ${msg.role === 'user' ? 'text-right pr-2' : 'text-left'}`}>
+                <div className={`mt-1 ${isMobile ? 'text-xs' : 'text-xs'} text-gray-400 ${isMobile ? 'px-1' : 'pl-2'} ${msg.role === 'user' ? 'text-right pr-2' : 'text-left'}`}>
                   {(() => {
                     const date = new Date(msg.timestamp);
-                    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+                    return isNaN(date.getTime())
+                      ? '' // Hide or use a placeholder if invalid
+                      : date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
                   })()}
                 </div>
               </div>
@@ -869,11 +857,11 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           {/* Loading Indicator - Transparent style */}
           {chatState.loading && (
             <div className="flex justify-start" role="status" aria-live="polite">
-              <div className="max-w-[80%]">
-                <div className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl px-4 py-3 shadow-lg">
+              <div className={`${isMobile ? 'max-w-[85%]' : 'max-w-[80%]'}`}>
+                <div className={`bg-white/90 backdrop-blur-md border border-gray-200 ${isMobile ? 'rounded-xl px-3 py-2' : 'rounded-2xl px-4 py-3'} shadow-lg`}>
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-purple-500" aria-hidden="true" />
-                    <span className="text-sm text-gray-600">{AI_CHARACTER_NAME} is thinking...</span>
+                    <span className="text-sm text-gray-600">{t('aiChat.leoThinking', { name: AI_CHARACTER_NAME })}</span>
                   </div>
                 </div>
               </div>
@@ -885,15 +873,15 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
         {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
         {chatState.messages.length === 1 && !chatState.loading && readyState === ReadyState.OPEN && (
-          <div className="px-4 lg:px-6 pb-4 relative z-10" style={{ marginBottom: '120px' }}>
+          <div className={`relative z-10 ${isMobile ? 'px-3 pb-3' : 'px-4 lg:px-6 pb-4'}`} style={{ marginBottom: isMobile ? 0 : '120px' }}>
             <div className="mb-2">
-              <p className="text-xs text-gray-500 font-medium">
-                {`💡 Quick conversation starters`}
+              <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500 font-medium`}>
+                {t('aiChat.quickStarters')}
               </p>
             </div>
-            {/* 2x2 grid, pill-shaped suggestion prompts */}
+            {/* Horizontal scrollable row for mobile, grid for desktop */}
             <div
-              className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+              className={isMobile ? "flex gap-2 overflow-x-auto scrollbar-hide pb-1" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}
               role="group"
               aria-label="Intelligent conversation starters"
             >
@@ -901,7 +889,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                 <button
                   key={index}
                   onClick={() => handleSuggestedPrompt(prompt)}
-                  className="w-full px-4 py-2 rounded-full bg-gray-50 border border-gray-200 text-gray-700 font-medium text-sm transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95 whitespace-pre-line shadow-none"
+                  className={`${isMobile ? 'px-3 py-2 text-xs min-w-[160px]' : 'px-4 py-2 text-sm w-full'} rounded-full bg-gray-50 border border-gray-200 text-gray-700 font-medium transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95 whitespace-pre-line shadow-none flex-shrink-0`}
                   disabled={chatState.loading || readyState !== ReadyState.OPEN}
                   style={{
                     fontWeight: 500,
@@ -916,32 +904,34 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         )}
       </main>
 
-      {/* Fixed You Chat Header - Outside the main container */}
-      <div className="fixed top-[5%] left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 pt-2 pb-4 z-20">
-        <div className="flex items-center justify-between">
-          <div></div>
-          <h2 className="text-2xl font-bold text-gray-900">Your Chat</h2>
-          <button
-            onClick={startNewConversation}
-            className="px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
-            title="Start new conversation"
-          >
-            New Chat
-          </button>
+      {/* Remove 'Your Chat' header on mobile */}
+      {!isMobile && (
+        <div className="fixed top-[5%] left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 pt-2 pb-4 z-20">
+          <div className="flex items-center justify-between">
+            <div></div>
+            <h2 className="text-2xl font-bold text-gray-900">{t('aiChat.yourChat')}</h2>
+            <button
+              onClick={startNewConversation}
+              className="px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl"
+              title={t('aiChat.newChat')}
+            >
+              {t('aiChat.newChat')}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Error Display - Fixed position */}
       {chatState.error && (
-        <div className="fixed top-16 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 z-20">
+        <div className={`fixed top-16 left-0 right-0 ${isMobile ? 'z-40' : 'lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 px-4 lg:px-6 z-20'}`}>
           <ErrorDisplay />
         </div>
       )}
 
       {/* Fixed Input Area - Outside the main container */}
-      <div className="fixed bottom-0 left-0 right-0 lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 p-4 lg:p-6 z-30">
-        <div className="relative bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-xl shadow-purple-500/20">
-          <div className="flex items-center gap-3 p-3">
+      <div className={`fixed bottom-0 left-0 right-0 ${isMobile ? 'p-2' : 'lg:left-[calc(var(--sidebar-width)+35%)] lg:right-0 p-4 lg:p-6'} z-30`}>
+        <div className={`relative bg-white/95 backdrop-blur-xl border border-white/50 ${isMobile ? 'rounded-2xl' : 'rounded-3xl'} shadow-xl shadow-purple-500/20`}>
+          <div className={`flex items-center ${isMobile ? 'gap-2 p-2' : 'gap-3 p-3'}`}>
             {/* Text input */}
             <div className="flex-1 relative">
               <input
@@ -950,29 +940,28 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                 value={chatState.input}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                placeholder={readyState === ReadyState.OPEN ? `Message ${AI_CHARACTER_NAME}...` : "Connecting..."}
-                className="w-full px-4 py-3 bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 text-sm font-medium resize-none"
+                placeholder={readyState === ReadyState.OPEN ? t('aiChat.sendPlaceholder', { name: AI_CHARACTER_NAME }) : t('aiChat.connecting')}
+                className={`w-full ${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-sm'} bg-transparent border-none outline-none text-gray-800 placeholder-gray-500 font-medium resize-none`}
                 disabled={chatState.loading || readyState !== ReadyState.OPEN}
-                aria-label="Type your message"
+                aria-label={t('aiChat.sendPlaceholder', { name: AI_CHARACTER_NAME })}
                 aria-describedby={chatState.loading ? "loading-status" : undefined}
               />
             </div>
-            
             {/* Send button */}
             <button
               onClick={handleSend}
               disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
-              className="w-12 h-12 rounded-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md"
+              className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md`}
               aria-label="Send message"
             >
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
               </svg>
             </button>
           </div>
         </div>
         {chatState.loading && (
-          <div id="loading-status" className="sr-only">{AI_CHARACTER_NAME} is processing your message</div>
+          <div id="loading-status" className="sr-only">{t('aiChat.leoThinking', { name: AI_CHARACTER_NAME })}</div>
         )}
       </div>
     </div>
