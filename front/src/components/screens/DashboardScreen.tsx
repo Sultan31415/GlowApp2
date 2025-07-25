@@ -966,62 +966,50 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-indigo-50 border-2 border-purple-200/60 rounded-2xl shadow-lg p-4 sm:p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full -translate-y-16 translate-x-16"></div>
             <div className="relative z-10">
-              <div className="flex items-start justify-between mb-4">
+              {/* Mobile: stack everything vertically, center, and make button full width */}
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 text-center sm:text-left">
                     🔍 Discover Your Hidden Problems
                   </h3>
-                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3">
+                  <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 text-center sm:text-left">
                     Leo has analyzed your complete wellness profile and identified patterns you might not see.
                   </p>
-                  
                   {/* Show specific indicators */}
-                  <div className="flex flex-wrap gap-2 mb-3">
+                  <div className="flex flex-col gap-2 mb-3 sm:gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start items-center">
                     {categoryScores.physicalVitality < 70 && (
-                      <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
                         Energy Issues Detected
                       </span>
                     )}
                     {categoryScores.emotionalHealth < 70 && (
-                      <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-red-100 text-red-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
                         Stress Patterns Found
                       </span>
                     )}
                     {categoryScores.visualAppearance < 70 && (
-                      <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
                         Self-Image Concerns
                       </span>
                     )}
                     {results.biologicalAge > results.chronologicalAge + 2 && (
-                      <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-medium">
+                      <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
                         Accelerated Aging
                       </span>
                     )}
                   </div>
                 </div>
-                <button
-                  onClick={() => navigate('/ai-chat')}
-                  className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-sm ml-4"
-                >
-                  Talk to Leo →
-                </button>
-              </div>
-              
-              {/* Suggested questions preview */}
-              <div className="border-t border-purple-200/50 pt-3">
-                <p className="text-xs text-purple-700 font-medium mb-2">🎯 Questions you might ask:</p>
-                <div className="flex flex-wrap gap-1 text-xs">
-                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
-                    "What problems am I not seeing?"
-                  </span>
-                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
-                    "Why am I always tired?"
-                  </span>
-                  <span className="bg-white/60 text-purple-600 px-2 py-1 rounded-md">
-                    "What's holding me back?"
-                  </span>
+                {/* Mobile: full width button below, Desktop: right-aligned */}
+                <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto flex justify-center sm:block">
+                  <button
+                    onClick={() => navigate('/ai-chat')}
+                    className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-base"
+                  >
+                    Talk to Leo →
+                  </button>
                 </div>
               </div>
+              {/* Suggested questions preview (if any) */}
             </div>
           </div>
         </div>
@@ -1037,7 +1025,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               <p className="text-gray-500 text-sm sm:text-base">{t('dashboard.quickActionsDesc')}</p>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                 {/* Visual Transformation Avatar */}
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/future')}>
                   <div className="flex items-start justify-between mb-4">
@@ -1062,40 +1050,16 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.atomicSystemDesc')}</p>
                 </div>
 
-                {/* Progress Tracker */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-white/80 rounded-xl shadow-sm">
-                      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                    </div>
-                    <span className="text-xs text-blue-600 font-medium bg-blue-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.progressTracker')}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.progressTrackerDesc')}</p>
-                </div>
-
-                {/* AI Coach */}
-                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 rounded-3xl p-4 sm:p-6 transition-all duration-300 group relative opacity-60 grayscale pointer-events-none">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 bg-white/80 rounded-xl shadow-sm">
-                      <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
-                    </div>
-                    <span className="text-xs text-orange-600 font-medium bg-orange-100 px-2 py-1 rounded-full">{t('dashboard.soon')}</span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.aiCoach')}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.aiCoachDesc')}</p>
-                </div>
-
-                {/* Future Self Chat */}
-                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/dashboard?chat=open')}>
+                {/* AI Mentor */}
+                <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/ai-chat')}>
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-white/80 rounded-xl shadow-sm">
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                     </div>
                     <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">{t('dashboard.available')}</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.futureSelf')}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.futureSelfDesc')}</p>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.aiMentor')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.aiMentorDesc')}</p>
                 </div>
             </div>
           </div>

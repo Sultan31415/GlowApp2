@@ -665,7 +665,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const bodyTextClass = "text-base leading-relaxed";
 
   return (
-    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden">
+    <div className={`relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden${isMobile ? ' fixed inset-0 h-screen w-screen overflow-hidden' : ''}`}>
       {/* Header - Mobile Only */}
       {isMobile && (
         <header className="fixed top-0 left-0 right-0 flex items-center justify-center p-3 bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 h-16 shadow-sm">
@@ -719,22 +719,21 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
           <div className="relative w-[400px] h-[500px] xl:w-[450px] xl:h-[550px]">
             {/* Subtle Background Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-pink-100/20 rounded-3xl blur-xl" />
-            
             {/* Main Avatar Container - Natural Shape */}
             <div className="relative w-full h-full flex items-center justify-center">
-          <img
-            src="/Oylan.png"
+              <img
+                src="/Oylan.png"
                 className="max-w-full max-h-full object-contain rounded-3xl"
                 alt={`${AI_CHARACTER_NAME} avatar`}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = document.createElement('div');
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = document.createElement('div');
                   fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-2xl rounded-3xl ' + getAvatarBackground();
                   fallback.textContent = AI_CHARACTER_NAME;
-              target.parentNode?.appendChild(fallback);
-            }}
-          />
+                  target.parentNode?.appendChild(fallback);
+                }}
+              />
             </div>
           </div>
           
@@ -750,13 +749,13 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
       {/* Mobile Avatar - Compact and elegant for mobile */}
       {isMobile && (
-        <section className="w-full flex flex-col items-center pt-24 pb-3 relative bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-sm z-10" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
+        <section className="w-full flex flex-col items-center pt-14 pb-3 relative bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-sm z-10" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
           <div className="w-[160px] h-[160px] relative mb-2">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/40 to-pink-100/40 rounded-full blur-sm" />
             <div className="relative w-full h-full flex items-center justify-center">
               <img
                 src="/Oylan.png"
-                className="w-full h-full object-cover rounded-full border-2 border-white shadow-lg"
+                className="w-full h-full object-cover object-top rounded-full border-2 border-white shadow-lg"
                 alt={`${AI_CHARACTER_NAME} avatar`}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -785,7 +784,15 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       )}
 
       {/* Chat Section - Right Panel (65% on desktop, full width on mobile) */}
-      <main className={`flex-1 ${isMobile ? 'w-full pt-1 pb-20' : 'lg:ml-[35%] lg:w-[65%]'} flex flex-col relative`} role="main" aria-label="Chat conversation">
+      <main className={`flex-1 ${isMobile ? 'w-full pt-1 pb-20' : 'lg:ml-[35%] lg:w-[65%]'} flex flex-col relative${isMobile ? ' overflow-hidden' : ''}`} role="main" aria-label="Chat conversation" style={
+        isMobile
+          ? {
+              height: 'calc(100vh - 8rem)', // 4rem header + 4rem input (adjust if needed)
+              marginTop: 0,
+              marginBottom: 0,
+            }
+          : {}
+      }>
         {/* Background Decorative Elements */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-20 right-20 w-40 h-40 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-2xl" />
@@ -801,7 +808,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         <div className={`flex-1 overflow-y-auto ${isMobile ? 'px-3 py-2' : 'p-4 lg:p-6'} space-y-3 relative z-10`} role="log" aria-live="polite" style={{
           marginTop: isMobile ? 0 : '120px',
           marginBottom: isMobile ? 0 : '120px',
-          maxHeight: isMobile ? 'calc(100vh - 180px)' : undefined
+          maxHeight: isMobile ? '100%' : undefined
         }}>
           {/* Wellness Insights Display */}
           
