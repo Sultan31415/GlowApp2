@@ -32,11 +32,11 @@ services:
     build: 
       context: ./front
       args:
-        VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhY3QtbGl6YXJkLTUxLmNsZXJrLmFjY291bnRzLmRldiQ
-        VITE_API_URL: http://localhost:8000 
+        # VITE_CLERK_PUBLISHABLE_KEY: pk_test_ZXhhY3QtbGl6YXJkLTUxLmNsZXJrLmFjY291bnRzLmRldiQ
+        # VITE_API_URL: http://localhost:8000 
 
-        # VITE_CLERK_PUBLISHABLE_KEY: pk_live_Y2xlcmsub3lsYW4ubWUk
-        # VITE_API_URL: https://oylan.me
+        VITE_CLERK_PUBLISHABLE_KEY: pk_live_Y2xlcmsub3lsYW4ubWUk
+        VITE_API_URL: https://oylan.me
 
     container_name: glowapp-frontend
     depends_on:
