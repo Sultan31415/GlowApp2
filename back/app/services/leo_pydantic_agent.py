@@ -959,6 +959,15 @@ async def analyze_quiz_problems_and_patterns(ctx: RunContext[LeoDeps]) -> Dict[s
         category_scores = db_assessment.category_scores or {}
         detailed_insights = db_assessment.detailed_insights or {}
 
+        # --- FIX: Convert quiz_answers to dict if it's a list ---
+        if isinstance(quiz_answers, list):
+            # Accept both {questionId, value} and {question, answer} formats
+            quiz_answers = {
+                item.get("questionId") or item.get("question"): item.get("value") if "value" in item else item.get("answer")
+                for item in quiz_answers if isinstance(item, dict) and (item.get("questionId") or item.get("question"))
+            }
+        # --- END FIX ---
+
         # Prepare analysis structure early so we can append even if heuristics run first
         analysis = {
             "identified_problems": [],
