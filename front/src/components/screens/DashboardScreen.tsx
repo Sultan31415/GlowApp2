@@ -969,7 +969,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
               {/* Mobile: stack everything vertically, center, and make button full width */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-3xl sm:text-2xl font-bold text-gray-900 mb-2 text-center sm:text-left">
+                  <h3 className="text-2xl sm:text-2xl font-bold text-gray-900 mb-2 text-center sm:text-left">
                     🔍 Discover Your Hidden Problems
                   </h3>
                   <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 text-center sm:text-left">
