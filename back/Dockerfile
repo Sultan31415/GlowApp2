@@ -24,6 +24,7 @@ FROM python:3.11-slim
 # Install runtime system dependencies only
 RUN apt-get update && apt-get install -y \
     libpq5 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy virtual environment from builder stage
