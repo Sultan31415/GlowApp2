@@ -12,7 +12,7 @@ front/src/
 │   │   ├── FutureScreen.tsx
 │   │   ├── LoadingScreen.tsx
 │   │   ├── MainScreen.tsx
-│   │   ├── MicroHabitsScreen.tsx
+
 │   │   └── ResultsScreen.tsx
 │   │
 │   ├── features/          # Feature-specific components

@@ -47,14 +47,14 @@ export interface AssessmentResults {
     name: string;
     description: string;
   };
-  microHabits: string[];
+
   avatarUrls: {
     before: string;
     after: string;
   };
 }
 
-export type ScreenType = 'main' | 'welcome' | 'quiz' | 'photo-upload' | 'loading' | 'results' | 'error' | 'dashboard' | 'microHabits';
+export type ScreenType = 'main' | 'welcome' | 'quiz' | 'photo-upload' | 'loading' | 'results' | 'error' | 'dashboard';
 
 export interface FutureProjection {
   id: number;

@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import openai
 from app.config.settings import settings
 from app.services.ai_knowledge_base import ATOMIC_HABITS_PRINCIPLES, MIRACLE_MORNING_PRINCIPLES, DEEP_WORK_PRINCIPLES
@@ -78,6 +78,20 @@ class KnowledgeBasedPlanService:
 
     def _build_7_day_plan_prompt(self, orchestrator_output, quiz_insights, photo_insights, user_name=None, backbone=None, projected_scores=None):
         name_str = f" The user's name is {user_name}. Use it at least once during the week." if user_name else ""
+        
+        # Extract rich user context for personalization
+        user_context = quiz_insights.get("userContext", {}) if quiz_insights else {}
+        current_lifestyle = user_context.get("currentLifestyle", {})
+        strengths = user_context.get("strengths", [])
+        challenges = user_context.get("challenges", [])
+        
+        # Build personalized context summary
+        lifestyle_summary = self._build_lifestyle_summary(current_lifestyle)
+        personalization_guidance = self._build_personalization_guidance(current_lifestyle, strengths, challenges)
+        
+        # CRITICAL: Extract specific user data for personalization
+        user_specific_data = self._extract_user_specific_requirements(current_lifestyle)
+        
         # Summarize key principles from the knowledge base
         knowledge_summary = f"""
         Here are key principles from top self-improvement books to guide your plan:
@@ -85,73 +99,283 @@ class KnowledgeBasedPlanService:
         - Miracle Morning: {MIRACLE_MORNING_PRINCIPLES['core_concept']} Key ideas: {', '.join(MIRACLE_MORNING_PRINCIPLES['key_ideas'])}
         - Deep Work: {DEEP_WORK_PRINCIPLES['core_concept']} Key ideas: {', '.join(DEEP_WORK_PRINCIPLES['key_ideas'])}
         """
+        
         backbone_str = f"\nHere is the weekly backbone (themes, focus areas, rationale) for each week: {json.dumps(backbone, ensure_ascii=False, indent=2)}" if backbone else ""
         projected_scores_str = f"\nHere are the user's projected scores for 7 and 30 days: {json.dumps(projected_scores, ensure_ascii=False, indent=2)}" if projected_scores else ""
+        
         return f"""
-        IMPORTANT: Respond ONLY with a valid JSON object with the following structure (no explanations, comments, or text outside the JSON):
-        {{
-          'morningLaunchpad': [...],
-          'days': [
-            {{
-              'day': 1,
-              'mainFocus': <main focus or theme for the day (should align with the backbone)>,
-              'systemBuilding': <1-2 specific, actionable, and progressive habits (Atomic Habits, with trigger, action, reward)>,
-              'deepFocus': <a unique, highly personalized deep work block for this day (Deep Work)>,
-              'eveningReflection': <a review or journaling/reflection task>,
-              'motivationalTip': <a motivational tip or message>
-            }},
-            ...
-          ],
-          'challenges': [
-            {{
-              'category': "Learning | Leisure | Physical | Social | Mindfulness | Creative",
-              'title': <Short title for the challenge>,
-              'description': <Clear, trackable task to complete during the week>,
-              'estimatedTime': <Approximate time to complete the challenge, e.g. "30 min">,
-              'rationale': <Brief explanation why this challenge is useful based on user's profile>
-            }},
-            ...
-          ]
-        }}
-        The response must be a single valid JSON object that can be parsed directly.
+        CRITICAL: You are creating a HIGHLY PERSONALIZED plan based on REAL user data. This is NOT generic advice.
 
-        Given the following user data:
-        - Orchestrator output: {orchestrator_output}
-        - Quiz insights: {quiz_insights}
-        - Photo insights: {photo_insights}
+        **USER'S CURRENT LIFESTYLE ANALYSIS:**
+        {lifestyle_summary}
+
+        **USER-SPECIFIC REQUIREMENTS (MANDATORY):**
+        {user_specific_data}
+
+        **PERSONALIZATION REQUIREMENTS:**
+        {personalization_guidance}
+
+        **USER'S STRENGTHS TO BUILD UPON:**
+        {', '.join(strengths) if strengths else 'No specific strengths identified yet'}
+
+        **USER'S CHALLENGES TO ADDRESS:**
+        {', '.join(challenges) if challenges else 'General wellness improvement needed'}
+
+        **ASSESSMENT DATA:**
+        - Overall Glow Score: {orchestrator_output.get('overallGlowScore', 0)}
+        - Physical Vitality: {orchestrator_output.get('adjustedCategoryScores', {}).get('physicalVitality', 0)}
+        - Emotional Health: {orchestrator_output.get('adjustedCategoryScores', {}).get('emotionalHealth', 0)}
+        - Visual Appearance: {orchestrator_output.get('adjustedCategoryScores', {}).get('visualAppearance', 0)}
+        - Age: {orchestrator_output.get('chronologicalAge', 'Unknown')}
+        - Archetype: {orchestrator_output.get('glowUpArchetype', {}).get('name', 'Unknown')}
+
+        **PHOTO INSIGHTS (if available):**
+        {json.dumps(photo_insights, indent=2) if photo_insights else 'No photo analysis available'}
+
         {name_str}
 
         {knowledge_summary}
         {backbone_str}
         {projected_scores_str}
 
-        Your task:
+        **CRITICAL PERSONALIZATION RULES (MANDATORY):**
 
-        1. Create ONE morning routine (Miracle Morning) for the entire week — a list of 5-7 short, trackable actions like ["Wake up", "Drink water", "Stretch", ...], personalized to the user's context.
+        1. **RESPECT CURRENT CAPABILITIES**: 
+           - If user already exercises 5+ times/week, don't suggest "start exercising" - suggest progression, variety, or skill development
+           - If they sleep 7-9 hours, don't suggest "go to bed earlier" - suggest sleep quality optimization
+           - If they have good nutrition, build on that with meal timing or supplementation
+           - If they already walk 9 hours on weekends, don't suggest "take a 45-minute walk"
 
-        2. Create a detailed 7-day plan ("days") where each day includes:
-            - mainFocus: key theme of the day
-            - systemBuilding: 1-2 concrete, physical habits (Atomic Habits structure). Example:
-              {{
-                "trigger": "After lunch",
-                "action": "Take a 15-min walk",
-                "reward": "Clear mind and refreshed energy"
-              }}
-            - deepFocus: personalized 30–60 min session of uninterrupted focus (Deep Work)
-            - eveningReflection: simple journal or reflection action
-            - motivationalTip: motivating sentence
-            - Each habit must be unique, specific, and real-world — no vague or generic instructions.
+        2. **BUILD ON STRENGTHS**: 
+           - If user has good nutrition, build on that
+           - If they have good social connections, leverage that for motivation
+           - If they have good energy, focus on optimization rather than basic improvements
 
-        3. Create exactly 2 or 3 weekly challenges under the "challenges" section. Prioritize the most relevant categories based on the user’s needs, quiz insights, and photo insights. Choose the types of challenges that would most benefit the user's emotional, physical, or mental state this week.
-            - Each challenge should fall into one of these categories: Learning, Leisure, Physical, Social, Mindfulness, Creative
-            - Each challenge must be:
-                - actionable (e.g. “Visit a new place and take 3 photos”)
-                - clearly described
-                - doable within the week
-                - engaging and slightly outside of user's current routine
-            - Include a brief rationale for each challenge
+        3. **ADDRESS SPECIFIC CHALLENGES**: 
+           - If user struggles with stress management, focus on that
+           - If they have poor sleep, prioritize sleep hygiene
+           - If they have low energy, focus on energy optimization
 
-        Do NOT include all categories (Learning, Leisure, Social, etc.). Pick only a few that feel the most important for this user's current situation. This makes the plan more focused and less overwhelming.
+        4. **PROGRESSIVE DIFFICULTY**: 
+           - Start where they are and progress gradually
+           - Don't suggest drastic changes
+           - Consider their current schedule, energy levels, and lifestyle constraints
 
-        AGAIN: Respond ONLY with a single valid JSON object. Do NOT include any explanation or text outside the JSON.
-        """ 
+        5. **REALISTIC INTEGRATION**: 
+           - Consider their current schedule, energy levels, and lifestyle constraints
+           - Don't suggest activities that conflict with their existing routines
+           - Respect their current commitments and time constraints
+
+        **OUTPUT STRUCTURE:**
+        {{
+          'morningLaunchpad': [
+            // 5-7 personalized morning actions based on their current sleep/wake patterns and energy levels
+          ],
+          'days': [
+            {{
+              'day': 1,
+              'mainFocus': <personalized focus based on their specific challenges and strengths>,
+              'systemBuilding': [
+                {{
+                  "trigger": <specific trigger based on their current routine>,
+                  "action": <personalized action that builds on their current level>,
+                  "reward": <meaningful reward for their specific situation>
+                }}
+              ],
+              'deepFocus': <personalized focus session based on their energy patterns and current work/life situation>,
+              'eveningReflection': <personalized reflection based on their emotional health needs>,
+              'motivationalTip': <personalized motivation based on their specific challenges and archetype>
+            }}
+          ],
+          'challenges': [
+            {{
+              'category': <chosen based on their specific needs>,
+              'title': <personalized challenge title>,
+              'description': <specific, actionable task tailored to their current level>,
+              'estimatedTime': <realistic time based on their current lifestyle>,
+              'rationale': <explanation of why this specific challenge benefits their unique situation>
+            }}
+          ]
+        }}
+
+        **EXAMPLES OF PERSONALIZATION:**
+        - If user already exercises 5+ times/week: Suggest "Try a new workout style" or "Increase intensity" instead of "Start exercising"
+        - If user sleeps 7-9 hours: Suggest "Optimize sleep quality" instead of "Get more sleep"
+        - If user has poor stress management: Focus on stress-reduction techniques throughout the week
+        - If user has good nutrition: Build on that with meal timing or supplementation
+        - If user has low energy: Focus on energy optimization and gradual activity increases
+
+        **REMEMBER**: This user has provided detailed information about their current lifestyle. Use that information to create a plan that feels like it was made specifically for them, not a generic template.
+
+        Respond ONLY with a single valid JSON object. Do NOT include any explanation or text outside the JSON.
+        """
+
+    def _build_lifestyle_summary(self, current_lifestyle: Dict[str, Any]) -> str:
+        """Build a comprehensive summary of the user's current lifestyle for personalization."""
+        summary_parts = []
+        
+        # Energy and sleep
+        if "energyLevel" in current_lifestyle:
+            energy = current_lifestyle["energyLevel"]
+            summary_parts.append(f"Energy: {energy['description']} (score: {energy['score']}/5)")
+        
+        if "sleep" in current_lifestyle:
+            sleep = current_lifestyle["sleep"]
+            summary_parts.append(f"Sleep: {sleep['hours']} - {sleep['quality']} quality")
+        
+        # Exercise and nutrition
+        if "exercise" in current_lifestyle:
+            exercise = current_lifestyle["exercise"]
+            summary_parts.append(f"Exercise: {exercise['frequency']} ({exercise['intensity']} intensity)")
+        
+        if "nutrition" in current_lifestyle:
+            nutrition = current_lifestyle["nutrition"]
+            summary_parts.append(f"Nutrition: {nutrition['quality']} (score: {nutrition['score']}/5)")
+        
+        # Stress and social
+        if "stressManagement" in current_lifestyle:
+            stress = current_lifestyle["stressManagement"]
+            summary_parts.append(f"Stress Management: {stress['effectiveness']} (score: {stress['score']}/5)")
+        
+        if "socialConnections" in current_lifestyle:
+            social = current_lifestyle["socialConnections"]
+            summary_parts.append(f"Social Connections: {social['satisfaction']} (score: {social['score']}/5)")
+        
+        # Health indicators
+        if "hydration" in current_lifestyle:
+            hydration = current_lifestyle["hydration"]
+            summary_parts.append(f"Hydration: {hydration['intake']} ({hydration['adequacy']})")
+        
+        if "bmi" in current_lifestyle:
+            bmi = current_lifestyle["bmi"]
+            summary_parts.append(f"BMI: {bmi['category']}")
+        
+        return "\n".join(summary_parts) if summary_parts else "Limited lifestyle data available"
+
+    def _build_personalization_guidance(self, current_lifestyle: Dict[str, Any], strengths: List[str], challenges: List[str]) -> str:
+        """Build specific guidance for personalizing the plan based on user data."""
+        guidance_parts = []
+        
+        # Exercise guidance
+        if "exercise" in current_lifestyle:
+            exercise = current_lifestyle["exercise"]
+            if exercise["intensity"] == "high":
+                guidance_parts.append("User is already highly active - focus on variety, recovery, or skill development")
+            elif exercise["intensity"] == "moderate":
+                guidance_parts.append("User has moderate activity - suggest gradual progression and consistency")
+            else:
+                guidance_parts.append("User has low activity - start with gentle, accessible movements")
+        
+        # Sleep guidance
+        if "sleep" in current_lifestyle:
+            sleep = current_lifestyle["sleep"]
+            if sleep["quality"] == "good":
+                guidance_parts.append("User has good sleep habits - focus on optimization and consistency")
+            else:
+                guidance_parts.append("User needs sleep improvement - prioritize sleep hygiene and routine")
+        
+        # Stress guidance
+        if "stressManagement" in current_lifestyle:
+            stress = current_lifestyle["stressManagement"]
+            if stress["score"] <= 3:
+                guidance_parts.append("User struggles with stress - integrate stress management throughout the week")
+            else:
+                guidance_parts.append("User has good stress management - build on existing resilience")
+        
+        # Nutrition guidance
+        if "nutrition" in current_lifestyle:
+            nutrition = current_lifestyle["nutrition"]
+            if nutrition["score"] >= 4:
+                guidance_parts.append("User has good nutrition - focus on meal timing, supplementation, or variety")
+            else:
+                guidance_parts.append("User needs nutrition improvement - start with simple, sustainable changes")
+        
+        # Energy guidance
+        if "energyLevel" in current_lifestyle:
+            energy = current_lifestyle["energyLevel"]
+            if energy["score"] <= 3:
+                guidance_parts.append("User has low energy - prioritize energy optimization and gradual activity increases")
+            else:
+                guidance_parts.append("User has good energy - focus on maintaining and optimizing energy levels")
+        
+        return "\n".join(guidance_parts) if guidance_parts else "Focus on general wellness improvement" 
+
+    def _extract_user_specific_requirements(self, current_lifestyle: Dict[str, Any]) -> str:
+        """Extract specific user requirements based on their current lifestyle data."""
+        requirements = []
+        
+        # Sleep patterns
+        if "sleep" in current_lifestyle:
+            sleep = current_lifestyle["sleep"]
+            if sleep.get("hours") == "7-9 hours":
+                requirements.append("User already gets adequate sleep - focus on sleep quality optimization, not duration")
+            elif sleep.get("hours") == "5-6 hours":
+                requirements.append("User gets limited sleep - prioritize sleep hygiene and gradual bedtime adjustment")
+            elif sleep.get("hours") == "9+ hours":
+                requirements.append("User gets plenty of sleep - focus on sleep quality and morning routine optimization")
+        
+        # Exercise patterns
+        if "exercise" in current_lifestyle:
+            exercise = current_lifestyle["exercise"]
+            if exercise.get("frequency") == "5+ times per week":
+                requirements.append("User is highly active - suggest variety, skill development, or recovery optimization")
+            elif exercise.get("frequency") == "3-4 times per week":
+                requirements.append("User has good exercise routine - suggest progression or new challenges")
+            elif exercise.get("frequency") == "1-2 times per week":
+                requirements.append("User has moderate activity - suggest gradual progression and consistency")
+            elif exercise.get("frequency") == "Rarely or never":
+                requirements.append("User has low activity - start with gentle, accessible movements")
+        
+        # Energy levels
+        if "energyLevel" in current_lifestyle:
+            energy = current_lifestyle["energyLevel"]
+            if energy.get("score", 0) >= 4:
+                requirements.append("User has good energy - focus on optimization and maintaining high performance")
+            elif energy.get("score", 0) <= 2:
+                requirements.append("User has low energy - prioritize energy optimization and gradual activity increases")
+        
+        # Stress management
+        if "stressManagement" in current_lifestyle:
+            stress = current_lifestyle["stressManagement"]
+            if stress.get("score", 0) <= 3:
+                requirements.append("User struggles with stress - integrate stress management throughout the week")
+            else:
+                requirements.append("User has good stress management - build on existing resilience")
+        
+        # Nutrition
+        if "nutrition" in current_lifestyle:
+            nutrition = current_lifestyle["nutrition"]
+            if nutrition.get("score", 0) >= 4:
+                requirements.append("User has good nutrition - focus on meal timing, supplementation, or variety")
+            else:
+                requirements.append("User needs nutrition improvement - start with simple, sustainable changes")
+        
+        # Social connections
+        if "socialConnections" in current_lifestyle:
+            social = current_lifestyle["socialConnections"]
+            if social.get("score", 0) >= 4:
+                requirements.append("User has strong social connections - leverage for motivation and accountability")
+            else:
+                requirements.append("User needs social connection improvement - focus on building relationships")
+        
+        # Physical symptoms
+        if "physicalSymptoms" in current_lifestyle:
+            symptoms = current_lifestyle["physicalSymptoms"]
+            if symptoms.get("score", 0) <= 3:
+                requirements.append("User experiences physical symptoms - prioritize recovery and gentle movement")
+        
+        # BMI considerations
+        if "bmi" in current_lifestyle:
+            bmi = current_lifestyle["bmi"]
+            if bmi.get("category") in ["overweight", "obese"]:
+                requirements.append("User has weight concerns - focus on sustainable lifestyle changes, not crash diets")
+            elif bmi.get("category") == "underweight":
+                requirements.append("User is underweight - focus on healthy weight gain and nutrition")
+        
+        # Alcohol consumption
+        if "alcoholConsumption" in current_lifestyle:
+            alcohol = current_lifestyle["alcoholConsumption"]
+            if alcohol.get("risk") == "high":
+                requirements.append("User has high alcohol consumption - focus on harm reduction and healthy alternatives")
+        
+        return "\n".join(requirements) if requirements else "Focus on general wellness improvement based on assessment scores" 

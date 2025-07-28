@@ -167,7 +167,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       label: t('sidebar.progress'),
       icon: TrendingUp,
       onClick: () => navigate('/progress'),
-      isAvailable: false,
+      isAvailable: true,
       tooltip: t('sidebar.progressTooltip'),
       description: t('sidebar.progressDescription'),
       isActive: isRouteActive('/progress')

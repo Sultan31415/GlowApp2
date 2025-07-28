@@ -4,6 +4,7 @@ export { DashboardScreen } from './screens/DashboardScreen';
 export { ErrorScreen } from './screens/ErrorScreen';
 export { FutureScreen } from './screens/FutureScreen';
 export { LoadingScreen } from './screens/LoadingScreen';
+export { ProgressTrackingScreen } from './screens/ProgressTrackingScreen';
 
 // Feature Components
 export { PhotoUpload } from './features/PhotoUpload';

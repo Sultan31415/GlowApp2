@@ -21,6 +21,7 @@ const FutureScreen = lazy(() => import('./components/screens/FutureScreen').then
 const AdvancedMainScreen = lazy(() => import('./components/screens/AdvancedMainScreen').then(m => ({ default: m.AdvancedMainScreen })));
 const DailyPlanScreen = lazy(() => import('./components/screens/DailyPlanScreen').then(m => ({ default: m.DailyPlanScreen })));
 const AIChatScreen = lazy(() => import('./components/screens/AIChatScreen').then(m => ({ default: m.AIChatScreen })));
+const ProgressTrackingScreen = lazy(() => import('./components/screens/ProgressTrackingScreen').then(m => ({ default: m.ProgressTrackingScreen })));
 
 // Home Screen Component
 const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoading: boolean; quizError: string | null }> = ({ 
@@ -238,6 +239,20 @@ function App() {
               <>
                 <SignedIn>
                   <AIChatScreen onBack={() => navigate('/dashboard')} />
+                </SignedIn>
+                <SignedOut>
+                  <RedirectToSignIn />
+                </SignedOut>
+              </>
+            }
+          />
+
+          <Route
+            path="/progress"
+            element={
+              <>
+                <SignedIn>
+                  <ProgressTrackingScreen onBack={() => navigate('/dashboard')} />
                 </SignedIn>
                 <SignedOut>
                   <RedirectToSignIn />

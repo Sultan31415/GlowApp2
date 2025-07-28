@@ -304,9 +304,17 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2">{t('dashboard.wellnessMetrics')}</h3>
                        <p className="text-gray-600 text-sm">{t('dashboard.performanceOverview')}</p>
                      </div>
-                     <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg mt-2 sm:mt-0">
-                       <BarChart3 className="w-4 h-4 mr-2" />
-                       {t('dashboard.liveData')}
+                     <div className="flex items-center space-x-2">
+                       <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+                         <BarChart3 className="w-4 h-4 mr-2" />
+                         {t('dashboard.liveData')}
+                       </div>
+                       <button
+                         onClick={() => navigate('/progress')}
+                         className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-800 font-medium underline decoration-dotted"
+                       >
+                         Track Progress
+                       </button>
                      </div>
                    </div>
                  

@@ -3,6 +3,11 @@ from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.encoders import jsonable_encoder
 from app.models.schemas import AssessmentRequest, AssessmentResponse, UserAssessmentCreate, UserAssessmentResponse
+from app.models.progress_schemas import (
+    HabitCompletionRequest, HabitCompletionResponse, ProgressSnapshotRequest, 
+    ProgressSnapshotResponse, ProgressHistoryResponse, DailyProgressResponse, 
+    WeeklyProgressResponse
+)
 from app.services.scoring_service import ScoringService, AdvancedScoringService
 from app.services.ai_service import AIService
 from app.data.quiz_data import quiz_data
@@ -15,12 +20,17 @@ from app.services.future_self_service import FutureSelfService
 from app.models.future_projection import FutureProjection
 from app.models.future_projection import DailyPlan
 from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
+from app.services.progress_tracking_service import ProgressTrackingService
+from app.services.goal_setting_service import GoalSettingService
 
 # Initialize router
 router = APIRouter()
 
 # Initialize services
 ai_service = AIService()
+plan_service = KnowledgeBasedPlanService()
+progress_service = ProgressTrackingService()
+goal_service = GoalSettingService()
 
 logger = logging.getLogger(__name__)
 
@@ -407,7 +417,14 @@ async def generate_daily_plan(
     if not assessment:
         raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
 
-    # Prepare the data for the LLM
+    # Extract rich user data from assessment for personalization
+    quiz_answers = assessment.quiz_answers or []
+    detailed_insights = assessment.detailed_insights or {}
+    
+    # Build comprehensive user context from quiz answers
+    user_context = _extract_user_context_from_quiz(quiz_answers)
+    
+    # Prepare the data for the LLM with REAL user data
     orchestrator_output = {
         "overallGlowScore": assessment.overall_glow_score,
         "adjustedCategoryScores": assessment.category_scores,
@@ -415,13 +432,24 @@ async def generate_daily_plan(
         "emotionalAge": assessment.emotional_age,
         "chronologicalAge": assessment.chronological_age,
         "glowUpArchetype": assessment.glowup_archetype,
-        "analysisSummary": assessment.analysis_summary or "Assessment completed successfully."
+        "analysisSummary": assessment.analysis_summary or "Assessment completed successfully.",
+        "userContext": user_context  # Add rich user context
     }
-    quiz_insights = None
-    photo_insights = None
+    
+    # Extract quiz insights from detailed assessment data
+    quiz_insights = {
+        "adjustedScores": assessment.category_scores,
+        "keyStrengths": detailed_insights.get("keyStrengths", []),
+        "priorityAreas": detailed_insights.get("priorityAreas", []),
+        "healthAssessment": detailed_insights.get("healthAssessment", {}),
+        "culturalContext": detailed_insights.get("culturalContext", ""),
+        "userContext": user_context
+    }
+    
+    # Extract photo insights if available
+    photo_insights = detailed_insights.get("photoInsights", {})
     user_name = db_user.first_name
 
-    plan_service = KnowledgeBasedPlanService()
     daily_plan = await plan_service.generate_7_day_plan(
         orchestrator_output=orchestrator_output,
         quiz_insights=quiz_insights,
@@ -429,7 +457,7 @@ async def generate_daily_plan(
         user_name=user_name
     )
 
-    # Save the plan to the database (reuse save_daily_plan from FutureSelfService for now)
+    # Save the plan to the database
     future_self_service = FutureSelfService()
     saved_plan = future_self_service.save_daily_plan(
         user_id=db_user.id,
@@ -442,7 +470,178 @@ async def generate_daily_plan(
         "message": "7-day daily plan generated and saved successfully.",
         "plan_id": saved_plan.id,
         "daily_plan": daily_plan
-    } 
+    }
+
+@router.post("/create-personalized-goals")
+async def create_personalized_goals(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create personalized goals based on user's assessment data."""
+    db_user = get_or_create_user(db, user)
+    assessment = get_latest_user_assessment(db, db_user.id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
+
+    # Extract user context from quiz answers
+    quiz_answers = assessment.quiz_answers or []
+    user_context = _extract_user_context_from_quiz(quiz_answers)
+    user_name = db_user.first_name
+
+    goals = await goal_service.create_personalized_goals(user_context, user_name)
+
+    return {
+        "message": "Personalized goals created successfully.",
+        "goals": goals
+    }
+
+@router.post("/create-custom-habits")
+async def create_custom_habits(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create custom habits based on user's goals and current lifestyle."""
+    db_user = get_or_create_user(db, user)
+    assessment = get_latest_user_assessment(db, db_user.id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
+
+    # Extract user context from quiz answers
+    quiz_answers = assessment.quiz_answers or []
+    user_context = _extract_user_context_from_quiz(quiz_answers)
+    user_name = db_user.first_name
+
+    # First create goals, then create habits based on those goals
+    goals = await goal_service.create_personalized_goals(user_context, user_name)
+    habits = await goal_service.create_custom_habits(user_context, goals, user_name)
+
+    return {
+        "message": "Custom habits created successfully.",
+        "goals": goals,
+        "habits": habits
+    }
+
+@router.get("/user-wellness-profile")
+async def get_user_wellness_profile(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get the user's personalized wellness profile based on their assessment data."""
+    db_user = get_or_create_user(db, user)
+    assessment = get_latest_user_assessment(db, db_user.id)
+    if not assessment:
+        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
+
+    # Extract user context from quiz answers
+    quiz_answers = assessment.quiz_answers or []
+    user_context = _extract_user_context_from_quiz(quiz_answers)
+    
+    # Get user name for personalization
+    user_name = db_user.first_name
+
+    # Create personalized wellness profile
+    profile = await goal_service.create_wellness_profile(user_context, user_name)
+    
+    return {
+        "message": "Wellness profile retrieved successfully.",
+        "profile": profile
+    }
+
+def _extract_user_context_from_quiz(quiz_answers: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Extract personalized user context from quiz answers for plan generation."""
+    context = {
+        "currentLifestyle": {},
+        "strengths": [],
+        "challenges": [],
+        "preferences": {},
+        "goals": []
+    }
+    
+    # Map quiz answers to context
+    for answer in quiz_answers:
+        question_id = answer.get("questionId", "")
+        value = answer.get("value")
+        label = answer.get("label", "")
+        
+        if question_id == "q1":  # Energy levels
+            context["currentLifestyle"]["energyLevel"] = {
+                "score": value,
+                "description": label,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q2":  # Sleep
+            context["currentLifestyle"]["sleep"] = {
+                "hours": label,
+                "quality": "good" if value >= 4 else "needs_improvement",
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q3":  # Exercise
+            context["currentLifestyle"]["exercise"] = {
+                "frequency": label,
+                "intensity": "high" if value >= 4 else "moderate" if value >= 3 else "low",
+                "needsImprovement": value <= 2
+            }
+        elif question_id == "q4":  # Nutrition
+            context["currentLifestyle"]["nutrition"] = {
+                "quality": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q6":  # Stress management
+            context["currentLifestyle"]["stressManagement"] = {
+                "effectiveness": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q8":  # Social connections
+            context["currentLifestyle"]["socialConnections"] = {
+                "satisfaction": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q10":  # Body image
+            context["currentLifestyle"]["bodyImage"] = {
+                "confidence": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q11":  # Skin health
+            context["currentLifestyle"]["skinHealth"] = {
+                "condition": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q12":  # Physical symptoms
+            context["currentLifestyle"]["physicalSymptoms"] = {
+                "frequency": label,
+                "score": value,
+                "needsImprovement": value <= 3
+            }
+        elif question_id == "q13":  # Alcohol consumption
+            context["currentLifestyle"]["alcoholConsumption"] = {
+                "pattern": label,
+                "risk": "high" if value in ["high", "excessive"] else "moderate" if value == "moderate" else "low"
+            }
+        elif question_id == "q14":  # BMI
+            context["currentLifestyle"]["bmi"] = {
+                "category": label,
+                "needsAttention": value in ["overweight", "obese", "underweight"]
+            }
+        elif question_id == "q18":  # Water intake
+            context["currentLifestyle"]["hydration"] = {
+                "intake": label,
+                "adequacy": "good" if value >= 4 else "needs_improvement",
+                "needsImprovement": value <= 3
+            }
+    
+    # Identify strengths and challenges
+    for category, data in context["currentLifestyle"].items():
+        if isinstance(data, dict) and data.get("score", 0) >= 4:
+            context["strengths"].append(f"Good {category.replace('_', ' ')}")
+        elif isinstance(data, dict) and data.get("needsImprovement", False):
+            context["challenges"].append(f"Improve {category.replace('_', ' ')}")
+    
+    return context
 
 @router.get("/daily-plan")
 async def get_latest_daily_plan(
@@ -598,4 +797,198 @@ async def get_personalized_ai_prompts(
             "hidden_patterns": [],
             "has_assessment": False,
             "error": f"Unable to analyze your data: {str(e)}"
-        } 
+        }
+
+
+# Progress Tracking Endpoints
+@router.post("/habits/complete", response_model=HabitCompletionResponse)
+async def complete_habit(
+    request: HabitCompletionRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a habit as completed for a specific date"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        # Get latest assessment and daily plan for reference
+        latest_assessment = get_latest_user_assessment(db, db_user.id)
+        latest_plan = db.query(DailyPlan).filter(
+            DailyPlan.user_id == db_user.id
+        ).order_by(DailyPlan.created_at.desc()).first()
+        
+        completion = progress_service.complete_habit(
+            db=db,
+            user_id=db_user.id,
+            habit_type=request.habit_type,
+            habit_content=request.habit_content,
+            day_date=request.day_date,
+            notes=request.notes,
+            assessment_id=latest_assessment.id if latest_assessment else None,
+            daily_plan_id=latest_plan.id if latest_plan else None
+        )
+        
+        return completion
+        
+    except Exception as e:
+        logger.error(f"Error completing habit: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to complete habit: {str(e)}")
+
+
+@router.get("/habits/completions", response_model=List[HabitCompletionResponse])
+async def get_habit_completions(
+    start_date: str = None,
+    end_date: str = None,
+    habit_type: str = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get habit completions for the authenticated user"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        # Parse dates if provided
+        from datetime import datetime
+        start_dt = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
+        end_dt = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
+        
+        completions = progress_service.get_habit_completions(
+            db=db,
+            user_id=db_user.id,
+            start_date=start_dt,
+            end_date=end_dt,
+            habit_type=habit_type
+        )
+        
+        return completions
+        
+    except Exception as e:
+        logger.error(f"Error fetching habit completions: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch habit completions: {str(e)}")
+
+
+@router.get("/progress/streaks")
+async def get_habit_streaks(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get current and longest streaks for all habit types"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        streaks = progress_service.calculate_habit_streaks(db, db_user.id)
+        return {"streaks": streaks}
+        
+    except Exception as e:
+        logger.error(f"Error calculating habit streaks: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to calculate streaks: {str(e)}")
+
+
+@router.post("/progress/snapshot", response_model=ProgressSnapshotResponse)
+async def create_progress_snapshot(
+    request: ProgressSnapshotRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a progress snapshot for the authenticated user"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        snapshot = progress_service.create_progress_snapshot(
+            db=db,
+            user_id=db_user.id,
+            snapshot_date=request.snapshot_date,
+            notes=request.notes
+        )
+        
+        return snapshot
+        
+    except Exception as e:
+        logger.error(f"Error creating progress snapshot: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to create snapshot: {str(e)}")
+
+
+@router.get("/progress/history")
+async def get_progress_history(
+    days: int = 30,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive progress history for the authenticated user"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        # Get habit completions
+        from datetime import date, timedelta
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+        
+        completions = progress_service.get_habit_completions(db, db_user.id, start_date, end_date)
+        snapshots = progress_service.get_progress_snapshots(db, db_user.id, start_date, end_date)
+        streaks = progress_service.calculate_habit_streaks(db, db_user.id)
+        stats = progress_service.get_completion_stats(db, db_user.id, days)
+        
+        return {
+            "habit_completions": completions,
+            "progress_snapshots": snapshots,
+            "streaks": streaks,
+            "completion_stats": stats,
+            "progress_trends": {
+                "completion_rate_trend": "increasing",  # Would be calculated based on historical data
+                "best_performing_day": "Monday",
+                "most_consistent_habit": stats.get("most_consistent_habit")
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching progress history: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch progress history: {str(e)}")
+
+
+@router.get("/progress/daily")
+async def get_daily_progress(
+    date: str = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get daily progress for a specific date (defaults to today)"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        from datetime import datetime
+        target_date = datetime.strptime(date, "%Y-%m-%d").date() if date else None
+        
+        daily_progress = progress_service.get_daily_progress(db, db_user.id, target_date)
+        return daily_progress
+        
+    except Exception as e:
+        logger.error(f"Error fetching daily progress: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch daily progress: {str(e)}")
+
+
+@router.get("/progress/weekly")
+async def get_weekly_progress(
+    week_start: str = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get weekly progress for a specific week (defaults to current week)"""
+    try:
+        db_user = get_or_create_user(db, user)
+        
+        from datetime import datetime
+        week_start_date = datetime.strptime(week_start, "%Y-%m-%d").date() if week_start else None
+        
+        weekly_progress = progress_service.get_weekly_progress(db, db_user.id, week_start_date)
+        return weekly_progress
+        
+    except Exception as e:
+        logger.error(f"Error fetching weekly progress: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch weekly progress: {str(e)}") 
