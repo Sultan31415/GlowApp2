@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+import json
+from sqlalchemy import update
 
 from pydantic_ai import Agent, RunContext, ModelRetry
 from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
@@ -31,6 +33,10 @@ class LeoResponse(BaseModel):
     follow_up_questions: List[str] = Field(default_factory=list, description="Suggested follow-up questions")
     tools_used: List[str] = Field(default_factory=list, description="Tools used in this response")
     refusal: bool = False  # True if Leo refused to answer due to out-of-domain
+    
+    # Plan update tracking
+    plan_updated: bool = Field(default=False, description="True if any plan update tools were used")
+    plan_update_type: Optional[str] = Field(default=None, description="Type of plan update made")
     
     # Enhanced therapeutic response fields
     crisis_alert: Optional[Dict[str, Any]] = Field(default=None, description="Crisis intervention alert if needed")
@@ -83,13 +89,12 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 - Example refusal: "I'm here to help you with your wellness journey, not general knowledge. If you have a question about your health, habits, or personal growth, I'm here for you!"
 - Never break character or answer unrelated questions under any circumstances.
 
-## PERSONALIZATION FIRST APPROACH
-- You have access to the user's COMPLETE wellness data including current lifestyle, strengths, challenges, and assessment results
-- ALWAYS provide advice based on their ACTUAL data, not generic wellness advice
-- If they already exercise 5+ times/week, don't suggest "start exercising" - suggest progression or optimization
-- If they sleep 7-9 hours, don't suggest "get more sleep" - suggest sleep quality improvements
-- If they have good nutrition, build on that instead of suggesting basic nutrition changes
-- Reference their specific quiz answers, current habits, and lifestyle patterns in your advice
+- **Be concise, but also reasonable and supportive:**
+  - Your main reply should be focused, actionable, and easy to read—aim for 2–5 sentences.
+  - Give just enough context or encouragement to help the user feel understood and motivated.
+  - Never overwhelm with data, but don't be so brief that your advice feels generic or cold.
+  - If a bit more explanation or warmth is needed, it's okay to go slightly longer.
+  - If the user wants more details, invite them to ask (e.g., 'If you want to see your full scores or plan, just let me know!').
 
 ## YOUR IDENTITY
 - You are Leo, the AI Mentor System Brain of Oylan.
@@ -109,8 +114,56 @@ leo_agent = Agent[LeoDeps, LeoResponse](
    - Archetype Analysis (personality-based wellness approach)
    - Cross-correlations between physical and emotional states
 🧠 **Hidden Insights**: You reveal problems and opportunities from rich AI-generated insights that users don't see
-💡 **Wise Guidance**: You provide specific, actionable advice based on their unique situation
-🎯 **Personalized Recommendations**: You tailor every piece of advice to their current lifestyle and capabilities
+💡 **Wise Guidance**: You provide specific, actionable advice based on comprehensive AI analysis and user data
+🎯 **Real Intelligence**: Use actual insight text, not just scores - quote specific findings
+📅 **Plan Management**: You can modify daily plans, morning routines, and weekly challenges to adapt to user needs
+
+## YOUR THERAPEUTIC CAPABILITIES
+
+### 💭 **THERAPEUTIC CONVERSATION MASTER**
+
+**CBT Techniques:**
+- **Thought Challenging:** "That thought 'I always mess up' - let's examine the evidence. When did you last succeed at something?"
+- **Behavioral Experiments:** "You believe people will judge you for saying no. What if we tested this belief with one small experiment this week?"
+- **Cognitive Restructuring:** "Instead of 'I'm terrible at this,' what would a compassionate friend say about your effort?"
+
+**Motivational Interviewing:**
+- **Open-ended Questions:** "What would need to change for you to feel truly energized?"
+- **Affirmations:** "You've shown real strength by recognizing this pattern - that awareness is the first step"
+- **Reflective Listening:** "So if I understand correctly, part of you wants to set boundaries, but another part worries about disappointing others"
+- **Change Talk:** "On a scale of 1-10, how important is improving your sleep? What makes it a [number] and not lower?"
+
+**Solution-Focused Approach:**
+- **Exception Finding:** "You mentioned feeling stressed most days. Tell me about a recent day when stress felt manageable - what was different?"
+- **Scaling Questions:** "If 10 is your ideal energy level and 1 is exhausted, where are you now? What would move you up just one point?"
+- **Future-Focused:** "Imagine it's 6 months from now and this issue is resolved. What's the first thing you notice that's different?"
+
+### 🧠 **INTELLIGENT TOOL USAGE**
+
+**Conversation Flow Intelligence:**
+1. **Emotional Check-in** → Use `detect_conversation_themes` + `check_safety_indicators`
+2. **Problem Identification** → Use `reveal_wellness_insights` and `analyze_quiz_problems_and_patterns` to find disconnects
+3. **Therapeutic Intervention** → Apply appropriate CBT/MI/SF techniques
+4. **Action Planning** → Use `access_user_goals_and_plans` for general structure, `get_specific_day_plan` for day-specific plans
+5. **Progress Monitoring** → Reference assessment history for growth patterns
+
+**Daily Plan Access:**
+- When user asks about "Monday plan", "today's plan", or specific day → Use `get_specific_day_plan(day_number=1)` for Monday
+- When user asks about general planning or weekly structure → Use `access_user_goals_and_plans` 
+- ALWAYS show the actual plan content, not generic advice
+
+**Plan Management Operations:**
+- When user wants to change their morning routine → Use `update_morning_routine(new_routine: List[str])`
+- When user wants to modify a specific day's activities → Use `update_specific_day_plan(day_number: int, updates: Dict[str, Any])`
+- When user wants to change weekly challenges → Use `update_weekly_challenges(new_challenges: List[str])`
+- When user wants a completely new plan → Use `regenerate_daily_plan()`
+- ALWAYS confirm changes with the user before making them and explain the impact
+
+**Crisis Intervention Protocol:**
+- Immediately use `check_safety_indicators` for concerning language
+- Apply de-escalation techniques from trauma-informed care
+- Provide specific resources and safety planning
+- Know when to escalate to human professionals
 
 ## CONVERSATION STYLE
 - **Personal and Warm**: Use the user's name naturally when provided in format [User: Name] - e.g., "Hi Sarah" or "Sarah, I can see from your analysis..."
@@ -122,7 +175,6 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 - **Pattern Connector**: Connect insights across physical, emotional, and visual domains
 - **Evidence-Based**: Quote actual insight text, don't paraphrase - show you've read their real analysis
 - **Never Generic**: Every response should reference specific AI-generated insights from their actual assessments
-- **Personalized**: Always consider their current lifestyle, strengths, and challenges when giving advice
 
 ## MENTOR BEST PRACTICES
 - **Interpret, Don't Just Report:** Connect the dots between data points and what they mean for the user's journey. Never just list scores or facts—explain their significance.
@@ -132,34 +184,48 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 - **Use Analogies or Stories:** When helpful, use metaphors, analogies, or brief stories to make advice memorable and relatable.
 - **Motivate and Encourage:** Celebrate effort, progress, and self-awareness, not just results. Remind the user that small steps matter.
 - **Be Actionable and Achievable:** Break down big changes into small, confidence-building wins. Always offer at least one clear, manageable next step.
-- **Personalize Every Recommendation:** Base advice on their actual current lifestyle, not generic wellness principles.
 
-## CRITICAL PERSONALIZATION RULES
-1. **Respect Current Capabilities**: If they already do something well, suggest optimization, not starting over
-2. **Build on Strengths**: Leverage what they're already doing well to create momentum
-3. **Address Specific Challenges**: Target their actual pain points, not generic wellness issues
-4. **Progressive Difficulty**: Start where they are and progress gradually
-5. **Realistic Integration**: Consider their current schedule, energy levels, and lifestyle constraints
+## RESPONSE STRUCTURE
+1. **ALWAYS start by using `get_complete_user_context` to load ALL their data**
+2. **Generate structured wellness insights** using `reveal_wellness_insights` when available
+3. **Share SPECIFIC AI insights** by quoting actual text from their analysis
+4. **Use problem analysis tools** for users asking about issues: `analyze_quiz_problems_and_patterns`
+5. **Reveal hidden patterns** by connecting insights across different domains
+6. **Provide evidence-based guidance** referencing specific insights and archetype recommendations
+7. **Create wellness insights for the user by including:**
+   - The wellness category (e.g., "emotional_health")
+   - A short insight (e.g., "Chronic stress and emotional resilience challenges noted from assessment data.")
+   - Actionable advice (e.g., "Commit to journaling daily and practice mindfulness for 5-10 minutes to begin reducing stress.")
+   - Priority (e.g., "high", "medium", "low")
+   **Never include Python code or object definitions in your reply to the user. Only use natural language.**
+   - **ALWAYS interpret the data, empathize, explain the why, and ask a reflective question.**
 
-## TOOL USAGE GUIDELINES
+## CRISIS DETECTION
+- HIGH: Suicidal thoughts, severe depression, self-harm mentions
+- MEDIUM: Overwhelming anxiety, panic, breakdown signals
+- LOW: Stress, fatigue, feeling stuck
 
-**When to use `get_personalized_user_context`:**
-- When user asks for specific advice about their lifestyle
-- When you need to understand their current habits and challenges
-- When providing recommendations that should be tailored to their situation
-- When user asks "What should I do?" or "How can I improve?"
+Always prioritize safety while maintaining your wise mentor personality.
+
+### **🔥 PROBLEM ANALYSIS SUPERPOWER:**
+**CRITICAL: You have a powerful new tool `analyze_quiz_problems_and_patterns` that reveals specific problems from their quiz data!**
+
+**When to use it:**
+- When users ask "What's wrong with me?" or "What problems do I have?"
+- When someone mentions feeling stuck, tired, or overwhelmed
+- Early in conversations to understand their specific issues
+- When you want to provide data-driven insights about their challenges
 
 **What it reveals:**
-- Their current exercise, sleep, nutrition, stress management patterns
-- Specific strengths and challenges in their lifestyle
-- Areas where they need improvement vs. areas where they're already doing well
-- Realistic starting points for recommendations
+- Specific problems like chronic fatigue, poor sleep, stress management issues
+- Hidden patterns like stress-sleep-energy cycles
+- Biological concerns like accelerated aging
+- Lifestyle disconnects they can't see
 
 **Example approach:**
-"Let me check your current lifestyle patterns to give you the most relevant advice..." → Use tool → "I see you're already exercising 5+ times per week, which is excellent! Instead of suggesting you start exercising, let me recommend some ways to optimize your current routine..."
+"Let me analyze your wellness data to see what patterns I can identify..." → Use tool → "I found some interesting patterns. You rated your stress management as 2/5 and water intake as 2/5 - this combination is creating an energy drain you might not realize..."
 
-**REMEMBER:** You are the brain that sees everything. Use that power wisely to help them grow with personalized, realistic advice.
-""",
+**REMEMBER:** You are the brain that sees everything. Use that power wisely to help them grow.""",
 )
 
 # LEO'S ORACLE INTELLIGENCE TOOLS - Load data ONLY when needed
@@ -855,6 +921,277 @@ async def get_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int) -> Di
         raise ModelRetry(f"Error getting day {day_number} plan: {str(e)}")
 
 @leo_agent.tool
+async def update_morning_routine(ctx: RunContext[LeoDeps], new_routine: List[str]) -> Dict[str, Any]:
+    """Update the morning routine for the entire week. Use when user wants to change their morning routine."""
+    try:
+        print(f"[Leo Tool] 🌅 Updating morning routine for user {ctx.deps.user_id}")
+        
+        # Load current daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            print(f"[Leo Tool] ❌ No daily plan found for user {ctx.deps.internal_user_id}")
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        print(f"[Leo Tool] 🔍 Current plan structure: {json.dumps(plan_data, indent=2)}")
+        print(f"[Leo Tool] 🔍 Plan keys: {list(plan_data.keys())}")
+        
+        # Store the old routine for comparison
+        old_routine = plan_data.get("morningLaunchpad", [])
+        print(f"[Leo Tool] 🔍 Old routine: {old_routine}")
+        print(f"[Leo Tool] 🔍 New routine: {new_routine}")
+        
+        # Update the morning routine
+        plan_data["morningLaunchpad"] = new_routine
+        
+        # Save the updated plan with proper transaction handling
+        try:
+            # Use SQLAlchemy update() method instead of direct assignment
+            stmt = update(DBDailyPlan).where(DBDailyPlan.id == db_plan.id).values(plan_json=plan_data)
+            ctx.deps.db.execute(stmt)
+            ctx.deps.db.commit()
+            
+            # Refresh the plan object
+            ctx.deps.db.refresh(db_plan)
+            
+            # Verify the save worked
+            print(f"[Leo Tool] 🔍 After commit - plan ID: {db_plan.id}")
+            print(f"[Leo Tool] 🔍 After commit - plan JSON: {json.dumps(db_plan.plan_json, indent=2)}")
+            
+            # Double-check by querying again
+            verification_plan = ctx.deps.db.query(DBDailyPlan).filter(
+                DBDailyPlan.id == db_plan.id
+            ).first()
+            print(f"[Leo Tool] 🔍 Verification query - plan JSON: {json.dumps(verification_plan.plan_json, indent=2)}")
+            
+            print(f"[Leo Tool] ✅ Morning routine updated successfully")
+            print(f"[Leo Tool] 🔍 Updated plan structure: {json.dumps(db_plan.plan_json, indent=2)}")
+            
+            return {
+                "success": True,
+                "message": "Morning routine updated successfully",
+                "new_routine": new_routine,
+                "old_routine": old_routine,
+                "updated_at": db_plan.created_at.isoformat(),
+                "plan_updated": True,  # Flag to indicate plan was modified
+                "update_type": "morning_routine"  # Type of update for frontend
+            }
+            
+        except Exception as commit_error:
+            print(f"[Leo Tool] ❌ Database commit error: {commit_error}")
+            ctx.deps.db.rollback()
+            raise commit_error
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error updating morning routine: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        try:
+            ctx.deps.db.rollback()
+        except:
+            pass
+        raise ModelRetry(f"Error updating morning routine: {str(e)}")
+
+@leo_agent.tool
+async def update_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int, updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a specific day's plan. Use when user wants to modify a particular day's activities."""
+    try:
+        print(f"[Leo Tool] 📅 Updating plan for day {day_number}")
+        
+        # Load current daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            print(f"[Leo Tool] ❌ No daily plan found for user {ctx.deps.internal_user_id}")
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        days_list = plan_data.get("days", [])
+        
+        if not days_list:
+            print(f"[Leo Tool] ❌ No days data found in plan")
+            return {"error": "No days data found in plan"}
+        
+        # Find the specific day
+        day_index = None
+        for i, day in enumerate(days_list):
+            if day.get("day") == day_number:
+                day_index = i
+                break
+        
+        if day_index is None:
+            print(f"[Leo Tool] ❌ Day {day_number} not found in plan")
+            return {"error": f"Day {day_number} not found in plan"}
+        
+        # Update the specific day with new data
+        current_day = days_list[day_index]
+        updated_day = {**current_day, **updates}
+        days_list[day_index] = updated_day
+        
+        # Save the updated plan with proper transaction handling
+        try:
+            plan_data["days"] = days_list
+            # Use SQLAlchemy update() method instead of direct assignment
+            stmt = update(DBDailyPlan).where(DBDailyPlan.id == db_plan.id).values(plan_json=plan_data)
+            ctx.deps.db.execute(stmt)
+            ctx.deps.db.commit()
+            
+            # Refresh the plan object
+            ctx.deps.db.refresh(db_plan)
+            
+            # Get day name for response
+            day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            day_name = day_names[day_number - 1] if 1 <= day_number <= 7 else f"Day {day_number}"
+            
+            print(f"[Leo Tool] ✅ Day {day_number} plan updated successfully")
+            return {
+                "success": True,
+                "message": f"{day_name}'s plan updated successfully",
+                "day_number": day_number,
+                "day_name": day_name,
+                "updated_fields": list(updates.keys()),
+                "updated_at": db_plan.created_at.isoformat(),
+                "plan_updated": True,  # Flag to indicate plan was modified
+                "update_type": "specific_day"  # Type of update for frontend
+            }
+            
+        except Exception as commit_error:
+            print(f"[Leo Tool] ❌ Database commit error: {commit_error}")
+            ctx.deps.db.rollback()
+            raise commit_error
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error updating day {day_number} plan: {str(e)}")
+        try:
+            ctx.deps.db.rollback()
+        except:
+            pass
+        raise ModelRetry(f"Error updating day {day_number} plan: {str(e)}")
+
+@leo_agent.tool
+async def update_weekly_challenges(ctx: RunContext[LeoDeps], new_challenges: List[str]) -> Dict[str, Any]:
+    """Update the weekly challenges. Use when user wants to modify their weekly challenges."""
+    try:
+        print(f"[Leo Tool] 🎯 Updating weekly challenges for user {ctx.deps.user_id}")
+        
+        # Load current daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            print(f"[Leo Tool] ❌ No daily plan found for user {ctx.deps.internal_user_id}")
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        
+        # Update the weekly challenges
+        plan_data["challenges"] = new_challenges
+        
+        # Save the updated plan with proper transaction handling
+        try:
+            # Use SQLAlchemy update() method instead of direct assignment
+            stmt = update(DBDailyPlan).where(DBDailyPlan.id == db_plan.id).values(plan_json=plan_data)
+            ctx.deps.db.execute(stmt)
+            ctx.deps.db.commit()
+            
+            # Refresh the plan object
+            ctx.deps.db.refresh(db_plan)
+            
+            print(f"[Leo Tool] ✅ Weekly challenges updated successfully")
+            return {
+                "success": True,
+                "message": "Weekly challenges updated successfully",
+                "new_challenges": new_challenges,
+                "updated_at": db_plan.created_at.isoformat(),
+                "plan_updated": True,  # Flag to indicate plan was modified
+                "update_type": "weekly_challenges"  # Type of update for frontend
+            }
+            
+        except Exception as commit_error:
+            print(f"[Leo Tool] ❌ Database commit error: {commit_error}")
+            ctx.deps.db.rollback()
+            raise commit_error
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error updating weekly challenges: {str(e)}")
+        try:
+            ctx.deps.db.rollback()
+        except:
+            pass
+        raise ModelRetry(f"Error updating weekly challenges: {str(e)}")
+
+@leo_agent.tool
+async def regenerate_daily_plan(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Regenerate the entire daily plan based on current user data. Use when user wants a completely new plan."""
+    try:
+        print(f"[Leo Tool] 🔄 Regenerating daily plan for user {ctx.deps.user_id}")
+        
+        # Get user and assessment data
+        db_user = ctx.deps.db.query(User).filter(User.user_id == ctx.deps.user_id).first()
+        if not db_user:
+            return {"error": "User not found"}
+        
+        # Get latest assessment
+        from app.services.user_service import get_latest_user_assessment
+        assessment = get_latest_user_assessment(ctx.deps.db, db_user.id)
+        if not assessment:
+            return {"error": "No assessment found. Please complete an assessment first."}
+        
+        # Prepare data for plan generation
+        orchestrator_output = {
+            "overallGlowScore": assessment.overall_glow_score,
+            "adjustedCategoryScores": assessment.category_scores,
+            "biologicalAge": assessment.biological_age,
+            "emotionalAge": assessment.emotional_age,
+            "chronologicalAge": assessment.chronological_age,
+            "glowUpArchetype": assessment.glowup_archetype,
+            "analysisSummary": assessment.analysis_summary or "Assessment completed successfully."
+        }
+        
+        # Generate new plan
+        from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
+        plan_service = KnowledgeBasedPlanService()
+        new_plan = await plan_service.generate_7_day_plan(
+            orchestrator_output=orchestrator_output,
+            quiz_insights=None,
+            photo_insights=None,
+            user_name=db_user.first_name,
+            db=ctx.deps.db,
+            user_id=db_user.id
+        )
+        
+        # Save the new plan
+        from app.services.future_self_service import FutureSelfService
+        future_self_service = FutureSelfService()
+        saved_plan = future_self_service.save_daily_plan(
+            user_id=db_user.id,
+            assessment_id=assessment.id,
+            plan_json=new_plan,
+            plan_type="7-day"
+        )
+        
+        print(f"[Leo Tool] ✅ Daily plan regenerated successfully")
+        return {
+            "success": True,
+            "message": "Daily plan regenerated successfully",
+            "plan_id": saved_plan.id,
+            "plan_type": saved_plan.plan_type,
+            "created_at": saved_plan.created_at.isoformat(),
+            "plan_updated": True,  # Flag to indicate plan was modified
+            "update_type": "regenerate_plan"  # Type of update for frontend
+        }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error regenerating daily plan: {str(e)}")
+        raise ModelRetry(f"Error regenerating daily plan: {str(e)}")
+
+@leo_agent.tool
 async def analyze_photo_wellness_markers(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
     """Access photo analysis - ONLY when discussing physical symptoms, stress markers, or aging."""
     try:
@@ -1339,6 +1676,86 @@ class LeoPydanticAgent:
                 usage_limits=self.usage_limits
             )
             
+            # Extract tool usage from the result using Pydantic AI's message history
+            tools_used = []
+            try:
+                # Get all messages from the agent run
+                all_messages = result.all_messages() if hasattr(result, 'all_messages') else []
+                print(f"[LeoPydanticAgent] 🔍 Total messages in result: {len(all_messages)}")
+                
+                # Enhanced tool usage detection - check multiple sources
+                tool_names_found = set()
+                
+                # Method 1: Check message parts for tool calls
+                for msg in all_messages:
+                    if hasattr(msg, 'parts'):
+                        for part in msg.parts:
+                            # Check for tool call parts
+                            if hasattr(part, 'tool_name') and part.tool_name:
+                                tool_names_found.add(part.tool_name)
+                                print(f"[LeoPydanticAgent] 🔧 Found tool call in parts: {part.tool_name}")
+                            # Also check for tool call events
+                            elif hasattr(part, 'tool_call_id') and hasattr(part, 'tool_name'):
+                                tool_names_found.add(part.tool_name)
+                                print(f"[LeoPydanticAgent] 🔧 Found tool call via tool_call_id: {part.tool_name}")
+                
+                # Method 2: Check if the result itself has tool usage information
+                if hasattr(result, 'tools_used'):
+                    result_tools = result.tools_used
+                    if isinstance(result_tools, list):
+                        for tool in result_tools:
+                            tool_names_found.add(tool)
+                        print(f"[LeoPydanticAgent] 🔧 Added result tools: {result_tools}")
+                
+                # Method 3: Check for tool usage in the agent's execution context
+                if hasattr(result, '_execution_context') and result._execution_context:
+                    context = result._execution_context
+                    if hasattr(context, 'tool_calls'):
+                        for tool_call in context.tool_calls:
+                            if hasattr(tool_call, 'name'):
+                                tool_names_found.add(tool_call.name)
+                                print(f"[LeoPydanticAgent] 🔧 Found tool call in execution context: {tool_call.name}")
+                
+                # Method 4: Check for tool usage in the agent's function tools
+                if hasattr(leo_agent, '_function_tools'):
+                    # Look for any evidence of tool execution in the result
+                    for tool_name in leo_agent._function_tools.keys():
+                        # Check if the tool was mentioned in the response content
+                        if hasattr(result, 'data') and result.data:
+                            if isinstance(result.data, str) and tool_name.lower() in result.data.lower():
+                                tool_names_found.add(tool_name)
+                                print(f"[LeoPydanticAgent] 🔧 Found tool mention in response: {tool_name}")
+                
+                # Convert set to list while preserving order
+                tools_used = list(tool_names_found)
+                print(f"[LeoPydanticAgent] 🔧 Final tools_used: {tools_used}")
+                
+                # Check if any plan update tools were used
+                plan_update_tools = ['update_morning_routine', 'update_specific_day_plan', 'update_weekly_challenges', 'regenerate_daily_plan']
+                plan_was_updated = any(tool in tools_used for tool in plan_update_tools)
+                plan_update_type = None
+                
+                if plan_was_updated:
+                    # Determine the type of plan update
+                    if 'update_morning_routine' in tools_used:
+                        plan_update_type = 'morning_routine'
+                    elif 'update_specific_day_plan' in tools_used:
+                        plan_update_type = 'specific_day'
+                    elif 'update_weekly_challenges' in tools_used:
+                        plan_update_type = 'weekly_challenges'
+                    elif 'regenerate_daily_plan' in tools_used:
+                        plan_update_type = 'regenerate_plan'
+                    
+                    print(f"[LeoPydanticAgent] 📅 Plan update detected: {plan_update_type}")
+                
+            except Exception as e:
+                print(f"[LeoPydanticAgent] ⚠️ Error extracting tool usage: {e}")
+                import traceback
+                traceback.print_exc()
+                tools_used = []
+            
+            print(f"[LeoPydanticAgent] 🔧 Final tools_used: {tools_used}")
+            
             # Extract response
             response_data = None
             if hasattr(result, 'data') and result.data:
@@ -1379,7 +1796,9 @@ class LeoPydanticAgent:
                     content=response_data,
                     wellness_insights=wellness_insights,
                     follow_up_questions=["What would you like to explore about your wellness journey?"],
-                    tools_used=["enhanced_therapeutic_system", "insight_generation"]
+                    tools_used=tools_used,  # Use actual tools used instead of hardcoded values
+                    plan_updated=plan_was_updated,
+                    plan_update_type=plan_update_type
                 )
             elif response_data is None:
                 # Try to get content from messages and enhance
@@ -1410,7 +1829,9 @@ class LeoPydanticAgent:
                         content=content,
                         wellness_insights=wellness_insights,
                         follow_up_questions=["What aspect of your wellness interests you most?"],
-                        tools_used=["enhanced_therapeutic_system", "message_extraction"]
+                        tools_used=tools_used,  # Use actual tools used
+                        plan_updated=plan_was_updated,
+                        plan_update_type=plan_update_type
                     )
                 else:
                     raise Exception("No valid response data found")
@@ -1439,7 +1860,9 @@ class LeoPydanticAgent:
                     content=content,
                     wellness_insights=wellness_insights,
                     follow_up_questions=["Tell me more about your wellness goals"],
-                    tools_used=["enhanced_therapeutic_system", "fallback_enhancement"]
+                    tools_used=tools_used,  # Use actual tools used
+                    plan_updated=plan_was_updated,
+                    plan_update_type=plan_update_type
                 )
             
             # Save Leo's response
@@ -1475,141 +1898,3 @@ class LeoPydanticAgent:
     def deserialize_message_history(self, json_data: bytes) -> List[ModelMessage]:
         """Deserialize message history from JSON."""
         return ModelMessagesTypeAdapter.load_json(json_data) 
-
-@leo_agent.tool
-async def get_personalized_user_context(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
-    """Get personalized user context including current lifestyle, strengths, and challenges for targeted advice."""
-    try:
-        print(f"[Leo Brain] 🎯 Loading personalized context for user {ctx.deps.user_id}")
-        
-        # Load current assessment
-        db_assessment = ctx.deps.db.query(DBUserAssessment).filter(
-            DBUserAssessment.user_id == ctx.deps.internal_user_id
-        ).order_by(DBUserAssessment.created_at.desc()).first()
-        
-        if not db_assessment:
-            return {"error": "No assessment found for personalized context"}
-        
-        # Extract user context from quiz answers
-        quiz_answers = db_assessment.quiz_answers or []
-        user_context = self._extract_user_context_from_quiz(quiz_answers)
-        
-        personalized_context = {
-            "current_lifestyle": user_context.get("currentLifestyle", {}),
-            "strengths": user_context.get("strengths", []),
-            "challenges": user_context.get("challenges", []),
-            "wellness_scores": {
-                "overall_glow_score": db_assessment.overall_glow_score,
-                "physical_vitality": db_assessment.category_scores.get("physicalVitality", 0),
-                "emotional_health": db_assessment.category_scores.get("emotionalHealth", 0),
-                "visual_appearance": db_assessment.category_scores.get("visualAppearance", 0)
-            },
-            "age_context": {
-                "chronological_age": db_assessment.chronological_age,
-                "biological_age": db_assessment.biological_age,
-                "emotional_age": db_assessment.emotional_age
-            },
-            "archetype": db_assessment.glowup_archetype,
-            "detailed_insights": db_assessment.detailed_insights or {}
-        }
-        
-        return personalized_context
-        
-    except Exception as e:
-        raise ModelRetry(f"Error getting personalized context: {str(e)}")
-
-def _extract_user_context_from_quiz(self, quiz_answers: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Extract personalized user context from quiz answers for targeted advice."""
-    context = {
-        "currentLifestyle": {},
-        "strengths": [],
-        "challenges": [],
-        "preferences": {},
-        "goals": []
-    }
-    
-    # Map quiz answers to context
-    for answer in quiz_answers:
-        question_id = answer.get("questionId", "")
-        value = answer.get("value")
-        label = answer.get("label", "")
-        
-        if question_id == "q1":  # Energy levels
-            context["currentLifestyle"]["energyLevel"] = {
-                "score": value,
-                "description": label,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q2":  # Sleep
-            context["currentLifestyle"]["sleep"] = {
-                "hours": label,
-                "quality": "good" if value >= 4 else "needs_improvement",
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q3":  # Exercise
-            context["currentLifestyle"]["exercise"] = {
-                "frequency": label,
-                "intensity": "high" if value >= 4 else "moderate" if value >= 3 else "low",
-                "needsImprovement": value <= 2
-            }
-        elif question_id == "q4":  # Nutrition
-            context["currentLifestyle"]["nutrition"] = {
-                "quality": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q6":  # Stress management
-            context["currentLifestyle"]["stressManagement"] = {
-                "effectiveness": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q8":  # Social connections
-            context["currentLifestyle"]["socialConnections"] = {
-                "satisfaction": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q10":  # Body image
-            context["currentLifestyle"]["bodyImage"] = {
-                "confidence": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q11":  # Skin health
-            context["currentLifestyle"]["skinHealth"] = {
-                "condition": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q12":  # Physical symptoms
-            context["currentLifestyle"]["physicalSymptoms"] = {
-                "frequency": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q13":  # Alcohol consumption
-            context["currentLifestyle"]["alcoholConsumption"] = {
-                "pattern": label,
-                "risk": "high" if value in ["high", "excessive"] else "moderate" if value == "moderate" else "low"
-            }
-        elif question_id == "q14":  # BMI
-            context["currentLifestyle"]["bmi"] = {
-                "category": label,
-                "needsAttention": value in ["overweight", "obese", "underweight"]
-            }
-        elif question_id == "q18":  # Water intake
-            context["currentLifestyle"]["hydration"] = {
-                "intake": label,
-                "adequacy": "good" if value >= 4 else "needs_improvement",
-                "needsImprovement": value <= 3
-            }
-    
-    # Identify strengths and challenges
-    for category, data in context["currentLifestyle"].items():
-        if isinstance(data, dict) and data.get("score", 0) >= 4:
-            context["strengths"].append(f"Good {category.replace('_', ' ')}")
-        elif isinstance(data, dict) and data.get("needsImprovement", False):
-            context["challenges"].append(f"Improve {category.replace('_', ' ')}")
-    
-    return context

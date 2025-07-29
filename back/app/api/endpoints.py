@@ -21,16 +21,15 @@ from app.models.future_projection import FutureProjection
 from app.models.future_projection import DailyPlan
 from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 from app.services.progress_tracking_service import ProgressTrackingService
-from app.services.goal_setting_service import GoalSettingService
+from app.services.user_preferences_service import UserPreferencesService
+from datetime import datetime, date, timedelta
+from app.models.user import User
 
 # Initialize router
 router = APIRouter()
 
 # Initialize services
 ai_service = AIService()
-plan_service = KnowledgeBasedPlanService()
-progress_service = ProgressTrackingService()
-goal_service = GoalSettingService()
 
 logger = logging.getLogger(__name__)
 
@@ -417,14 +416,7 @@ async def generate_daily_plan(
     if not assessment:
         raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
 
-    # Extract rich user data from assessment for personalization
-    quiz_answers = assessment.quiz_answers or []
-    detailed_insights = assessment.detailed_insights or {}
-    
-    # Build comprehensive user context from quiz answers
-    user_context = _extract_user_context_from_quiz(quiz_answers)
-    
-    # Prepare the data for the LLM with REAL user data
+    # Prepare the data for the LLM
     orchestrator_output = {
         "overallGlowScore": assessment.overall_glow_score,
         "adjustedCategoryScores": assessment.category_scores,
@@ -432,32 +424,23 @@ async def generate_daily_plan(
         "emotionalAge": assessment.emotional_age,
         "chronologicalAge": assessment.chronological_age,
         "glowUpArchetype": assessment.glowup_archetype,
-        "analysisSummary": assessment.analysis_summary or "Assessment completed successfully.",
-        "userContext": user_context  # Add rich user context
+        "analysisSummary": assessment.analysis_summary or "Assessment completed successfully."
     }
-    
-    # Extract quiz insights from detailed assessment data
-    quiz_insights = {
-        "adjustedScores": assessment.category_scores,
-        "keyStrengths": detailed_insights.get("keyStrengths", []),
-        "priorityAreas": detailed_insights.get("priorityAreas", []),
-        "healthAssessment": detailed_insights.get("healthAssessment", {}),
-        "culturalContext": detailed_insights.get("culturalContext", ""),
-        "userContext": user_context
-    }
-    
-    # Extract photo insights if available
-    photo_insights = detailed_insights.get("photoInsights", {})
+    quiz_insights = None
+    photo_insights = None
     user_name = db_user.first_name
 
+    plan_service = KnowledgeBasedPlanService()
     daily_plan = await plan_service.generate_7_day_plan(
         orchestrator_output=orchestrator_output,
         quiz_insights=quiz_insights,
         photo_insights=photo_insights,
-        user_name=user_name
+        user_name=user_name,
+        db=db,
+        user_id=db_user.id
     )
 
-    # Save the plan to the database
+    # Save the plan to the database (reuse save_daily_plan from FutureSelfService for now)
     future_self_service = FutureSelfService()
     saved_plan = future_self_service.save_daily_plan(
         user_id=db_user.id,
@@ -470,178 +453,7 @@ async def generate_daily_plan(
         "message": "7-day daily plan generated and saved successfully.",
         "plan_id": saved_plan.id,
         "daily_plan": daily_plan
-    }
-
-@router.post("/create-personalized-goals")
-async def create_personalized_goals(
-    user=Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Create personalized goals based on user's assessment data."""
-    db_user = get_or_create_user(db, user)
-    assessment = get_latest_user_assessment(db, db_user.id)
-    if not assessment:
-        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
-
-    # Extract user context from quiz answers
-    quiz_answers = assessment.quiz_answers or []
-    user_context = _extract_user_context_from_quiz(quiz_answers)
-    user_name = db_user.first_name
-
-    goals = await goal_service.create_personalized_goals(user_context, user_name)
-
-    return {
-        "message": "Personalized goals created successfully.",
-        "goals": goals
-    }
-
-@router.post("/create-custom-habits")
-async def create_custom_habits(
-    user=Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Create custom habits based on user's goals and current lifestyle."""
-    db_user = get_or_create_user(db, user)
-    assessment = get_latest_user_assessment(db, db_user.id)
-    if not assessment:
-        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
-
-    # Extract user context from quiz answers
-    quiz_answers = assessment.quiz_answers or []
-    user_context = _extract_user_context_from_quiz(quiz_answers)
-    user_name = db_user.first_name
-
-    # First create goals, then create habits based on those goals
-    goals = await goal_service.create_personalized_goals(user_context, user_name)
-    habits = await goal_service.create_custom_habits(user_context, goals, user_name)
-
-    return {
-        "message": "Custom habits created successfully.",
-        "goals": goals,
-        "habits": habits
-    }
-
-@router.get("/user-wellness-profile")
-async def get_user_wellness_profile(
-    user=Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Get the user's personalized wellness profile based on their assessment data."""
-    db_user = get_or_create_user(db, user)
-    assessment = get_latest_user_assessment(db, db_user.id)
-    if not assessment:
-        raise HTTPException(status_code=404, detail="No assessment found for user. Please complete an assessment first.")
-
-    # Extract user context from quiz answers
-    quiz_answers = assessment.quiz_answers or []
-    user_context = _extract_user_context_from_quiz(quiz_answers)
-    
-    # Get user name for personalization
-    user_name = db_user.first_name
-
-    # Create personalized wellness profile
-    profile = await goal_service.create_wellness_profile(user_context, user_name)
-    
-    return {
-        "message": "Wellness profile retrieved successfully.",
-        "profile": profile
-    }
-
-def _extract_user_context_from_quiz(quiz_answers: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Extract personalized user context from quiz answers for plan generation."""
-    context = {
-        "currentLifestyle": {},
-        "strengths": [],
-        "challenges": [],
-        "preferences": {},
-        "goals": []
-    }
-    
-    # Map quiz answers to context
-    for answer in quiz_answers:
-        question_id = answer.get("questionId", "")
-        value = answer.get("value")
-        label = answer.get("label", "")
-        
-        if question_id == "q1":  # Energy levels
-            context["currentLifestyle"]["energyLevel"] = {
-                "score": value,
-                "description": label,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q2":  # Sleep
-            context["currentLifestyle"]["sleep"] = {
-                "hours": label,
-                "quality": "good" if value >= 4 else "needs_improvement",
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q3":  # Exercise
-            context["currentLifestyle"]["exercise"] = {
-                "frequency": label,
-                "intensity": "high" if value >= 4 else "moderate" if value >= 3 else "low",
-                "needsImprovement": value <= 2
-            }
-        elif question_id == "q4":  # Nutrition
-            context["currentLifestyle"]["nutrition"] = {
-                "quality": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q6":  # Stress management
-            context["currentLifestyle"]["stressManagement"] = {
-                "effectiveness": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q8":  # Social connections
-            context["currentLifestyle"]["socialConnections"] = {
-                "satisfaction": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q10":  # Body image
-            context["currentLifestyle"]["bodyImage"] = {
-                "confidence": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q11":  # Skin health
-            context["currentLifestyle"]["skinHealth"] = {
-                "condition": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q12":  # Physical symptoms
-            context["currentLifestyle"]["physicalSymptoms"] = {
-                "frequency": label,
-                "score": value,
-                "needsImprovement": value <= 3
-            }
-        elif question_id == "q13":  # Alcohol consumption
-            context["currentLifestyle"]["alcoholConsumption"] = {
-                "pattern": label,
-                "risk": "high" if value in ["high", "excessive"] else "moderate" if value == "moderate" else "low"
-            }
-        elif question_id == "q14":  # BMI
-            context["currentLifestyle"]["bmi"] = {
-                "category": label,
-                "needsAttention": value in ["overweight", "obese", "underweight"]
-            }
-        elif question_id == "q18":  # Water intake
-            context["currentLifestyle"]["hydration"] = {
-                "intake": label,
-                "adequacy": "good" if value >= 4 else "needs_improvement",
-                "needsImprovement": value <= 3
-            }
-    
-    # Identify strengths and challenges
-    for category, data in context["currentLifestyle"].items():
-        if isinstance(data, dict) and data.get("score", 0) >= 4:
-            context["strengths"].append(f"Good {category.replace('_', ' ')}")
-        elif isinstance(data, dict) and data.get("needsImprovement", False):
-            context["challenges"].append(f"Improve {category.replace('_', ' ')}")
-    
-    return context
+    } 
 
 @router.get("/daily-plan")
 async def get_latest_daily_plan(
@@ -657,7 +469,54 @@ async def get_latest_daily_plan(
         raise HTTPException(status_code=404, detail="No daily plan found for user.")
 
     # The plan_json should be the LLM object (with morningLaunchpad and days)
-    return plan.plan_json 
+    return plan.plan_json
+
+@router.post("/update-daily-plan")
+async def update_daily_plan(
+    plan_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update the latest daily plan for the authenticated user."""
+    try:
+        logger.info(f"Received plan update request for user {user.get('user_id', 'unknown')}")
+        logger.info(f"Plan data keys: {list(plan_data.keys()) if plan_data else 'None'}")
+        
+        db_user = get_or_create_user(db, user)
+        
+        # Get the latest plan for this user
+        plan = db.query(DailyPlan).filter(
+            DailyPlan.user_id == db_user.id
+        ).order_by(DailyPlan.created_at.desc()).first()
+        
+        if not plan:
+            logger.error(f"No daily plan found for user {db_user.id}")
+            raise HTTPException(status_code=404, detail="No daily plan found for user.")
+        
+        logger.info(f"Found existing plan {plan.id} for user {db_user.id}")
+        
+        # Update the plan_json with the new data
+        plan.plan_json = plan_data
+        
+        # Commit the changes
+        db.commit()
+        db.refresh(plan)
+        
+        logger.info(f"Daily plan updated successfully for user {db_user.id}")
+        
+        return {
+            "message": "Daily plan updated successfully",
+            "plan_id": plan.id,
+            "updated_at": plan.created_at.isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating daily plan for user {user.get('user_id', 'unknown')}: {str(e)}")
+        logger.error(f"Plan data received: {plan_data}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update daily plan: {str(e)}") 
 
 @router.get("/ai-mentor-prompts")
 async def get_personalized_ai_prompts(
@@ -810,6 +669,7 @@ async def complete_habit(
     """Mark a habit as completed for a specific date"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
         # Get latest assessment and daily plan for reference
         latest_assessment = get_latest_user_assessment(db, db_user.id)
@@ -841,17 +701,23 @@ async def get_habit_completions(
     start_date: str = None,
     end_date: str = None,
     habit_type: str = None,
+    days: int = None,
     user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get habit completions for the authenticated user"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
         # Parse dates if provided
-        from datetime import datetime
-        start_dt = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
-        end_dt = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
+        if days:
+            # If days parameter is provided, calculate date range
+            end_dt = date.today()
+            start_dt = end_dt - timedelta(days=days)
+        else:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d").date() if start_date else None
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d").date() if end_date else None
         
         completions = progress_service.get_habit_completions(
             db=db,
@@ -869,6 +735,65 @@ async def get_habit_completions(
         raise HTTPException(status_code=500, detail=f"Failed to fetch habit completions: {str(e)}")
 
 
+@router.get("/contributions/github-style")
+async def get_github_style_contributions(
+    year: int = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get GitHub-style contribution data for a specific year"""
+    try:
+        db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
+        
+        if year is None:
+            year = datetime.now().year
+        
+        contributions = progress_service.get_github_style_contributions(
+            db=db,
+            user_id=db_user.id,
+            year=year
+        )
+        
+        return {
+            "contributions": contributions,
+            "year": year
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching GitHub-style contributions: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch contributions: {str(e)}")
+
+
+@router.get("/contributions/stats")
+async def get_contribution_stats(
+    year: int = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get comprehensive contribution statistics for a year"""
+    try:
+        db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
+        
+        if year is None:
+            year = datetime.now().year
+        
+        stats = progress_service.get_contribution_stats(
+            db=db,
+            user_id=db_user.id,
+            year=year
+        )
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error fetching contribution stats: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch contribution stats: {str(e)}")
+
+
 @router.get("/progress/streaks")
 async def get_habit_streaks(
     user=Depends(get_current_user),
@@ -877,39 +802,18 @@ async def get_habit_streaks(
     """Get current and longest streaks for all habit types"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
         streaks = progress_service.calculate_habit_streaks(db, db_user.id)
-        return {"streaks": streaks}
+        
+        return {
+            "streaks": streaks
+        }
         
     except Exception as e:
-        logger.error(f"Error calculating habit streaks: {str(e)}")
+        logger.error(f"Error fetching habit streaks: {str(e)}")
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Failed to calculate streaks: {str(e)}")
-
-
-@router.post("/progress/snapshot", response_model=ProgressSnapshotResponse)
-async def create_progress_snapshot(
-    request: ProgressSnapshotRequest,
-    user=Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Create a progress snapshot for the authenticated user"""
-    try:
-        db_user = get_or_create_user(db, user)
-        
-        snapshot = progress_service.create_progress_snapshot(
-            db=db,
-            user_id=db_user.id,
-            snapshot_date=request.snapshot_date,
-            notes=request.notes
-        )
-        
-        return snapshot
-        
-    except Exception as e:
-        logger.error(f"Error creating progress snapshot: {str(e)}")
-        logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Failed to create snapshot: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch habit streaks: {str(e)}")
 
 
 @router.get("/progress/history")
@@ -918,30 +822,15 @@ async def get_progress_history(
     user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get comprehensive progress history for the authenticated user"""
+    """Get progress history with completion statistics"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
-        # Get habit completions
-        from datetime import date, timedelta
-        end_date = date.today()
-        start_date = end_date - timedelta(days=days)
-        
-        completions = progress_service.get_habit_completions(db, db_user.id, start_date, end_date)
-        snapshots = progress_service.get_progress_snapshots(db, db_user.id, start_date, end_date)
-        streaks = progress_service.calculate_habit_streaks(db, db_user.id)
         stats = progress_service.get_completion_stats(db, db_user.id, days)
         
         return {
-            "habit_completions": completions,
-            "progress_snapshots": snapshots,
-            "streaks": streaks,
-            "completion_stats": stats,
-            "progress_trends": {
-                "completion_rate_trend": "increasing",  # Would be calculated based on historical data
-                "best_performing_day": "Monday",
-                "most_consistent_habit": stats.get("most_consistent_habit")
-            }
+            "completion_stats": stats
         }
         
     except Exception as e:
@@ -956,14 +845,21 @@ async def get_daily_progress(
     user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get daily progress for a specific date (defaults to today)"""
+    """Get comprehensive daily progress for a specific date"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
-        from datetime import datetime
-        target_date = datetime.strptime(date, "%Y-%m-%d").date() if date else None
+        target_date = None
+        if date:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
         
-        daily_progress = progress_service.get_daily_progress(db, db_user.id, target_date)
+        daily_progress = progress_service.get_daily_progress(
+            db=db,
+            user_id=db_user.id,
+            target_date=target_date
+        )
+        
         return daily_progress
         
     except Exception as e:
@@ -978,17 +874,314 @@ async def get_weekly_progress(
     user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get weekly progress for a specific week (defaults to current week)"""
+    """Get comprehensive weekly progress"""
     try:
         db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
         
-        from datetime import datetime
-        week_start_date = datetime.strptime(week_start, "%Y-%m-%d").date() if week_start else None
+        start_date = None
+        if week_start:
+            start_date = datetime.strptime(week_start, "%Y-%m-%d").date()
         
-        weekly_progress = progress_service.get_weekly_progress(db, db_user.id, week_start_date)
+        weekly_progress = progress_service.get_weekly_progress(
+            db=db,
+            user_id=db_user.id,
+            week_start=start_date
+        )
+        
         return weekly_progress
         
     except Exception as e:
         logger.error(f"Error fetching weekly progress: {str(e)}")
         logger.error(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=f"Failed to fetch weekly progress: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Failed to fetch weekly progress: {str(e)}")
+
+
+@router.post("/progress/snapshot", response_model=ProgressSnapshotResponse)
+async def create_progress_snapshot(
+    request: ProgressSnapshotRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a progress snapshot for the current user"""
+    try:
+        db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
+        
+        snapshot = progress_service.create_progress_snapshot(
+            db=db,
+            user_id=db_user.id,
+            snapshot_date=request.snapshot_date,
+            notes=request.notes
+        )
+        
+        return snapshot
+        
+    except Exception as e:
+        logger.error(f"Error creating progress snapshot: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to create progress snapshot: {str(e)}")
+
+
+# User Preferences & Custom Habits Endpoints
+@router.get("/preferences")
+async def get_user_preferences(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user preferences and custom habits"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        preferences = preferences_service.get_user_preferences(db, db_user.id)
+        custom_habits = preferences_service.get_custom_habits(db, db_user.id)
+        
+        return {
+            "preferences": preferences.__dict__ if preferences else {},
+            "custom_habits": [
+                {
+                    "id": habit.id,
+                    "name": habit.name,
+                    "description": habit.description,
+                    "category": habit.category,
+                    "trigger": habit.trigger,
+                    "action": habit.action,
+                    "reward": habit.reward,
+                    "difficulty_level": habit.difficulty_level,
+                    "frequency": habit.frequency,
+                    "estimated_duration": habit.estimated_duration,
+                    "completion_count": habit.completion_count,
+                    "last_completed": habit.last_completed.isoformat() if habit.last_completed else None,
+                    "is_active": habit.is_active
+                }
+                for habit in custom_habits
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching user preferences: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to fetch preferences: {str(e)}")
+
+
+@router.post("/preferences")
+async def update_user_preferences(
+    preferences_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user preferences"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        preferences = preferences_service.create_or_update_preferences(db, db_user.id, preferences_data)
+        
+        return {
+            "message": "Preferences updated successfully",
+            "preferences": preferences.__dict__
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating user preferences: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update preferences: {str(e)}")
+
+
+@router.post("/habits/custom")
+async def create_custom_habit(
+    habit_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new custom habit"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        habit = preferences_service.create_custom_habit(db, db_user.id, habit_data)
+        
+        return {
+            "message": "Custom habit created successfully",
+            "habit": {
+                "id": habit.id,
+                "name": habit.name,
+                "description": habit.description,
+                "category": habit.category,
+                "trigger": habit.trigger,
+                "action": habit.action,
+                "reward": habit.reward,
+                "difficulty_level": habit.difficulty_level,
+                "frequency": habit.frequency,
+                "estimated_duration": habit.estimated_duration
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating custom habit: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to create custom habit: {str(e)}")
+
+
+@router.put("/habits/custom/{habit_id}")
+async def update_custom_habit(
+    habit_id: int,
+    habit_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update an existing custom habit"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        habit = preferences_service.update_custom_habit(db, habit_id, db_user.id, habit_data)
+        
+        if not habit:
+            raise HTTPException(status_code=404, detail="Custom habit not found")
+        
+        return {
+            "message": "Custom habit updated successfully",
+            "habit": {
+                "id": habit.id,
+                "name": habit.name,
+                "description": habit.description,
+                "category": habit.category,
+                "trigger": habit.trigger,
+                "action": habit.action,
+                "reward": habit.reward,
+                "difficulty_level": habit.difficulty_level,
+                "frequency": habit.frequency,
+                "estimated_duration": habit.estimated_duration
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating custom habit: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to update custom habit: {str(e)}")
+
+
+@router.delete("/habits/custom/{habit_id}")
+async def delete_custom_habit(
+    habit_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a custom habit"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        success = preferences_service.delete_custom_habit(db, habit_id, db_user.id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Custom habit not found")
+        
+        return {"message": "Custom habit deleted successfully"}
+        
+    except Exception as e:
+        logger.error(f"Error deleting custom habit: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to delete custom habit: {str(e)}")
+
+
+@router.post("/habits/custom/{habit_id}/complete")
+async def complete_custom_habit(
+    habit_id: int,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Mark a custom habit as completed"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        habit = preferences_service.complete_custom_habit(db, habit_id, db_user.id)
+        
+        if not habit:
+            raise HTTPException(status_code=404, detail="Custom habit not found")
+        
+        return {
+            "message": "Custom habit completed successfully",
+            "habit": {
+                "id": habit.id,
+                "name": habit.name,
+                "completion_count": habit.completion_count,
+                "last_completed": habit.last_completed.isoformat() if habit.last_completed else None
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error completing custom habit: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to complete custom habit: {str(e)}")
+
+
+@router.get("/habits/suggestions")
+async def get_habit_suggestions(
+    current_habits: List[str] = [],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get personalized habit suggestions based on user preferences"""
+    try:
+        db_user = get_or_create_user(db, user)
+        preferences_service = UserPreferencesService()
+        
+        suggestions = preferences_service.suggest_habit_improvements(db, db_user.id, current_habits)
+        
+        return {
+            "suggestions": suggestions,
+            "current_habits": current_habits
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting habit suggestions: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to get habit suggestions: {str(e)}") 
+
+@router.post("/test-leo-update")
+async def test_leo_update(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Test endpoint to verify Leo's plan update functionality"""
+    try:
+        from app.services.leo_pydantic_agent import LeoPydanticAgent
+        
+        # Get user info
+        db_user = db.query(User).filter(User.clerk_user_id == user.id).first()
+        if not db_user:
+            return {"error": "User not found"}
+        
+        # Initialize Leo agent
+        leo_agent = LeoPydanticAgent()
+        
+        # Test message that should trigger a plan update
+        test_message = "Can you update my morning routine to include meditation?"
+        
+        # Process the message
+        response = await leo_agent.process_message(
+            user_message=test_message,
+            db=db,
+            user_id=user.id,
+            internal_user_id=db_user.id,
+            session_id="test_session"
+        )
+        
+        return {
+            "success": True,
+            "message": "Leo update test completed",
+            "response_content": response.content,
+            "tools_used": response.tools_used,
+            "plan_updated": response.plan_updated,
+            "plan_update_type": response.plan_update_type
+        }
+        
+    except Exception as e:
+        print(f"Error in test_leo_update: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)} 

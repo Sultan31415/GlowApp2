@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { RotateCcw, Sun, CheckCircle, Circle, Trophy, Target, Settings, Moon, Sparkles, Plus } from 'lucide-react';
+import { RotateCcw, Sun, CheckCircle, Circle, Trophy, Edit, Calendar, Target, Activity, Heart, Save, X } from 'lucide-react';
 import { useApi } from '../../utils/useApi';
 import { DayCard } from './DayCard';
 import { useTranslation } from 'react-i18next';
+import { LeoChatWidget } from '../features';
 
 const dayNames = [
   'daily.days.monday',
@@ -22,98 +23,174 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   const { t } = useTranslation();
   const { makeRequest } = useApi();
   const [plan, setPlan] = useState<any>(null);
-  const [goals, setGoals] = useState<any>(null);
-  const [customHabits, setCustomHabits] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [trackingState, setTrackingState] = useState<Record<string, boolean>>({});
-  const [loadingTracking, setLoadingTracking] = useState<Record<string, boolean>>({});
-  const [activeTab, setActiveTab] = useState<'plan' | 'goals' | 'habits' | 'profile'>('plan');
+  // State for inline editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  // State for Leo updates
+  const [leoUpdating, setLeoUpdating] = useState(false);
 
-  const handleHabitComplete = async (habitType: string, habitContent: string, key: string) => {
-    if (loadingTracking[key]) return;
-
+  // Function to refetch the plan when Leo updates it
+  const refetchPlan = async () => {
     try {
-      setLoadingTracking(prev => ({ ...prev, [key]: true }));
+      console.log('Refetching plan after Leo update...');
+      setLeoUpdating(true); // Show Leo is updating
+      setLoading(true); // Show loading state while refetching
       
-      await makeRequest('habits/complete', {
-        method: 'POST',
-        body: JSON.stringify({
-          habit_type: habitType,
-          habit_content: habitContent,
-          day_date: new Date().toISOString().split('T')[0]
-        })
-      });
-
-      setTrackingState(prev => ({ ...prev, [key]: true }));
-    } catch (error) {
-      console.error('Error completing habit:', error);
+      const data = await makeRequest('daily-plan');
+      setPlan(data);
+      setError(null); // Clear any previous errors
+      console.log('Plan refetched successfully:', data);
+      
+      // Show a brief success message (optional)
+      // You could add a toast notification here if you have a toast system
+      
+    } catch (err: any) {
+      console.error('Error refetching plan:', err);
+      setError('Failed to refresh plan after Leo update. Please try refreshing the page.');
+      
+      // Try to refetch again after a short delay
+      setTimeout(async () => {
+        try {
+          console.log('Retrying plan refetch...');
+          const retryData = await makeRequest('daily-plan');
+          setPlan(retryData);
+          setError(null);
+          console.log('Plan refetched successfully on retry:', retryData);
+        } catch (retryErr: any) {
+          console.error('Retry failed:', retryErr);
+          setError('Unable to refresh plan. Please refresh the page manually.');
+        }
+      }, 2000);
     } finally {
-      setLoadingTracking(prev => ({ ...prev, [key]: false }));
+      setLoading(false);
+      setLeoUpdating(false); // Hide Leo updating indicator
     }
   };
 
-  const loadPersonalizedData = async () => {
+  // New functions for inline editing
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setEditingPlan(JSON.parse(JSON.stringify(plan))); // Deep copy for editing
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingPlan(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingPlan) return;
+    
+    setSaving(true);
     try {
-      setLoading(true);
-      setError(null);
-
-      // Load daily plan
-      const planData = await makeRequest('daily-plan');
-      if (!planData || !Array.isArray(planData.days) || planData.days.length === 0) {
-        await makeRequest('generate-daily-plan', { method: 'POST' });
-        const newPlanData = await makeRequest('daily-plan');
-        setPlan(newPlanData);
-      } else {
-        setPlan(planData);
-      }
-
-      // Load personalized goals
-      try {
-        const goalsData = await makeRequest('create-personalized-goals', { method: 'POST' });
-        setGoals(goalsData.goals);
-      } catch (goalsError) {
-        console.log('Goals not available yet:', goalsError);
-      }
-
-      // Load custom habits
-      try {
-        const habitsData = await makeRequest('create-custom-habits', { method: 'POST' });
-        setCustomHabits(habitsData.habits);
-      } catch (habitsError) {
-        console.log('Habits not available yet:', habitsError);
-      }
-
-      // Load user wellness profile
-      try {
-        const profileData = await makeRequest('user-wellness-profile');
-        setUserProfile(profileData.profile);
-      } catch (profileError) {
-        console.log('Profile not available yet:', profileError);
-      }
-
-    } catch (err: any) {
-      if (err?.status === 404 || err?.response?.status === 404) {
-        try {
-          await makeRequest('generate-daily-plan', { method: 'POST' });
-          const data = await makeRequest('daily-plan');
-          setPlan(data);
-        } catch (genErr: any) {
-          setError('Failed to generate your personalized plan. Please try again.');
-          setPlan(null);
-        }
-      } else {
-        setError('Failed to load your personalized wellness data.');
-        setPlan(null);
-      }
+      const response = await makeRequest('update-daily-plan', {
+        method: 'POST',
+        body: JSON.stringify(editingPlan)
+      });
+      
+      console.log('Plan update response:', response);
+      setPlan(editingPlan);
+      setIsEditing(false);
+      setEditingPlan(null);
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      setError(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
+  };
+
+  const updateMorningRoutine = (index: number, value: string) => {
+    if (!editingPlan) return;
+    
+    const newPlan = { ...editingPlan };
+    if (Array.isArray(newPlan.morningLaunchpad)) {
+      newPlan.morningLaunchpad[index] = value;
+    } else if (typeof newPlan.morningLaunchpad === 'string') {
+      const steps = newPlan.morningLaunchpad.split(/,\s*|\.\s*|\n+/).filter(Boolean);
+      steps[index] = value;
+      newPlan.morningLaunchpad = steps.join('. ');
+    }
+    setEditingPlan(newPlan);
+  };
+
+  const updateDayField = (dayIndex: number, field: string, value: any) => {
+    if (!editingPlan) return;
+    
+    const newPlan = { ...editingPlan };
+    newPlan.days[dayIndex] = { ...newPlan.days[dayIndex], [field]: value };
+    setEditingPlan(newPlan);
+  };
+
+  const updateSystemBuilding = (dayIndex: number, habitIndex: number, field: string, value: string) => {
+    if (!editingPlan) return;
+    
+    const newPlan = { ...editingPlan };
+    const day = { ...newPlan.days[dayIndex] };
+    
+    if (Array.isArray(day.systemBuilding)) {
+      day.systemBuilding[habitIndex] = { ...day.systemBuilding[habitIndex], [field]: value };
+    } else if (day.systemBuilding) {
+      day.systemBuilding = { ...day.systemBuilding, [field]: value };
+    }
+    
+    newPlan.days[dayIndex] = day;
+    setEditingPlan(newPlan);
   };
 
   useEffect(() => {
-    loadPersonalizedData();
+    let triedGeneration = false;
+    const fetchPlan = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await makeRequest('daily-plan');
+        // If plan.days is missing or empty, try to generate a new plan (for early users)
+        if (!data || !Array.isArray(data.days) || data.days.length === 0) {
+          if (!triedGeneration) {
+            triedGeneration = true;
+            await makeRequest('generate-daily-plan', { method: 'POST' });
+            const newData = await makeRequest('daily-plan');
+            setPlan(newData);
+            console.log('Fetched plan after generation (missing/empty days):', newData);
+            return;
+          } else {
+            setError('No daily plan found. Please try to generate your plan again.');
+            setPlan(null);
+            return;
+          }
+        }
+        setPlan(data);
+        console.log('Fetched plan:', data); // Debug: log the plan structure
+      } catch (err: any) {
+        // If 404, try to generate the plan
+        if ((err?.status === 404 || err?.response?.status === 404) && !triedGeneration) {
+          triedGeneration = true;
+          try {
+            await makeRequest('generate-daily-plan', { method: 'POST' });
+            // Try fetching again
+            const data = await makeRequest('daily-plan');
+            setPlan(data);
+            console.log('Fetched plan after generation:', data); // Debug: log after generation
+          } catch (genErr: any) {
+            setError('Failed to generate your daily plan. Please try again.');
+            setPlan(null);
+            console.log('Error during plan generation:', genErr); // Debug: log generation error
+          }
+        } else {
+          setError('Failed to load your daily plan.');
+          setPlan(null);
+          console.log('Error fetching daily plan:', err); // Debug: log fetch error
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlan();
+    // eslint-disable-next-line
   }, [makeRequest]);
 
   if (loading) {
@@ -155,49 +232,119 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
 
   // Defensive: If plan or plan.days is not available, show nothing
   if (!plan || !Array.isArray(plan.days) || plan.days.length === 0) {
+    if (error) {
+      return (
+        <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
+          <div className="text-center max-w-md mx-auto px-4 sm:px-6">
+            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RotateCcw className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.noPlan')}</h3>
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              >
+                {t('daily.tryAgain')}
+              </button>
+              <button
+                onClick={onBack}
+                className="w-full mt-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              >
+                {t('daily.goBack')}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    // If no error, show loading spinner (should be rare)
     return (
       <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
-        <div className="text-center max-w-md mx-auto px-4 sm:px-6">
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <RotateCcw className="w-8 h-8 text-red-600" />
-            </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.noPlan')}</h3>
-            <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
-            >
-              {t('daily.tryAgain')}
-            </button>
-            <button
-              onClick={onBack}
-              className="w-full mt-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
-            >
-              {t('daily.goBack')}
-            </button>
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
+          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
+          <p className="text-gray-600 px-4">{t('daily.preparing')}</p>
         </div>
       </div>
     );
   }
 
-  const renderTabButton = (tab: 'plan' | 'goals' | 'habits' | 'profile', label: string, icon: React.ReactNode) => (
-    <button
-      onClick={() => setActiveTab(tab)}
-      className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-        activeTab === tab
-          ? 'bg-blue-600 text-white shadow-lg'
-          : 'bg-white/80 text-gray-700 hover:bg-white hover:text-blue-600'
-      }`}
-    >
-      {icon}
-      <span className="ml-2">{label}</span>
-    </button>
-  );
+  return (
+    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-x-hidden transition-all duration-300 pb-24">
+      {/* Leo Chat Widget */}
+      <LeoChatWidget onPlanUpdated={refetchPlan} />
+      
+      {/* Beta Version Label - centered above header */}
+      <div className="flex justify-center items-center pt-4 pb-1">
+        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">{t('daily.beta')}</span>
+      </div>
+      {/* Header */}
+      <div className="relative overflow-hidden mt-4 w-full">
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
+        <div className="relative w-full px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4 border border-gray-200/50">
+                <Sun className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold text-slate-700">{t('daily.header')}</h1>
+                <p className="text-slate-500 text-xs sm:text-base">{t('daily.subheader')}</p>
+                {leoUpdating && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-600"></div>
+                    <span className="text-xs text-blue-600 font-medium">Leo is updating your plan...</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            {isEditing ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={saving}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                  title="Save Changes"
+                >
+                  <Save className="w-4 h-4" />
+                  <span className="text-sm">{saving ? 'Saving...' : 'Save'}</span>
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                  title="Cancel Changes"
+                >
+                  <X className="w-4 h-4" />
+                  <span className="text-sm">Cancel</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={handleEditClick}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+                  title={t('daily.customize', 'Customize Your Plan')}
+                >
+                  <Edit className="w-4 h-4" />
+                  <span className="text-sm">{t('daily.customize', 'Customize')}</span>
+                </button>
+                <div className="text-xs text-gray-500 text-center">
+                  💡 Tip: You can also ask Leo to modify your plans!
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-  const renderPlanTab = () => (
-    <>
+
+
       {/* Morning Routine & Challenges Section */}
       <div className="w-full flex justify-center px-2 sm:px-4 mt-8">
         <div className="flex flex-col sm:flex-row gap-6 sm:gap-12 w-full max-w-4xl mb-8 sm:mb-12">
@@ -211,43 +358,30 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                 {t('daily.morningRoutine')}
               </h2>
               <ul className="list-none space-y-2 text-gray-700">
-                {(typeof plan.morningLaunchpad === 'string' 
-                  ? plan.morningLaunchpad.split(/,\s*|\.\s*|\n+/).filter(Boolean)
-                  : Array.isArray(plan.morningLaunchpad)
-                    ? plan.morningLaunchpad
-                    : Object.values(plan.morningLaunchpad || {}))
+                {(typeof (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad) === 'string' 
+                  ? (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad).split(/,\s*|\.\s*|\n+/).filter(Boolean)
+                  : Array.isArray(isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad)
+                    ? (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad)
+                    : Object.values((isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad) || {}))
                   .map((step: string, idx: number) => {
-                    const key = `morning_routine_${idx}`;
-                    const isCompleted = trackingState[key];
-                    const isLoading = loadingTracking[key];
                     const stepText = step.trim().replace(/^[-•\d.\s]+/, '');
                     
                     return (
                       <li key={idx} className="flex items-start justify-between py-1">
                         <div className="flex items-start gap-2 flex-1">
                           <span className="inline-block mt-0.5 text-green-500 text-base">✔️</span>
-                          <span className="leading-snug font-medium text-gray-800">{stepText}</span>
-                        </div>
-                        <button
-                          onClick={() => handleHabitComplete('morning_routine', stepText, key)}
-                          disabled={isLoading || isCompleted}
-                          className={`ml-3 flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 ${
-                            isCompleted 
-                              ? 'bg-green-100 text-green-600 cursor-default' 
-                              : isLoading
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600 border border-gray-200 hover:border-green-200'
-                          }`}
-                          title={isCompleted ? 'Completed' : isLoading ? 'Saving...' : 'Mark as completed'}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : isLoading ? (
-                            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={step}
+                              onChange={(e) => updateMorningRoutine(idx, e.target.value)}
+                              className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Enter morning routine step"
+                            />
                           ) : (
-                            <Circle className="w-4 h-4" />
+                            <span className="leading-snug font-medium text-gray-800">{stepText}</span>
                           )}
-                        </button>
+                        </div>
                       </li>
                     );
                   })}
@@ -263,9 +397,6 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               </h2>
               <ul className="space-y-2 sm:space-y-3">
                 {plan.challenges.map((challenge: any, idx: number) => {
-                  const key = `weekly_challenge_${idx}`;
-                  const isCompleted = trackingState[key];
-                  const isLoading = loadingTracking[key];
                   const challengeText = `${challenge.title}: ${challenge.description}`;
                   
                   return (
@@ -273,34 +404,14 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{challenge.category}</span>
-                            <span className="text-xs sm:text-sm font-semibold text-purple-900">{challenge.title}</span>
+                            <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{t('daily.category', { category: challenge.category })}</span>
+                            <span className="text-xs sm:text-sm font-semibold text-purple-900">{t('daily.title', { title: challenge.title })}</span>
                           </div>
-                          <div className="text-gray-800 text-xs sm:text-sm mb-0.5">{challenge.description}</div>
+                          <div className="text-gray-800 text-xs sm:text-sm mb-0.5">{t('daily.description', { description: challenge.description })}</div>
                           <div className="flex items-center gap-2 text-xs text-gray-600 mb-0.5">
-                            <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {challenge.estimatedTime}</span>
+                            <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {t('daily.estimatedTime', { time: challenge.estimatedTime })}</span>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleHabitComplete('weekly_challenge', challengeText, key)}
-                          disabled={isLoading || isCompleted}
-                          className={`ml-3 flex-shrink-0 p-1.5 rounded-lg transition-all duration-200 ${
-                            isCompleted 
-                              ? 'bg-green-100 text-green-600 cursor-default' 
-                              : isLoading
-                              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                              : 'bg-white text-gray-600 hover:bg-green-50 hover:text-green-600 border border-gray-200 hover:border-green-200'
-                          }`}
-                          title={isCompleted ? 'Completed' : isLoading ? 'Saving...' : 'Mark as completed'}
-                        >
-                          {isCompleted ? (
-                            <CheckCircle className="w-4 h-4" />
-                          ) : isLoading ? (
-                            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                          ) : (
-                            <Circle className="w-4 h-4" />
-                          )}
-                        </button>
                       </div>
                     </li>
                   );
@@ -314,328 +425,21 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       {/* Daily Plan Grid */}
       <div className="w-full mx-auto px-2 sm:px-8 lg:px-24">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 items-stretch">
-          {plan.days.map((day: any, idx: number) => (
-            <DayCard key={idx} day={day} dayName={t(dayNames[idx] || 'daily.day', { day: idx + 1 })} dayIndex={idx} />
+          {(isEditing ? editingPlan?.days : plan.days).map((day: any, idx: number) => (
+            <DayCard 
+              key={idx} 
+              day={day} 
+              dayName={t(dayNames[idx] || 'daily.day', { day: idx + 1 })} 
+              dayIndex={idx}
+              isEditing={isEditing}
+              onUpdateField={updateDayField}
+              onUpdateSystemBuilding={updateSystemBuilding}
+            />
           ))}
           {/* Invisible placeholder to fill the last cell of the first row and push last 3 cards to next row */}
           <div className="hidden lg:block" style={{ gridColumn: '4' }}></div>
         </div>
       </div>
-    </>
-  );
-
-  const renderGoalsTab = () => (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-8">
-      {goals ? (
-        <div className="space-y-6">
-          {/* Primary Goals */}
-          <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <Target className="w-6 h-6 mr-2 text-blue-600" />
-              Primary Goals
-            </h2>
-            <div className="space-y-4">
-              {goals.primaryGoals?.map((goal: any, idx: number) => (
-                <div key={idx} className="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50/50 rounded-r-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 mb-1">{goal.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2">{goal.description}</p>
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">{goal.category}</span>
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{goal.difficulty}</span>
-                        <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">{goal.priority}</span>
-                        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">{goal.timeframe}</span>
-                      </div>
-                      <p className="text-gray-500 text-xs mt-2"><strong>Motivation:</strong> {goal.motivation}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Supporting Goals */}
-          {goals.supportingGoals?.length > 0 && (
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Settings className="w-6 h-6 mr-2 text-purple-600" />
-                Supporting Goals
-              </h2>
-              <div className="space-y-4">
-                {goals.supportingGoals.map((goal: any, idx: number) => (
-                  <div key={idx} className="border-l-4 border-purple-500 pl-4 py-3 bg-purple-50/50 rounded-r-lg">
-                    <h3 className="font-semibold text-gray-800 mb-1">{goal.title}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{goal.description}</p>
-                    <div className="flex flex-wrap gap-2 text-xs">
-                      <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">{goal.category}</span>
-                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{goal.difficulty}</span>
-                      <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">{goal.timeframe}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Goal Rationale */}
-          {goals.goalRationale && (
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Sparkles className="w-6 h-6 mr-2 text-yellow-600" />
-                Why These Goals?
-              </h2>
-              <p className="text-gray-700 leading-relaxed">{goals.goalRationale}</p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No personalized goals yet</h3>
-          <p className="text-gray-500">Complete your assessment to get personalized goals</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderHabitsTab = () => (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-8">
-      {customHabits ? (
-        <div className="space-y-6">
-          {/* Core Habits */}
-          <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <Settings className="w-6 h-6 mr-2 text-blue-600" />
-              Core Habits
-            </h2>
-            <div className="space-y-4">
-              {customHabits.coreHabits?.map((habit: any, idx: number) => (
-                <div key={idx} className="border-l-4 border-blue-500 pl-4 py-3 bg-blue-50/50 rounded-r-lg">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-800 mb-1">{habit.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2">{habit.description}</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs mb-2">
-                        <div><strong>Trigger:</strong> {habit.trigger}</div>
-                        <div><strong>Action:</strong> {habit.action}</div>
-                        <div><strong>Reward:</strong> {habit.reward}</div>
-                        <div><strong>Time:</strong> {habit.estimatedTime}</div>
-                      </div>
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded">{habit.difficulty}</span>
-                        <span className="bg-green-100 text-green-700 px-2 py-1 rounded">{habit.frequency}</span>
-                        <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded">{habit.goalConnection}</span>
-                      </div>
-                      <p className="text-gray-500 text-xs mt-2"><strong>Progression:</strong> {habit.progression}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Supporting Habits */}
-          {customHabits.supportingHabits?.length > 0 && (
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Moon className="w-6 h-6 mr-2 text-purple-600" />
-                Supporting Habits
-              </h2>
-              <div className="space-y-4">
-                {customHabits.supportingHabits.map((habit: any, idx: number) => (
-                  <div key={idx} className="border-l-4 border-purple-500 pl-4 py-3 bg-purple-50/50 rounded-r-lg">
-                    <h3 className="font-semibold text-gray-800 mb-1">{habit.title}</h3>
-                    <p className="text-gray-600 text-sm mb-2">{habit.description}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                      <div><strong>Trigger:</strong> {habit.trigger}</div>
-                      <div><strong>Action:</strong> {habit.action}</div>
-                      <div><strong>Frequency:</strong> {habit.frequency}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Habit Environment */}
-          {customHabits.habitEnvironment && (
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Sparkles className="w-6 h-6 mr-2 text-yellow-600" />
-                Habit Environment
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Potential Obstacles:</h3>
-                  <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
-                    {customHabits.habitEnvironment.obstacles?.map((obstacle: string, idx: number) => (
-                      <li key={idx}>{obstacle}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Success Enablers:</h3>
-                  <ul className="list-disc list-inside text-gray-600 text-sm space-y-1">
-                    {customHabits.habitEnvironment.enablers?.map((enabler: string, idx: number) => (
-                      <li key={idx}>{enabler}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-2">Integration Strategy:</h3>
-                  <p className="text-gray-600 text-sm">{customHabits.habitEnvironment.integration}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No custom habits yet</h3>
-          <p className="text-gray-500">Complete your assessment to get personalized habits</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderProfileTab = () => (
-    <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 mt-8">
-      {userProfile ? (
-        <div className="space-y-6">
-          {/* User Info */}
-          <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <Sparkles className="w-6 h-6 mr-2 text-blue-600" />
-              Your Wellness Profile
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-2">Personal Info</h3>
-                <div className="space-y-1 text-sm">
-                  <div><strong>Name:</strong> {userProfile.user_info?.name}</div>
-                  <div><strong>Age:</strong> {userProfile.user_info?.age}</div>
-                  <div><strong>Biological Age:</strong> {userProfile.user_info?.biological_age}</div>
-                  <div><strong>Emotional Age:</strong> {userProfile.user_info?.emotional_age}</div>
-                </div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-2">Wellness Scores</h3>
-                <div className="space-y-1 text-sm">
-                  <div><strong>Overall Glow:</strong> {userProfile.wellness_scores?.overall_glow_score}</div>
-                  <div><strong>Physical Vitality:</strong> {userProfile.wellness_scores?.physical_vitality}</div>
-                  <div><strong>Emotional Health:</strong> {userProfile.wellness_scores?.emotional_health}</div>
-                  <div><strong>Visual Appearance:</strong> {userProfile.wellness_scores?.visual_appearance}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Current Lifestyle */}
-          <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-              <Target className="w-6 h-6 mr-2 text-green-600" />
-              Current Lifestyle Analysis
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(userProfile.current_lifestyle || {}).map(([key, value]: [string, any]) => (
-                <div key={key} className="border-l-4 border-green-500 pl-3 py-2 bg-green-50/50 rounded-r">
-                  <h3 className="font-semibold text-gray-800 text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h3>
-                  {typeof value === 'object' ? (
-                    <div className="text-xs text-gray-600 mt-1">
-                      {Object.entries(value).map(([subKey, subValue]: [string, any]) => (
-                        <div key={subKey}><strong>{subKey}:</strong> {String(subValue)}</div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-600 mt-1">{String(value)}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Strengths & Challenges */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <CheckCircle className="w-6 h-6 mr-2 text-green-600" />
-                Your Strengths
-              </h2>
-              <ul className="space-y-2">
-                {userProfile.strengths?.map((strength: string, idx: number) => (
-                  <li key={idx} className="flex items-center text-sm">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    {strength}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-white/90 rounded-xl shadow-lg border border-gray-100 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <Target className="w-6 h-6 mr-2 text-orange-600" />
-                Areas for Growth
-              </h2>
-              <ul className="space-y-2">
-                {userProfile.challenges?.map((challenge: string, idx: number) => (
-                  <li key={idx} className="flex items-center text-sm">
-                    <Target className="w-4 h-4 text-orange-500 mr-2" />
-                    {challenge}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <Sparkles className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-600 mb-2">No profile data yet</h3>
-          <p className="text-gray-500">Complete your assessment to see your wellness profile</p>
-        </div>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-x-hidden transition-all duration-300 pb-24">
-      {/* Beta Version Label - centered above header */}
-      <div className="flex justify-center items-center pt-4 pb-1">
-        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">{t('daily.beta')}</span>
-      </div>
-      
-      {/* Header */}
-      <div className="relative overflow-hidden mt-4 w-full">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
-        <div className="relative w-full px-4 sm:px-6 py-4">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4 border border-gray-200/50">
-              <Sun className="w-6 h-6 text-yellow-500" />
-            </div>
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-slate-700">{t('daily.header')}</h1>
-              <p className="text-slate-500 text-xs sm:text-base">{t('daily.subheader')}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="w-full flex justify-center px-4 sm:px-6 mt-6">
-        <div className="flex flex-wrap gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg">
-          {renderTabButton('plan', 'Daily Plan', <Sun className="w-4 h-4" />)}
-          {renderTabButton('goals', 'Goals', <Target className="w-4 h-4" />)}
-          {renderTabButton('habits', 'Habits', <Settings className="w-4 h-4" />)}
-          {renderTabButton('profile', 'Profile', <Sparkles className="w-4 h-4" />)}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'plan' && renderPlanTab()}
-      {activeTab === 'goals' && renderGoalsTab()}
-      {activeTab === 'habits' && renderHabitsTab()}
-      {activeTab === 'profile' && renderProfileTab()}
 
       {/* Back Button */}
       <div className="text-center mt-8 sm:mt-12 px-2">

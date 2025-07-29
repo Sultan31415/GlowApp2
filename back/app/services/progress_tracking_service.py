@@ -82,6 +82,155 @@ class ProgressTrackingService:
         
         return query.order_by(HabitCompletion.day_date.desc()).all()
     
+    def get_github_style_contributions(
+        self, 
+        db: Session, 
+        user_id: int, 
+        year: int = None
+    ) -> List[Dict[str, Any]]:
+        """Generate GitHub-style contribution data for a specific year"""
+        if year is None:
+            year = datetime.now().year
+        
+        # Get all completions for the year
+        start_date = date(year, 1, 1)
+        end_date = date(year, 12, 31)
+        
+        completions = self.get_habit_completions(db, user_id, start_date, end_date)
+        
+        # Group completions by date
+        daily_completions = {}
+        for completion in completions:
+            date_str = completion.day_date.isoformat()
+            if date_str not in daily_completions:
+                daily_completions[date_str] = []
+            daily_completions[date_str].append(completion)
+        
+        # Generate contribution data for each day of the year
+        contribution_data = []
+        current_date = start_date
+        
+        while current_date <= end_date:
+            date_str = current_date.isoformat()
+            day_completions = daily_completions.get(date_str, [])
+            
+            # Track the 4 main activity types
+            morning_routine_completed = False
+            system_building_completed = False
+            deep_focus_completed = False
+            evening_reflection_completed = False
+            
+            # Check which activities were completed
+            for completion in day_completions:
+                if completion.habit_type == 'morning_routine':
+                    morning_routine_completed = True
+                elif completion.habit_type == 'system_building':
+                    system_building_completed = True
+                elif completion.habit_type == 'deep_focus':
+                    deep_focus_completed = True
+                elif completion.habit_type == 'evening_reflection':
+                    evening_reflection_completed = True
+            
+            # Calculate completion count (0-4)
+            completed_count = sum([
+                morning_routine_completed,
+                system_building_completed,
+                deep_focus_completed,
+                evening_reflection_completed
+            ])
+            
+            # Calculate activity level based on completion count (0-4)
+            # 0 = no activities, 1 = 1 activity, 2 = 2 activities, 3 = 3 activities, 4 = all 4 activities
+            level = completed_count
+            
+            contribution_data.append({
+                'date': date_str,
+                'count': completed_count,
+                'level': level,
+                'habits': [
+                    {
+                        'id': c.id,
+                        'habit_type': c.habit_type,
+                        'habit_content': c.habit_content,
+                        'completed_at': c.completed_at.isoformat(),
+                        'day_date': c.day_date.isoformat(),
+                        'notes': c.notes
+                    }
+                    for c in day_completions
+                ],
+                # Add individual activity completion flags
+                'morning_routine_completed': morning_routine_completed,
+                'system_building_completed': system_building_completed,
+                'deep_focus_completed': deep_focus_completed,
+                'evening_reflection_completed': evening_reflection_completed
+            })
+            
+            current_date += timedelta(days=1)
+        
+        return contribution_data
+    
+    def get_contribution_stats(
+        self, 
+        db: Session, 
+        user_id: int, 
+        year: int = None
+    ) -> Dict[str, Any]:
+        """Get comprehensive contribution statistics for a year"""
+        if year is None:
+            year = datetime.now().year
+        
+        contributions = self.get_github_style_contributions(db, user_id, year)
+        
+        total_contributions = sum(day['count'] for day in contributions)
+        active_days = len([day for day in contributions if day['count'] > 0])
+        total_days = len(contributions)
+        
+        # Calculate streak information
+        current_streak = 0
+        longest_streak = 0
+        temp_streak = 0
+        
+        # Go through days in reverse order (most recent first)
+        for day in reversed(contributions):
+            if day['count'] > 0:
+                temp_streak += 1
+                if current_streak == 0:  # This is the current streak
+                    current_streak = temp_streak
+            else:
+                longest_streak = max(longest_streak, temp_streak)
+                temp_streak = 0
+        
+        longest_streak = max(longest_streak, temp_streak)
+        
+        # Calculate activity by month
+        monthly_activity = {}
+        for day in contributions:
+            month = datetime.strptime(day['date'], '%Y-%m-%d').month
+            month_name = datetime.strptime(day['date'], '%Y-%m-%d').strftime('%B')
+            if month_name not in monthly_activity:
+                monthly_activity[month_name] = 0
+            monthly_activity[month_name] += day['count']
+        
+        # Find most active day
+        most_active_day = max(contributions, key=lambda x: x['count'])
+        
+        return {
+            'total_contributions': total_contributions,
+            'active_days': active_days,
+            'total_days': total_days,
+            'activity_rate': active_days / total_days if total_days > 0 else 0,
+            'current_streak': current_streak,
+            'longest_streak': longest_streak,
+            'average_per_active_day': total_contributions / active_days if active_days > 0 else 0,
+            'monthly_activity': monthly_activity,
+            'most_active_day': {
+                'date': most_active_day['date'],
+                'count': most_active_day['count'],
+                'habits': most_active_day['habits']
+            } if most_active_day['count'] > 0 else None,
+            'year': year
+        }
+    
     def calculate_habit_streaks(self, db: Session, user_id: int) -> List[HabitStreak]:
         """Calculate current and longest streaks for each habit type"""
         habit_types = ['morning_routine', 'system_building', 'deep_focus', 'evening_reflection', 'weekly_challenge']

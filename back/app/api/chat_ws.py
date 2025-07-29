@@ -136,6 +136,63 @@ async def process_ai_response_background(
             message_history=message_history
         )
         
+        # Check if Leo updated the plan and notify frontend
+        if hasattr(agent_response, 'tools_used') and agent_response.tools_used:
+            print(f"[WebSocket] 🔧 Agent response tools_used: {agent_response.tools_used}")
+            # Check if any plan update tools were used
+            plan_update_tools = ['update_morning_routine', 'update_specific_day_plan', 'update_weekly_challenges', 'regenerate_daily_plan']
+            plan_was_updated = any(tool in agent_response.tools_used for tool in plan_update_tools)
+            
+            if plan_was_updated:
+                print(f"[WebSocket] 📅 Plan was updated by Leo, notifying frontend for user {user_id}")
+                await websocket.send_json({
+                    "type": "plan_updated",
+                    "message": "Your plan has been updated by Leo!",
+                    "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+                    "tools_used": agent_response.tools_used
+                })
+            else:
+                print(f"[WebSocket] 🔧 No plan update tools detected in: {agent_response.tools_used}")
+        else:
+            print(f"[WebSocket] ⚠️ No tools_used found in agent response")
+            
+        # Enhanced plan update detection - check multiple indicators
+        plan_update_indicators = [
+            # Check tools_used
+            hasattr(agent_response, 'tools_used') and agent_response.tools_used and 
+            any(tool in agent_response.tools_used for tool in ['update_morning_routine', 'update_specific_day_plan', 'update_weekly_challenges', 'regenerate_daily_plan']),
+            
+            # Check the new plan_updated flag
+            hasattr(agent_response, 'plan_updated') and agent_response.plan_updated,
+            
+            # Check response content for update keywords
+            agent_response.content and any(keyword in agent_response.content.lower() for keyword in [
+                'updated', 'changed', 'modified', 'revised', 'adjusted', 'updated your', 'changed your', 
+                'modified your', 'revised your', 'updated the', 'changed the', 'modified the', 'revised the'
+            ]),
+            
+            # Check for specific plan-related success messages
+            agent_response.content and any(phrase in agent_response.content.lower() for phrase in [
+                'morning routine updated', 'day plan updated', 'weekly challenges updated', 
+                'plan has been updated', 'plan updated successfully', 'routine updated successfully'
+            ])
+        ]
+        
+        plan_was_updated = any(plan_update_indicators)
+        
+        if plan_was_updated:
+            print(f"[WebSocket] 📅 Plan update detected by multiple indicators, notifying frontend for user {user_id}")
+            await websocket.send_json({
+                "type": "plan_updated",
+                "message": "Your plan has been updated by Leo!",
+                "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+                "tools_used": getattr(agent_response, 'tools_used', []),
+                "plan_update_type": getattr(agent_response, 'plan_update_type', None),
+                "content_based_detection": not (hasattr(agent_response, 'tools_used') and agent_response.tools_used)
+            })
+        else:
+            print(f"[WebSocket] 🔧 No plan update indicators detected")
+        
         # Send main AI response
         await websocket.send_json({
             "type": "ai", 
