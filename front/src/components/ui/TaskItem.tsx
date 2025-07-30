@@ -43,14 +43,14 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, index, onToggle }) => 
         {task.details && (
           Array.isArray(task.details) ? (
             <ul className="list-disc list-inside text-xs text-gray-500 mt-1 space-y-1">
-              {task.details.map((item: string, idx: number) => (
-                <li key={idx}>{item.trim()}</li>
+              {task.details.map((item: any, idx: number) => (
+                <li key={idx}>{typeof item === 'string' ? item.trim() : String(item || '')}</li>
               ))}
             </ul>
           ) : typeof task.details === 'string' && task.details.includes(',') ? (
             <ul className="list-disc list-inside text-xs text-gray-500 mt-1 space-y-1">
-              {task.details.split(',').map((item, idx) => (
-                <li key={idx}>{item.trim()}</li>
+              {task.details.split(',').map((item: any, idx) => (
+                <li key={idx}>{typeof item === 'string' ? item.trim() : String(item || '')}</li>
               ))}
             </ul>
           ) : (

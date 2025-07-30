@@ -139,6 +139,7 @@ async def process_ai_response_background(
         # Check if Leo updated the plan and notify frontend
         if hasattr(agent_response, 'tools_used') and agent_response.tools_used:
             print(f"[WebSocket] 🔧 Agent response tools_used: {agent_response.tools_used}")
+            
             # Check if any plan update tools were used
             plan_update_tools = ['update_morning_routine', 'update_specific_day_plan', 'update_weekly_challenges', 'regenerate_daily_plan']
             plan_was_updated = any(tool in agent_response.tools_used for tool in plan_update_tools)
@@ -151,8 +152,22 @@ async def process_ai_response_background(
                     "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z',
                     "tools_used": agent_response.tools_used
                 })
-            else:
-                print(f"[WebSocket] 🔧 No plan update tools detected in: {agent_response.tools_used}")
+            
+            # Check if any progress tracking tools were used
+            progress_update_tools = ['mark_habit_completed', 'undo_habit_completion', 'create_progress_snapshot']
+            progress_was_updated = any(tool in agent_response.tools_used for tool in progress_update_tools)
+            
+            if progress_was_updated:
+                print(f"[WebSocket] 📊 Progress was updated by Leo, notifying frontend for user {user_id}")
+                await websocket.send_json({
+                    "type": "progress_updated",
+                    "message": "Your progress has been updated by Leo!",
+                    "timestamp": datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+                    "tools_used": agent_response.tools_used
+                })
+            
+            if not plan_was_updated and not progress_was_updated:
+                print(f"[WebSocket] 🔧 No plan or progress update tools detected in: {agent_response.tools_used}")
         else:
             print(f"[WebSocket] ⚠️ No tools_used found in agent response")
             

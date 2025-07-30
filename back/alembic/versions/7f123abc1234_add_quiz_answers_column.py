@@ -3,7 +3,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '7f123abc1234'
-down_revision = 'add_missing_chat_message_columns'  # merge with main branch
+down_revision = '206ad674720a'  # reference the vector migration
 branch_labels = None
 depends_on = None
 

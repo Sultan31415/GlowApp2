@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { RotateCcw, Sun, CheckCircle, Circle, Trophy, Edit, Calendar, Target, Activity, Heart, Save, X } from 'lucide-react';
+import { RotateCcw, Sun, CheckCircle, Circle, Trophy, Edit, Calendar, Target, Activity, Heart, Save, X, History } from 'lucide-react';
 import { useApi } from '../../utils/useApi';
 import { DayCard } from './DayCard';
 import { useTranslation } from 'react-i18next';
-import { LeoChatWidget } from '../features';
+import { LeoChatWidget, PlanVersionHistory } from '../features';
 
 const dayNames = [
   'daily.days.monday',
@@ -31,6 +31,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   const [saving, setSaving] = useState(false);
   // State for Leo updates
   const [leoUpdating, setLeoUpdating] = useState(false);
+  // State for version history
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
 
   // Function to refetch the plan when Leo updates it
   const refetchPlan = async () => {
@@ -326,6 +328,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               </div>
             ) : (
               <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
                 <button
                   onClick={handleEditClick}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
@@ -334,6 +337,15 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                   <Edit className="w-4 h-4" />
                   <span className="text-sm">{t('daily.customize', 'Customize')}</span>
                 </button>
+                  <button
+                    onClick={() => setShowVersionHistory(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+                    title="View Plan History"
+                  >
+                    <History className="w-4 h-4" />
+                    <span className="text-sm">History</span>
+                  </button>
+                </div>
                 <div className="text-xs text-gray-500 text-center">
                   💡 Tip: You can also ask Leo to modify your plans!
                 </div>
@@ -363,8 +375,10 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                   : Array.isArray(isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad)
                     ? (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad)
                     : Object.values((isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad) || {}))
-                  .map((step: string, idx: number) => {
-                    const stepText = step.trim().replace(/^[-•\d.\s]+/, '');
+                  .map((step: any, idx: number) => {
+                    // Ensure step is a string before calling trim
+                    const stepString = typeof step === 'string' ? step : String(step || '');
+                    const stepText = stepString.trim().replace(/^[-•\d.\s]+/, '');
                     
                     return (
                       <li key={idx} className="flex items-start justify-between py-1">
@@ -373,7 +387,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                           {isEditing ? (
                             <input
                               type="text"
-                              value={step}
+                              value={stepString}
                               onChange={(e) => updateMorningRoutine(idx, e.target.value)}
                               className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="Enter morning routine step"
@@ -448,6 +462,13 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
           <span>{t('daily.goBack')}</span>
         </button>
       </div>
+
+      {/* Plan Version History Modal */}
+      <PlanVersionHistory
+        isVisible={showVersionHistory}
+        onClose={() => setShowVersionHistory(false)}
+        onPlanRestored={refetchPlan}
+      />
     </div>
   );
 }; 

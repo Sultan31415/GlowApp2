@@ -13,9 +13,10 @@ from pydantic_ai.usage import Usage, UsageLimits
 
 from app.models.user import User
 from app.models.assessment import UserAssessment as DBUserAssessment
-from app.models.future_projection import DailyPlan as DBDailyPlan, FutureProjection as DBFutureProjection
+from app.models.future_projection import DailyPlan as DBDailyPlan, FutureProjection as DBFutureProjection, PlanVersionHistory
 from app.models.chat_message import ChatMessage as DBChatMessage
 from app.config.settings import settings
+from app.services.plan_version_service import PlanVersionService
 
 # Pydantic models for structured responses
 class WellnessInsight(BaseModel):
@@ -37,6 +38,10 @@ class LeoResponse(BaseModel):
     # Plan update tracking
     plan_updated: bool = Field(default=False, description="True if any plan update tools were used")
     plan_update_type: Optional[str] = Field(default=None, description="Type of plan update made")
+    
+    # Progress tracking
+    progress_updated: bool = Field(default=False, description="True if any progress tracking tools were used")
+    progress_update_type: Optional[str] = Field(default=None, description="Type of progress update made")
     
     # Enhanced therapeutic response fields
     crisis_alert: Optional[Dict[str, Any]] = Field(default=None, description="Crisis intervention alert if needed")
@@ -157,7 +162,58 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 - When user wants to modify a specific day's activities → Use `update_specific_day_plan(day_number: int, updates: Dict[str, Any])`
 - When user wants to change weekly challenges → Use `update_weekly_challenges(new_challenges: List[str])`
 - When user wants a completely new plan → Use `regenerate_daily_plan()`
-- ALWAYS confirm changes with the user before making them and explain the impact
+- **VERSION HISTORY**: All plan changes are automatically backed up with version history
+- When user asks about plan history or previous versions → Use `get_plan_version_history(limit: int)`
+- When user wants to restore a previous version → Use `restore_plan_version(version_id: int)`
+- When user wants to compare versions → Use `compare_plan_versions(version1_id: int, version2_id: int)`
+
+**PROGRESS TRACKING OPERATIONS:**
+- **PROGRESS SUMMARY**: When user asks about their progress, completion rates, or activity → Use `get_user_progress_summary()`
+- **HABIT COMPLETION**: When user wants to mark a habit as done → Use `mark_habit_completed(habit_type: str, habit_content: str, notes: str)`
+- **HABIT UNDO**: When user wants to undo a habit completion → Use `undo_habit_completion(habit_type: str)`
+- **HABIT HISTORY**: When user asks about their recent habit completions → Use `get_habit_completions(days: int, habit_type: str)`
+- **PROGRESS ANALYSIS**: When user wants insights about their patterns → Use `analyze_progress_patterns()`
+- **PROGRESS INSIGHTS**: When user needs motivation or achievement recognition → Use `get_progress_insights()`
+- **PROGRESS SNAPSHOT**: When user achieves a milestone → Use `create_progress_snapshot(notes: str)`
+
+**MULTI-DAY PLAN UPDATES (CRITICAL - ALWAYS USE THIS FOR MULTIPLE DAYS):**
+- **ALWAYS** use `update_multiple_days_plan(day_numbers=[1,2,3,4,5,6,7], updates={...})` when user mentions:
+  * "all days", "every day", "across all days", "for all days"
+  * "evening reflection for all days" 
+  * "deep focus for all days"
+  * "system building for all days"
+  * "main focus for all days"
+  * "motivational tip for all days"
+- **NEVER** use `update_specific_day_plan` for multi-day requests
+- **ONLY** use `update_morning_routine` for morning routine changes (global routine)
+- **ONLY** use `update_specific_day_plan` for single day changes (e.g., "change day 3")
+
+**SYSTEM BUILDING FIELD STRUCTURE (CRITICAL):**
+- **systemBuilding** must be an object with: `{"action": "...", "trigger": "...", "reward": "..."}`
+- **NEVER** set systemBuilding to a simple string
+- **ALWAYS** use object format: `{"systemBuilding": {"action": "Drink tea", "trigger": "After breakfast", "reward": "Feel refreshed"}}`
+
+**TOOL SELECTION LOGIC:**
+- **Single day changes**: Use `update_specific_day_plan(day_number=X, updates={...})`
+- **Multi-day changes**: Use `update_specific_day_plan` multiple times, once for each day
+- **Global routine changes**: Use `update_morning_routine` for morning routine only
+- **Field name mapping**: Always use camelCase field names (eveningReflection, deepFocus, systemBuilding, mainFocus, motivationalTip)
+
+**EXAMPLES - MULTI-DAY UPDATES (ALWAYS USE update_multiple_days_plan):**
+- User: "Change evening reflection for all days to go to bed 10 minutes earlier"
+  → Use: `update_multiple_days_plan(day_numbers=[1,2,3,4,5,6,7], updates={"eveningReflection": "Go to bed 10 minutes earlier"})`
+- User: "Update system building for all days to drink tea"
+  → Use: `update_multiple_days_plan(day_numbers=[1,2,3,4,5,6,7], updates={"systemBuilding": {"action": "Drink tea", "trigger": "After breakfast", "reward": "Feel refreshed"}})`
+- User: "Change deep focus for every day"
+  → Use: `update_multiple_days_plan(day_numbers=[1,2,3,4,5,6,7], updates={"deepFocus": "new value"})`
+
+**EXAMPLES - SINGLE DAY UPDATES (ONLY use update_specific_day_plan):**
+- User: "Change day 3 evening reflection"
+  → Use: `update_specific_day_plan(day_number=3, updates={"eveningReflection": "new value"})`
+- User: "Update Monday's plan"
+  → Use: `update_specific_day_plan(day_number=1, updates={...})`
+
+**ALWAYS confirm changes with the user before making them and explain the impact**
 
 **Crisis Intervention Protocol:**
 - Immediately use `check_safety_indicators` for concerning language
@@ -921,6 +977,71 @@ async def get_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int) -> Di
         raise ModelRetry(f"Error getting day {day_number} plan: {str(e)}")
 
 @leo_agent.tool
+async def fix_corrupted_morning_routine(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Fix the morning routine if it has been corrupted with wrong content"""
+    try:
+        print(f"[Leo Tool] 🔧 Fixing corrupted morning routine for user {ctx.deps.user_id}")
+        
+        # Load current daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        current_routine = plan_data.get("morningLaunchpad", [])
+        
+        # Check if the routine is corrupted (contains evening reflection instructions)
+        corrupted_indicators = [
+            "evening reflection", "go to bed", "sleep earlier", 
+            "Change evening reflection", "all days", "weekly plan"
+        ]
+        
+        is_corrupted = any(
+            any(indicator.lower() in str(item).lower() for indicator in corrupted_indicators)
+            for item in current_routine
+        )
+        
+        if is_corrupted:
+            print(f"[Leo Tool] 🚨 Detected corrupted morning routine: {current_routine}")
+            
+            # Restore to default morning routine
+            default_routine = [
+                "Wake up at 10 AM to ensure you're well-rested.",
+                "Do some gentle stretching to activate your body.",
+                "Express gratitude to start your day with positivity.",
+                "Practice calming breathing exercises to center yourself."
+            ]
+            
+            plan_data["morningLaunchpad"] = default_routine
+            
+            # Save the fixed plan
+            stmt = update(DBDailyPlan).where(DBDailyPlan.id == db_plan.id).values(plan_json=plan_data)
+            ctx.deps.db.execute(stmt)
+            ctx.deps.db.commit()
+            
+            print(f"[Leo Tool] ✅ Morning routine fixed and restored to default")
+            return {
+                "success": True,
+                "message": "Morning routine has been fixed and restored to default",
+                "old_routine": current_routine,
+                "new_routine": default_routine
+            }
+        else:
+            print(f"[Leo Tool] ✅ Morning routine is not corrupted")
+            return {
+                "success": True,
+                "message": "Morning routine is already correct",
+                "routine": current_routine
+            }
+            
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error fixing morning routine: {str(e)}")
+        return {"error": f"Failed to fix morning routine: {str(e)}"}
+
+@leo_agent.tool
 async def update_morning_routine(ctx: RunContext[LeoDeps], new_routine: List[str]) -> Dict[str, Any]:
     """Update the morning routine for the entire week. Use when user wants to change their morning routine."""
     try:
@@ -943,6 +1064,25 @@ async def update_morning_routine(ctx: RunContext[LeoDeps], new_routine: List[str
         old_routine = plan_data.get("morningLaunchpad", [])
         print(f"[Leo Tool] 🔍 Old routine: {old_routine}")
         print(f"[Leo Tool] 🔍 New routine: {new_routine}")
+        
+        # Create version backup before making changes
+        try:
+            version_service = PlanVersionService(ctx.deps.db)
+            version_service.create_version_backup(
+                user_id=ctx.deps.internal_user_id,
+                plan_id=db_plan.id,
+                plan_json=plan_data,
+                plan_type=db_plan.plan_type,
+                change_type="morning_routine",
+                change_description=f"Updated morning routine from {len(old_routine)} items to {len(new_routine)} items",
+                changed_fields={"morningLaunchpad": {"old": old_routine, "new": new_routine}},
+                previous_values={"morningLaunchpad": old_routine},
+                new_values={"morningLaunchpad": new_routine},
+                changed_by="leo"
+            )
+            print(f"[Leo Tool] ✅ Created version backup before morning routine update")
+        except Exception as backup_error:
+            print(f"[Leo Tool] ⚠️ Could not create version backup: {backup_error}")
         
         # Update the morning routine
         plan_data["morningLaunchpad"] = new_routine
@@ -1013,6 +1153,19 @@ async def update_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int, up
         plan_data = db_plan.plan_json or {}
         days_list = plan_data.get("days", [])
         
+        # Clean up any existing problematic fields to avoid confusion
+        problematic_fields = [
+            "system_building", "system_building_habit", "evening_reflection_removed",
+            "deep_focus_time_minutes", "System Building Habit", "main_focus",
+            "deep_focus", "evening_reflection", "motivational_tip"
+        ]
+        
+        for day in days_list:
+            for field in problematic_fields:
+                if field in day:
+                    print(f"[Leo Tool] 🧹 Cleaning up problematic field '{field}' in day {day.get('day', 'unknown')}")
+                    day.pop(field, None)
+        
         if not days_list:
             print(f"[Leo Tool] ❌ No days data found in plan")
             return {"error": "No days data found in plan"}
@@ -1028,14 +1181,95 @@ async def update_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int, up
             print(f"[Leo Tool] ❌ Day {day_number} not found in plan")
             return {"error": f"Day {day_number} not found in plan"}
         
-        # Update the specific day with new data
+        # Normalize field names to match frontend expectations
+        normalized_updates = {}
+        for key, value in updates.items():
+            # Convert various field name formats to camelCase
+            if key == "system_building":
+                # Convert string value to proper object structure
+                if isinstance(value, str):
+                    normalized_updates["systemBuilding"] = {
+                        "action": value,
+                        "trigger": "After breakfast",
+                        "reward": "Feel refreshed"
+                    }
+                    print(f"[Leo Tool] 🔧 Normalized field: {key} -> systemBuilding (converted string to object)")
+                else:
+                    normalized_updates["systemBuilding"] = value
+                    print(f"[Leo Tool] 🔧 Normalized field: {key} -> systemBuilding")
+            elif key == "system_building_habit":
+                normalized_updates["systemBuildingHabit"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> systemBuildingHabit")
+            elif key == "evening_reflection_removed":
+                normalized_updates["eveningReflectionRemoved"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> eveningReflectionRemoved")
+            elif key == "deep_focus_time_minutes":
+                normalized_updates["deepFocusTimeMinutes"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> deepFocusTimeMinutes")
+            elif key == "main_focus":
+                normalized_updates["mainFocus"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> mainFocus")
+            elif key == "deep_focus":
+                normalized_updates["deepFocus"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> deepFocus")
+            elif key == "evening_reflection":
+                normalized_updates["eveningReflection"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> eveningReflection")
+            elif key == "motivational_tip":
+                normalized_updates["motivationalTip"] = value
+                print(f"[Leo Tool] 🔧 Normalized field: {key} -> motivationalTip")
+            else:
+                normalized_updates[key] = value
+                print(f"[Leo Tool] 🔧 Keeping field: {key}")
+        
+        print(f"[Leo Tool] 🔍 Original updates: {updates}")
+        print(f"[Leo Tool] 🔍 Normalized updates: {normalized_updates}")
+        
+        # Update the specific day with normalized data
         current_day = days_list[day_index]
-        updated_day = {**current_day, **updates}
+        print(f"[Leo Tool] 🔍 Current day before update: {current_day}")
+        
+        # Clean up any existing problematic fields to avoid duplicates
+        fields_to_cleanup = [
+            "system_building", "system_building_habit", "evening_reflection_removed",
+            "deep_focus_time_minutes", "System Building Habit", "main_focus",
+            "deep_focus", "evening_reflection", "motivational_tip"
+        ]
+        
+        for field in fields_to_cleanup:
+            if field in current_day:
+                print(f"[Leo Tool] 🧹 Removing problematic field: {field}")
+                current_day.pop(field, None)
+        
+        updated_day = {**current_day, **normalized_updates}
+        print(f"[Leo Tool] 🔍 Updated day after merge: {updated_day}")
+        
+        # Create version backup before making changes
+        try:
+            version_service = PlanVersionService(ctx.deps.db)
+            version_service.create_version_backup(
+                user_id=ctx.deps.internal_user_id,
+                plan_id=db_plan.id,
+                plan_json=plan_data,
+                plan_type=db_plan.plan_type,
+                change_type="specific_day",
+                change_description=f"Updated day {day_number} plan with changes: {list(updates.keys())}",
+                changed_fields={"day": day_number, "updates": updates},
+                previous_values={"day": day_number, "old_data": current_day},
+                new_values={"day": day_number, "new_data": updated_day},
+                changed_by="leo"
+            )
+            print(f"[Leo Tool] ✅ Created version backup before day {day_number} update")
+        except Exception as backup_error:
+            print(f"[Leo Tool] ⚠️ Could not create version backup: {backup_error}")
+        
         days_list[day_index] = updated_day
         
         # Save the updated plan with proper transaction handling
         try:
             plan_data["days"] = days_list
+            print(f"[Leo Tool] 🔍 Final plan data to save: {json.dumps(plan_data, indent=2)}")
+            
             # Use SQLAlchemy update() method instead of direct assignment
             stmt = update(DBDailyPlan).where(DBDailyPlan.id == db_plan.id).values(plan_json=plan_data)
             ctx.deps.db.execute(stmt)
@@ -1074,6 +1308,42 @@ async def update_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int, up
         raise ModelRetry(f"Error updating day {day_number} plan: {str(e)}")
 
 @leo_agent.tool
+async def update_multiple_days_plan(ctx: RunContext[LeoDeps], day_numbers: List[int], updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Update multiple days' plans with the same changes. Use when user wants to change 'all days' or 'every day'."""
+    try:
+        print(f"[Leo Tool] 📅 Updating plan for multiple days: {day_numbers}")
+        
+        results = []
+        for day_number in day_numbers:
+            if day_number < 1 or day_number > 7:
+                print(f"[Leo Tool] ❌ Invalid day number: {day_number}")
+                continue
+                
+            # Use the existing single day update logic
+            result = await update_specific_day_plan(ctx, day_number, updates)
+            results.append({
+                "day": day_number,
+                "success": "error" not in result,
+                "result": result
+            })
+            
+        success_count = sum(1 for r in results if r["success"])
+        total_count = len(results)
+        
+        print(f"[Leo Tool] ✅ Updated {success_count}/{total_count} days successfully")
+        
+        return {
+            "success": success_count == total_count,
+            "updated_days": success_count,
+            "total_days": total_count,
+            "results": results
+        }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error updating multiple days: {str(e)}")
+        return {"error": f"Failed to update multiple days: {str(e)}"}
+
+@leo_agent.tool
 async def update_weekly_challenges(ctx: RunContext[LeoDeps], new_challenges: List[str]) -> Dict[str, Any]:
     """Update the weekly challenges. Use when user wants to modify their weekly challenges."""
     try:
@@ -1089,6 +1359,28 @@ async def update_weekly_challenges(ctx: RunContext[LeoDeps], new_challenges: Lis
             return {"error": "No daily plan found for user"}
         
         plan_data = db_plan.plan_json or {}
+        
+        # Store old challenges for comparison
+        old_challenges = plan_data.get("challenges", [])
+        
+        # Create version backup before making changes
+        try:
+            version_service = PlanVersionService(ctx.deps.db)
+            version_service.create_version_backup(
+                user_id=ctx.deps.internal_user_id,
+                plan_id=db_plan.id,
+                plan_json=plan_data,
+                plan_type=db_plan.plan_type,
+                change_type="weekly_challenges",
+                change_description=f"Updated weekly challenges from {len(old_challenges)} to {len(new_challenges)} challenges",
+                changed_fields={"challenges": {"old": old_challenges, "new": new_challenges}},
+                previous_values={"challenges": old_challenges},
+                new_values={"challenges": new_challenges},
+                changed_by="leo"
+            )
+            print(f"[Leo Tool] ✅ Created version backup before weekly challenges update")
+        except Exception as backup_error:
+            print(f"[Leo Tool] ⚠️ Could not create version backup: {backup_error}")
         
         # Update the weekly challenges
         plan_data["challenges"] = new_challenges
@@ -1616,6 +1908,412 @@ async def save_message(ctx: RunContext[LeoDeps], role: str, content: str) -> Dic
     except Exception as e:
         raise ModelRetry(f"Error saving message: {str(e)}")
 
+@leo_agent.tool
+async def get_plan_version_history(ctx: RunContext[LeoDeps], limit: int = 5) -> Dict[str, Any]:
+    """Get version history of plan changes. Use when user asks about plan history or wants to see previous versions."""
+    try:
+        print(f"[Leo Tool] 📚 Getting plan version history for user {ctx.deps.user_id}")
+        
+        version_service = PlanVersionService(ctx.deps.db)
+        history = version_service.get_version_history(
+            user_id=ctx.deps.internal_user_id,
+            limit=limit
+        )
+        
+        if not history:
+            return {
+                "message": "No plan version history found",
+                "history": [],
+                "total_versions": 0
+            }
+        
+        return {
+            "message": f"Found {len(history)} recent plan changes",
+            "history": history,
+            "total_versions": len(history),
+            "latest_version": history[0] if history else None
+        }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error getting version history: {str(e)}")
+        return {"error": f"Failed to get version history: {str(e)}"}
+
+@leo_agent.tool
+async def restore_plan_version(ctx: RunContext[LeoDeps], version_id: int) -> Dict[str, Any]:
+    """Restore a plan to a previous version. Use when user wants to undo changes or go back to an earlier version."""
+    try:
+        print(f"[Leo Tool] 🔄 Restoring plan to version {version_id} for user {ctx.deps.user_id}")
+        
+        version_service = PlanVersionService(ctx.deps.db)
+        success, message = version_service.restore_version(
+            version_id=version_id,
+            user_id=ctx.deps.internal_user_id
+        )
+        
+        if success:
+            return {
+                "success": True,
+                "message": message,
+                "version_id": version_id,
+                "plan_updated": True,
+                "update_type": "version_restore"
+            }
+        else:
+            return {
+                "success": False,
+                "message": message,
+                "version_id": version_id
+            }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error restoring version: {str(e)}")
+        return {"error": f"Failed to restore version: {str(e)}"}
+
+@leo_agent.tool
+async def compare_plan_versions(ctx: RunContext[LeoDeps], version1_id: int, version2_id: int) -> Dict[str, Any]:
+    """Compare two plan versions to see what changed. Use when user wants to see differences between versions."""
+    try:
+        print(f"[Leo Tool] 🔍 Comparing plan versions {version1_id} and {version2_id} for user {ctx.deps.user_id}")
+        
+        version_service = PlanVersionService(ctx.deps.db)
+        comparison = version_service.compare_versions(
+            version1_id=version1_id,
+            version2_id=version2_id,
+            user_id=ctx.deps.internal_user_id
+        )
+        
+        if comparison:
+            return {
+                "success": True,
+                "comparison": comparison,
+                "version1_id": version1_id,
+                "version2_id": version2_id
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Could not compare versions - one or both versions not found",
+                "version1_id": version1_id,
+                "version2_id": version2_id
+            }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error comparing versions: {str(e)}")
+        return {"error": f"Failed to compare versions: {str(e)}"}
+
+@leo_agent.tool
+async def get_user_progress_summary(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Get a comprehensive summary of user's progress and activity"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        # Get various progress metrics
+        completion_stats = progress_service.get_completion_stats(ctx.deps.db, ctx.deps.internal_user_id, days=30)
+        habit_streaks = progress_service.calculate_habit_streaks(ctx.deps.db, ctx.deps.internal_user_id)
+        contribution_stats = progress_service.get_contribution_stats(ctx.deps.db, ctx.deps.internal_user_id)
+        
+        # Get today's progress
+        today_progress = progress_service.get_daily_progress(ctx.deps.db, ctx.deps.internal_user_id)
+        
+        # Get weekly progress
+        weekly_progress = progress_service.get_weekly_progress(ctx.deps.db, ctx.deps.internal_user_id)
+        
+        return {
+            "today_progress": {
+                "completed_habits": today_progress.completed_habits,
+                "total_habits": today_progress.total_habits,
+                "completion_rate": today_progress.completion_rate,
+                "performance_rating": today_progress.performance_rating
+            },
+            "weekly_progress": {
+                "week_start": weekly_progress.week_start.isoformat() if weekly_progress.week_start else None,
+                "total_completions": weekly_progress.total_completions,
+                "average_daily_completion": weekly_progress.average_daily_completion,
+                "best_day": weekly_progress.best_day,
+                "streak_days": weekly_progress.streak_days
+            },
+            "monthly_stats": completion_stats,
+            "habit_streaks": [
+                {
+                    "habit_type": streak.habit_type,
+                    "current_streak": streak.current_streak,
+                    "longest_streak": streak.longest_streak,
+                    "total_completions": streak.total_completions
+                } for streak in habit_streaks
+            ],
+            "contribution_stats": contribution_stats
+        }
+    except Exception as e:
+        print(f"[Leo] Error getting progress summary: {str(e)}")
+        return {"error": f"Failed to get progress summary: {str(e)}"}
+
+@leo_agent.tool
+async def mark_habit_completed(ctx: RunContext[LeoDeps], habit_type: str, habit_content: str, notes: str = None) -> Dict[str, Any]:
+    """Mark a specific habit as completed for today"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        completion = progress_service.complete_habit(
+            db=ctx.deps.db,
+            user_id=ctx.deps.internal_user_id,
+            habit_type=habit_type,
+            habit_content=habit_content,
+            notes=notes
+        )
+        
+        return {
+            "success": True,
+            "message": f"✅ {habit_type} marked as completed!",
+            "completion": {
+                "id": completion.id,
+                "habit_type": completion.habit_type,
+                "habit_content": completion.habit_content,
+                "day_date": completion.day_date.isoformat(),
+                "notes": completion.notes,
+                "completed_at": completion.completed_at.isoformat() if completion.completed_at else None
+            }
+        }
+    except Exception as e:
+        print(f"[Leo] Error marking habit completed: {str(e)}")
+        return {"error": f"Failed to mark habit completed: {str(e)}"}
+
+@leo_agent.tool
+async def undo_habit_completion(ctx: RunContext[LeoDeps], habit_type: str) -> Dict[str, Any]:
+    """Undo/delete a habit completion for today"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        success = progress_service.delete_habit_completion(
+            db=ctx.deps.db,
+            user_id=ctx.deps.internal_user_id,
+            habit_type=habit_type
+        )
+        
+        if success:
+            return {
+                "success": True,
+                "message": f"🔄 {habit_type} completion undone for today"
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"No {habit_type} completion found for today to undo"
+            }
+    except Exception as e:
+        print(f"[Leo] Error undoing habit completion: {str(e)}")
+        return {"error": f"Failed to undo habit completion: {str(e)}"}
+
+@leo_agent.tool
+async def get_habit_completions(ctx: RunContext[LeoDeps], days: int = 7, habit_type: str = None) -> Dict[str, Any]:
+    """Get habit completions for the last N days"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        from datetime import date, timedelta
+        
+        progress_service = ProgressTrackingService()
+        
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days-1)
+        
+        completions = progress_service.get_habit_completions(
+            db=ctx.deps.db,
+            user_id=ctx.deps.internal_user_id,
+            start_date=start_date,
+            end_date=end_date,
+            habit_type=habit_type
+        )
+        
+        return {
+            "completions": [
+                {
+                    "id": comp.id,
+                    "habit_type": comp.habit_type,
+                    "habit_content": comp.habit_content,
+                    "day_date": comp.day_date.isoformat(),
+                    "notes": comp.notes,
+                    "completed_at": comp.completed_at.isoformat() if comp.completed_at else None
+                } for comp in completions
+            ],
+            "total_completions": len(completions),
+            "date_range": {
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat()
+            }
+        }
+    except Exception as e:
+        print(f"[Leo] Error getting habit completions: {str(e)}")
+        return {"error": f"Failed to get habit completions: {str(e)}"}
+
+@leo_agent.tool
+async def analyze_progress_patterns(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Analyze user's progress patterns and provide insights"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        # Get comprehensive progress data
+        completion_stats = progress_service.get_completion_stats(ctx.deps.db, ctx.deps.internal_user_id, days=30)
+        habit_streaks = progress_service.calculate_habit_streaks(ctx.deps.db, ctx.deps.internal_user_id)
+        today_progress = progress_service.get_daily_progress(ctx.deps.db, ctx.deps.internal_user_id)
+        
+        # Analyze patterns
+        patterns = {
+            "strengths": [],
+            "areas_for_improvement": [],
+            "trends": [],
+            "recommendations": []
+        }
+        
+        # Identify strengths
+        if completion_stats.get("total_completions", 0) > 0:
+            patterns["strengths"].append("You're actively tracking your habits")
+        
+        if completion_stats.get("completion_rate", 0) > 0.7:
+            patterns["strengths"].append("You have a high completion rate")
+        
+        # Find longest streak
+        if habit_streaks:
+            longest_streak = max(habit_streaks, key=lambda x: x.longest_streak)
+            if longest_streak.longest_streak > 7:
+                patterns["strengths"].append(f"Excellent consistency in {longest_streak.habit_type}")
+        
+        # Identify areas for improvement
+        if completion_stats.get("completion_rate", 0) < 0.5:
+            patterns["areas_for_improvement"].append("Consider reducing the number of habits to focus on consistency")
+        
+        if not habit_streaks or all(streak.current_streak < 3 for streak in habit_streaks):
+            patterns["areas_for_improvement"].append("Focus on building consistent daily streaks")
+        
+        # Generate recommendations
+        if patterns["areas_for_improvement"]:
+            patterns["recommendations"].append("Start with just 1-2 key habits and build consistency")
+            patterns["recommendations"].append("Use habit stacking to make new habits easier")
+        
+        if today_progress.completion_rate < 0.5:
+            patterns["recommendations"].append("Try completing your most important habit first thing in the morning")
+        
+        return {
+            "patterns": patterns,
+            "stats": completion_stats,
+            "streaks": [
+                {
+                    "habit_type": streak.habit_type,
+                    "current_streak": streak.current_streak,
+                    "longest_streak": streak.longest_streak
+                } for streak in habit_streaks
+            ],
+            "today_status": {
+                "completion_rate": today_progress.completion_rate,
+                "performance_rating": today_progress.performance_rating
+            }
+        }
+    except Exception as e:
+        print(f"[Leo] Error analyzing progress patterns: {str(e)}")
+        return {"error": f"Failed to analyze progress patterns: {str(e)}"}
+
+@leo_agent.tool
+async def create_progress_snapshot(ctx: RunContext[LeoDeps], notes: str = None) -> Dict[str, Any]:
+    """Create a progress snapshot to mark a milestone"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        snapshot = progress_service.create_progress_snapshot(
+            db=ctx.deps.db,
+            user_id=ctx.deps.internal_user_id,
+            notes=notes or "Progress snapshot created by Leo"
+        )
+        
+        return {
+            "success": True,
+            "message": "📸 Progress snapshot created!",
+            "snapshot": {
+                "id": snapshot.id,
+                "snapshot_date": snapshot.snapshot_date.isoformat(),
+                "notes": snapshot.notes,
+                "created_at": snapshot.created_at.isoformat()
+            }
+        }
+    except Exception as e:
+        print(f"[Leo] Error creating progress snapshot: {str(e)}")
+        return {"error": f"Failed to create progress snapshot: {str(e)}"}
+
+@leo_agent.tool
+async def get_progress_insights(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
+    """Get personalized progress insights and motivation"""
+    try:
+        from app.services.progress_tracking_service import ProgressTrackingService
+        
+        progress_service = ProgressTrackingService()
+        
+        # Get current progress data
+        completion_stats = progress_service.get_completion_stats(ctx.deps.db, ctx.deps.internal_user_id, days=30)
+        habit_streaks = progress_service.calculate_habit_streaks(ctx.deps.db, ctx.deps.internal_user_id)
+        today_progress = progress_service.get_daily_progress(ctx.deps.db, ctx.deps.internal_user_id)
+        
+        insights = {
+            "motivation": "",
+            "key_achievements": [],
+            "next_steps": [],
+            "celebration_points": []
+        }
+        
+        # Generate motivation based on current status
+        completion_rate = completion_stats.get("completion_rate", 0)
+        total_completions = completion_stats.get("total_completions", 0)
+        
+        if completion_rate > 0.8:
+            insights["motivation"] = "You're absolutely crushing it! Your consistency is inspiring."
+        elif completion_rate > 0.6:
+            insights["motivation"] = "Great progress! You're building solid habits that will last."
+        elif completion_rate > 0.4:
+            insights["motivation"] = "You're making steady progress. Every small step counts!"
+        else:
+            insights["motivation"] = "Remember, progress isn't linear. Focus on showing up, even if it's just for 2 minutes."
+        
+        # Identify achievements
+        if total_completions > 0:
+            insights["key_achievements"].append(f"Completed {total_completions} habits in the last 30 days")
+        
+        if habit_streaks:
+            best_streak = max(habit_streaks, key=lambda x: x.longest_streak)
+            if best_streak.longest_streak > 5:
+                insights["key_achievements"].append(f"Maintained a {best_streak.longest_streak}-day streak in {best_streak.habit_type}")
+        
+        # Suggest next steps
+        if today_progress.completion_rate < 0.5:
+            insights["next_steps"].append("Complete your most important habit today")
+        
+        if not habit_streaks or all(streak.current_streak < 3 for streak in habit_streaks):
+            insights["next_steps"].append("Focus on building a 3-day streak in your priority habit")
+        
+        # Celebration points
+        if completion_rate > 0.7:
+            insights["celebration_points"].append("You're in the top tier of habit consistency!")
+        
+        if habit_streaks and any(streak.current_streak >= 7 for streak in habit_streaks):
+            insights["celebration_points"].append("You've built a week-long habit streak - that's amazing!")
+        
+        return {
+            "insights": insights,
+            "current_stats": {
+                "completion_rate": completion_rate,
+                "total_completions": total_completions,
+                "active_streaks": len([s for s in habit_streaks if s.current_streak > 0])
+            }
+        }
+    except Exception as e:
+        print(f"[Leo] Error getting progress insights: {str(e)}")
+        return {"error": f"Failed to get progress insights: {str(e)}"}
+
 # The output type is already specified in the Agent constructor as LeoResponse
 # No need for a separate output decorator in the current pydantic-ai version
 
@@ -1748,6 +2446,22 @@ class LeoPydanticAgent:
                     
                     print(f"[LeoPydanticAgent] 📅 Plan update detected: {plan_update_type}")
                 
+                # Check if any progress tracking tools were used
+                progress_update_tools = ['mark_habit_completed', 'undo_habit_completion', 'create_progress_snapshot']
+                progress_was_updated = any(tool in tools_used for tool in progress_update_tools)
+                progress_update_type = None
+                
+                if progress_was_updated:
+                    # Determine the type of progress update
+                    if 'mark_habit_completed' in tools_used:
+                        progress_update_type = 'habit_completed'
+                    elif 'undo_habit_completion' in tools_used:
+                        progress_update_type = 'habit_undone'
+                    elif 'create_progress_snapshot' in tools_used:
+                        progress_update_type = 'progress_snapshot'
+                    
+                    print(f"[LeoPydanticAgent] 📊 Progress update detected: {progress_update_type}")
+                
             except Exception as e:
                 print(f"[LeoPydanticAgent] ⚠️ Error extracting tool usage: {e}")
                 import traceback
@@ -1798,7 +2512,9 @@ class LeoPydanticAgent:
                     follow_up_questions=["What would you like to explore about your wellness journey?"],
                     tools_used=tools_used,  # Use actual tools used instead of hardcoded values
                     plan_updated=plan_was_updated,
-                    plan_update_type=plan_update_type
+                    plan_update_type=plan_update_type,
+                    progress_updated=progress_was_updated,
+                    progress_update_type=progress_update_type
                 )
             elif response_data is None:
                 # Try to get content from messages and enhance
@@ -1831,7 +2547,9 @@ class LeoPydanticAgent:
                         follow_up_questions=["What aspect of your wellness interests you most?"],
                         tools_used=tools_used,  # Use actual tools used
                         plan_updated=plan_was_updated,
-                        plan_update_type=plan_update_type
+                        plan_update_type=plan_update_type,
+                        progress_updated=progress_was_updated,
+                        progress_update_type=progress_update_type
                     )
                 else:
                     raise Exception("No valid response data found")
@@ -1862,7 +2580,9 @@ class LeoPydanticAgent:
                     follow_up_questions=["Tell me more about your wellness goals"],
                     tools_used=tools_used,  # Use actual tools used
                     plan_updated=plan_was_updated,
-                    plan_update_type=plan_update_type
+                    plan_update_type=plan_update_type,
+                    progress_updated=progress_was_updated,
+                    progress_update_type=progress_update_type
                 )
             
             # Save Leo's response

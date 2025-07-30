@@ -7,3 +7,4 @@ export { ShareResults } from './ShareResults';
 export { TestModal } from './TestModal';
 export { UserPreferences } from './UserPreferences';
 export { HabitTracker } from './HabitTracker'; 
+export { PlanVersionHistory } from './PlanVersionHistory'; 

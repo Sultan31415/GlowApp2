@@ -21,6 +21,7 @@ const AI_CHARACTER_NAME = "Leo";
 interface LeoChatWidgetProps {
   className?: string;
   onPlanUpdated?: () => void;  // Callback when Leo updates the plan
+  onProgressUpdated?: () => void;  // Callback when Leo updates progress tracking
 }
 
 // Utility to filter out (Refusal: true) or similar patterns from AI message content
@@ -31,7 +32,7 @@ function filterRefusalText(content: string): string {
   return cleaned;
 }
 
-const LeoChatWidget: React.FC<LeoChatWidgetProps> = ({ className = "", onPlanUpdated }) => {
+const LeoChatWidget: React.FC<LeoChatWidgetProps> = ({ className = "", onPlanUpdated, onProgressUpdated }) => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const { t } = useTranslation();
@@ -305,10 +306,24 @@ const LeoChatWidget: React.FC<LeoChatWidgetProps> = ({ className = "", onPlanUpd
       if (typeof onPlanUpdated === 'function') {
         onPlanUpdated();
       }
+    } else if (data.type === "progress_updated") {
+      console.log('Received progress_updated message');
+      // Call the onProgressUpdated callback if provided
+      if (typeof onProgressUpdated === 'function') {
+        console.log('Calling onProgressUpdated callback...');
+        try {
+          onProgressUpdated();
+          console.log('onProgressUpdated callback executed successfully');
+        } catch (error) {
+          console.error('Error in onProgressUpdated callback:', error);
+        }
+      } else {
+        console.log('No onProgressUpdated callback provided');
+      }
     } else {
       console.log('Unknown message type:', data.type);
     }
-  }, [t, onPlanUpdated]);
+  }, [t, onPlanUpdated, onProgressUpdated]);
 
   useEffect(() => {
     return () => {

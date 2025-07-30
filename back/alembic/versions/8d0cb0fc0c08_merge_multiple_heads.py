@@ -1,8 +1,8 @@
-"""merge user preferences and quiz answers branches
+"""merge_multiple_heads
 
-Revision ID: c8d61e4a6aee
-Revises: 7f123abc1234, add_user_preferences_table
-Create Date: 2025-07-28 11:44:44.441062
+Revision ID: 8d0cb0fc0c08
+Revises: 48c046bb5ebc, add_plan_version_history_001
+Create Date: 2025-07-30 17:49:45.532239
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c8d61e4a6aee'
-down_revision: Union[str, None] = ('7f123abc1234', 'add_user_preferences_table')
+revision: str = '8d0cb0fc0c08'
+down_revision: Union[str, None] = ('48c046bb5ebc', 'add_plan_version_history_001')
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

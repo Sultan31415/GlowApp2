@@ -62,6 +62,33 @@ class ProgressTrackingService:
         db.refresh(completion)
         return completion
     
+    def delete_habit_completion(
+        self, 
+        db: Session, 
+        user_id: int, 
+        habit_type: str, 
+        day_date: date = None
+    ) -> bool:
+        """Delete a habit completion for a specific date"""
+        if day_date is None:
+            day_date = date.today()
+        
+        # Find the habit completion to delete
+        completion = db.query(HabitCompletion).filter(
+            and_(
+                HabitCompletion.user_id == user_id,
+                HabitCompletion.habit_type == habit_type,
+                HabitCompletion.day_date == day_date
+            )
+        ).first()
+        
+        if completion:
+            db.delete(completion)
+            db.commit()
+            return True
+        
+        return False
+    
     def get_habit_completions(
         self, 
         db: Session, 

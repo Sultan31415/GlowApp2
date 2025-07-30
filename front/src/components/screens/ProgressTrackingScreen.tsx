@@ -129,6 +129,7 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     evening_reflection: false
   });
   const [trackingLoading, setTrackingLoading] = useState<Record<string, boolean>>({});
+  const [leoUpdating, setLeoUpdating] = useState(false);
   
   // Data state
   const [contributionData, setContributionData] = useState<ContributionDay[]>([]);
@@ -141,6 +142,18 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     fetchProgressData();
     fetchTodayTracking();
   }, [currentYear]);
+
+  // Periodic refresh to ensure UI stays in sync
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Only refresh if not currently updating
+      if (!leoUpdating) {
+        fetchTodayTracking();
+      }
+    }, 5000); // Check every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [leoUpdating]);
 
   const fetchProgressData = async () => {
     try {
@@ -187,26 +200,80 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     }
   };
 
+  // Function to refresh progress data when Leo makes changes
+  const handleLeoProgressUpdate = async () => {
+    try {
+      console.log('Leo updated progress - refreshing data...');
+      setLeoUpdating(true);
+      
+      // Refresh both progress data and today's tracking
+      await Promise.all([
+        fetchProgressData(),
+        fetchTodayTracking()
+      ]);
+      
+      console.log('Progress data refreshed after Leo update');
+    } catch (err) {
+      console.error('Error refreshing progress data after Leo update:', err);
+    } finally {
+      setLeoUpdating(false);
+    }
+  };
+
+  // Enhanced progress update detection with fallback
+  const handleLeoProgressUpdateWithFallback = async () => {
+    try {
+      console.log('Leo updated progress - refreshing data with fallback...');
+      setLeoUpdating(true);
+      
+      // Immediate refresh
+      await handleLeoProgressUpdate();
+      
+      // Fallback: Check again after a short delay to ensure data is updated
+      setTimeout(async () => {
+        try {
+          console.log('Fallback: Checking for progress updates...');
+          await fetchTodayTracking();
+        } catch (err) {
+          console.error('Fallback refresh error:', err);
+        }
+      }, 1000);
+      
+    } catch (err) {
+      console.error('Error in progress update with fallback:', err);
+    } finally {
+      setLeoUpdating(false);
+    }
+  };
+
   const handleTrackHabit = async (habitType: string, habitContent: string) => {
     if (trackingLoading[habitType]) return;
 
     try {
       setTrackingLoading(prev => ({ ...prev, [habitType]: true }));
       
-      if (todayTracking[habitType as keyof TodayTracking]) {
-        return;
+      const isCurrentlyCompleted = todayTracking[habitType as keyof TodayTracking];
+      const today = new Date().toISOString().split('T')[0];
+
+      if (isCurrentlyCompleted) {
+        // Undo completion - delete the habit completion
+        await makeRequest(`habits/complete?habit_type=${habitType}&day_date=${today}`, {
+          method: 'DELETE'
+        });
+        setTodayTracking(prev => ({ ...prev, [habitType]: false }));
+      } else {
+        // Mark as completed
+        await makeRequest('habits/complete', {
+          method: 'POST',
+          body: JSON.stringify({
+            habit_type: habitType,
+            habit_content: habitContent,
+            day_date: today
+          })
+        });
+        setTodayTracking(prev => ({ ...prev, [habitType]: true }));
       }
 
-      await makeRequest('habits/complete', {
-        method: 'POST',
-        body: JSON.stringify({
-          habit_type: habitType,
-          habit_content: habitContent,
-          day_date: new Date().toISOString().split('T')[0]
-        })
-      });
-
-      setTodayTracking(prev => ({ ...prev, [habitType]: true }));
       fetchProgressData();
     } catch (error) {
       console.error('Error tracking habit:', error);
@@ -263,23 +330,23 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     return (
       <div 
         key={habitKey} 
-        className={`flex items-center justify-between p-3 ${config.bgColor} rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'opacity-75' : 'hover:scale-[1.02]'}`}
-        onClick={() => !isCompleted && !isLoading && handleTrackHabit(habitKey, config.label)}
+        className={`flex items-center justify-between p-3 ${config.bgColor} rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'hover:scale-[1.02]' : 'hover:scale-[1.02]'}`}
+        onClick={() => !isLoading && handleTrackHabit(habitKey, config.label)}
       >
-        <div className="flex items-center space-x-2">
-          <div className={`p-2 ${config.color.replace('text-', 'bg-').replace('-600', '-100')} rounded-lg ${isCompleted ? 'opacity-60' : ''}`}>
-            <IconComponent className={`w-4 h-4 ${config.color} ${isCompleted ? 'opacity-60' : ''}`} />
+                  <div className="flex items-center space-x-2">
+            <div className={`p-2 ${config.color.replace('text-', 'bg-').replace('-600', '-100')} rounded-lg`}>
+              <IconComponent className={`w-4 h-4 ${config.color}`} />
+            </div>
+            <div>
+              <p className={`font-semibold text-gray-900 text-sm ${isCompleted ? 'line-through' : ''}`}>{config.label}</p>
+              <p className={`text-xs ${isCompleted ? 'text-emerald-600' : 'text-gray-500'}`}>
+                {isCompleted ? 'Tap to undo' : 'Tap to mark as done'}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className={`font-semibold text-gray-900 text-sm ${isCompleted ? 'line-through opacity-60' : ''}`}>{config.label}</p>
-            <p className={`text-xs ${isCompleted ? 'text-emerald-600' : 'text-gray-500'}`}>
-              {isCompleted ? 'Completed today' : 'Tap to mark as done'}
-            </p>
-          </div>
-        </div>
         <div className="flex items-center justify-center">
           {isCompleted ? (
-            <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center">
+            <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center hover:bg-red-100 hover:scale-110 transition-all duration-200">
               <CheckCircle className="w-4 h-4 text-emerald-600" />
             </div>
           ) : isLoading ? (
@@ -330,8 +397,8 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Leo Chat Widget */}
-      <LeoChatWidget />
+      {/* Leo Chat Widget with Progress Update Callback */}
+      <LeoChatWidget onProgressUpdated={handleLeoProgressUpdateWithFallback} />
       
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
@@ -347,16 +414,31 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Progress Tracking</h1>
                 <p className="text-sm text-gray-600">Your wellness journey visualized</p>
+                {leoUpdating && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-600"></div>
+                    <span className="text-xs text-blue-600 font-medium">Leo is updating your progress...</span>
+                  </div>
+                )}
               </div>
             </div>
             
-            <button
-              onClick={fetchProgressData}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              title="Refresh data"
-            >
-              <TrendingUp className="w-5 h-5 text-gray-600" />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleLeoProgressUpdateWithFallback}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                title="Refresh progress data"
+              >
+                <TrendingUp className="w-5 h-5 text-gray-600" />
+              </button>
+              <button
+                onClick={fetchProgressData}
+                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                title="Refresh data"
+              >
+                <TrendingUp className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -443,4 +525,4 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
       </div>
     </div>
   );
-}; 
+};

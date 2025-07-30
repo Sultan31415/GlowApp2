@@ -22,6 +22,7 @@ from app.models.future_projection import DailyPlan
 from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 from app.services.progress_tracking_service import ProgressTrackingService
 from app.services.user_preferences_service import UserPreferencesService
+from app.services.plan_version_service import PlanVersionService
 from datetime import datetime, date, timedelta
 from app.models.user import User
 
@@ -495,6 +496,23 @@ async def update_daily_plan(
         
         logger.info(f"Found existing plan {plan.id} for user {db_user.id}")
         
+        # Create a version backup before updating
+        version_service = PlanVersionService(db)
+        try:
+            version_service.create_version_backup(
+                user_id=db_user.id,
+                plan_id=plan.id,
+                plan_json=plan.plan_json,
+                plan_type=plan.plan_type,
+                change_type="manual_update",
+                change_description="Plan updated manually by user",
+                changed_by="user"
+            )
+            logger.info(f"Version backup created for plan {plan.id}")
+        except Exception as backup_error:
+            logger.warning(f"Failed to create version backup: {backup_error}")
+            # Continue with the update even if backup fails
+        
         # Update the plan_json with the new data
         plan.plan_json = plan_data
         
@@ -694,6 +712,46 @@ async def complete_habit(
         logger.error(f"Error completing habit: {str(e)}")
         logger.error(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Failed to complete habit: {str(e)}")
+
+
+@router.delete("/habits/complete")
+async def delete_habit_completion(
+    habit_type: str,
+    day_date: str = None,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Delete a habit completion for a specific date"""
+    try:
+        db_user = get_or_create_user(db, user)
+        progress_service = ProgressTrackingService()
+        
+        # Parse the date if provided, otherwise use today
+        target_date = None
+        if day_date:
+            try:
+                target_date = datetime.strptime(day_date, "%Y-%m-%d").date()
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        success = progress_service.delete_habit_completion(
+            db=db,
+            user_id=db_user.id,
+            habit_type=habit_type,
+            day_date=target_date
+        )
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="Habit completion not found")
+        
+        return {"message": "Habit completion deleted successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting habit completion: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to delete habit completion: {str(e)}")
 
 
 @router.get("/habits/completions", response_model=List[HabitCompletionResponse])
@@ -1184,4 +1242,85 @@ async def test_leo_update(
         print(f"Error in test_leo_update: {e}")
         import traceback
         traceback.print_exc()
-        return {"error": str(e)} 
+        return {"error": str(e)}
+
+# Plan Version History Endpoints
+@router.get("/plan-version-history")
+async def get_plan_version_history(
+    limit: int = 10,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get plan version history for the current user"""
+    try:
+        db_user = get_or_create_user(db, user)
+        version_service = PlanVersionService(db)
+        
+        # Get user's latest daily plan using the same pattern as get_latest_daily_plan
+        plan = db.query(DailyPlan).filter(
+            DailyPlan.user_id == db_user.id
+        ).order_by(DailyPlan.created_at.desc()).first()
+        
+        if not plan:
+            return {"versions": []}
+        
+        versions = version_service.get_version_history(db_user.id, plan.id, limit)
+        
+        return {
+            "versions": versions,
+            "total_versions": len(versions)
+        }
+    except Exception as e:
+        logger.error(f"Error getting plan version history: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/restore-plan-version")
+async def restore_plan_version(
+    version_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Restore a plan to a specific version"""
+    try:
+        version_id = version_data.get("version_id")
+        if not version_id:
+            raise HTTPException(status_code=400, detail="version_id is required")
+        
+        db_user = get_or_create_user(db, user)
+        version_service = PlanVersionService(db)
+        success, message = version_service.restore_version(version_id, db_user.id)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail=message)
+        
+        return {
+            "message": "Plan restored successfully",
+            "restored_version": version_id,
+            "details": message
+        }
+    except Exception as e:
+        logger.error(f"Error restoring plan version: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/compare-plan-versions")
+async def compare_plan_versions(
+    comparison_data: Dict[str, Any],
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Compare two plan versions"""
+    try:
+        version1_id = comparison_data.get("version1_id")
+        version2_id = comparison_data.get("version2_id")
+        
+        if not version1_id or not version2_id:
+            raise HTTPException(status_code=400, detail="Both version1_id and version2_id are required")
+        
+        db_user = get_or_create_user(db, user)
+        version_service = PlanVersionService(db)
+        comparison = version_service.compare_versions(version1_id, version2_id, db_user.id)
+        
+        return comparison
+    except Exception as e:
+        logger.error(f"Error comparing plan versions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e)) 
