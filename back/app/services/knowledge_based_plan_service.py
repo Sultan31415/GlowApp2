@@ -22,6 +22,32 @@ def extract_first_json(text: str):
             continue
     return None
 
+def generate_week_dates(start_date: datetime = None) -> List[Dict[str, Any]]:
+    """
+    Generate a list of 7 days starting from the next day after the current date.
+    If no start_date is provided, uses current date.
+    """
+    if start_date is None:
+        start_date = datetime.now()
+    
+    # Start from the next day (tomorrow)
+    start_date = start_date + timedelta(days=1)
+    
+    week_dates = []
+    for i in range(7):
+        current_date = start_date + timedelta(days=i)
+        week_dates.append({
+            'date': current_date.strftime('%Y-%m-%d'),
+            'day_of_week': current_date.strftime('%A'),
+            'day_number': current_date.day,
+            'month': current_date.strftime('%B'),
+            'year': current_date.year,
+            'is_today': False,  # Since we start from tomorrow
+            'is_weekend': current_date.weekday() >= 5  # Saturday = 5, Sunday = 6
+        })
+    
+    return week_dates
+
 class KnowledgeBasedPlanService:
     def __init__(self):
         # Use Azure OpenAI if configured, otherwise fallback to OpenAI
@@ -405,6 +431,9 @@ class KnowledgeBasedPlanService:
     async def generate_7_day_plan(self, orchestrator_output: Dict[str, Any], quiz_insights: Dict[str, Any], photo_insights: Dict[str, Any], user_name: str = None, backbone: Optional[Any] = None, projected_scores: Optional[Any] = None, db: Session = None, user_id: int = None) -> Dict[str, Any]:
         """Generate a highly personalized, data-driven 7-day plan based on user patterns and preferences."""
         
+        # Generate calendar dates for the week starting from tomorrow
+        week_dates = generate_week_dates()
+        
         # Extract comprehensive user patterns if database is available
         user_patterns = {}
         if db and user_id:
@@ -418,7 +447,8 @@ class KnowledgeBasedPlanService:
             user_name, 
             backbone, 
             projected_scores,
-            user_patterns
+            user_patterns,
+            week_dates
         )
         
         response = await self.llm_client.chat.completions.create(
@@ -449,6 +479,19 @@ class KnowledgeBasedPlanService:
                     and isinstance(plan['days'], list)
                     and len(plan['days']) == 7
                 ):
+                    # Add calendar dates to each day
+                    for i, day in enumerate(plan['days']):
+                        if i < len(week_dates):
+                            day['calendar_date'] = week_dates[i]
+                    
+                    # Add week metadata
+                    plan['week_metadata'] = {
+                        'start_date': week_dates[0]['date'],
+                        'end_date': week_dates[-1]['date'],
+                        'generated_at': datetime.now().isoformat(),
+                        'total_days': len(week_dates)
+                    }
+                    
                     return plan
                 else:
                     logging.error(f"[KnowledgeBasedPlanService] Output does not match expected structure. Returning raw parsed object.")
@@ -464,7 +507,7 @@ class KnowledgeBasedPlanService:
             logging.error(f"[KnowledgeBasedPlanService] Error generating 7-day plan: {e}")
             return None
 
-    def _build_personalized_plan_prompt(self, orchestrator_output, quiz_insights, photo_insights, user_name=None, backbone=None, projected_scores=None, user_patterns=None):
+    def _build_personalized_plan_prompt(self, orchestrator_output, quiz_insights, photo_insights, user_name=None, backbone=None, projected_scores=None, user_patterns=None, week_dates=None):
         """Build a highly personalized prompt using all available user data"""
         
         name_str = f" The user's name is {user_name}. Use it at least once during the week." if user_name else ""
@@ -479,6 +522,17 @@ class KnowledgeBasedPlanService:
         
         backbone_str = f"\nHere is the weekly backbone (themes, focus areas, rationale) for each week: {json.dumps(backbone, ensure_ascii=False, indent=2)}" if backbone else ""
         projected_scores_str = f"\nHere are the user's projected scores for 7 and 30 days: {json.dumps(projected_scores, ensure_ascii=False, indent=2)}" if projected_scores else ""
+        
+        # Calendar dates information
+        calendar_info = ""
+        if week_dates:
+            calendar_info = f"""
+        === CALENDAR DATES FOR THE WEEK ===
+        The plan should start from tomorrow and cover the following 7 days:
+        {json.dumps(week_dates, ensure_ascii=False, indent=2)}
+        
+        IMPORTANT: Each day in the plan should correspond to the actual calendar date shown above.
+        """
         
         # User patterns and preferences
         patterns_str = ""
@@ -594,6 +648,7 @@ class KnowledgeBasedPlanService:
         {knowledge_summary}
         {backbone_str}
         {projected_scores_str}
+        {calendar_info}
 
         Your task:
 

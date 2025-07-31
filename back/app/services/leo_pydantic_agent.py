@@ -94,6 +94,20 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 - Example refusal: "I'm here to help you with your wellness journey, not general knowledge. If you have a question about your health, habits, or personal growth, I'm here for you!"
 - Never break character or answer unrelated questions under any circumstances.
 
+## CALENDAR DATE SYSTEM (CRITICAL - NEW SYSTEM)
+- The weekly plan now uses REAL calendar dates starting from tomorrow
+- **IMPORTANT**: The plan shows actual dates like "Friday, Aug 1", "Saturday, Aug 2", etc.
+- **NEVER** refer to days as "Day 1", "Day 2", etc. - always use the actual day names and dates
+- **DAY NAME QUERIES**: When users mention days like "Saturday", "Monday", "Friday" → Use `find_day_by_name_or_date(day_identifier="Monday")` 
+- **RELATIVE DATE REFERENCES**: When users mention "today", "tomorrow", "yesterday" → Use `find_day_by_name_or_date(day_identifier="tomorrow")`
+- **CALENDAR DATE QUERIES**: When users mention specific dates like "2024-08-05" → Use `find_day_by_name_or_date(day_identifier="2024-08-05")`
+- **DAY UPDATES**: When users want to modify specific days by name → Use `update_day_by_name(day_name="Monday", updates={...})`
+- **DAY NUMBER UPDATES**: When users want to modify by day number (1-7) → Use `update_specific_day_plan(day_number=1, updates={...})`
+- Always confirm which specific day you're updating to avoid confusion
+- If "today" is not in the current plan (since it starts from tomorrow), explain this clearly to the user
+- **CRITICAL**: When responding about plans, always mention the actual date (e.g., "Friday, Aug 1") not just "Day 1"
+- **WHEN DAY NOT FOUND**: If `find_day_by_name_or_date` returns "found: false", explain that the day is not in the current plan and show available days
+
 - **Be concise, but also reasonable and supportive:**
   - Your main reply should be focused, actionable, and easy to read—aim for 2–5 sentences.
   - Give just enough context or encouragement to help the user feel understood and motivated.
@@ -122,6 +136,31 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 💡 **Wise Guidance**: You provide specific, actionable advice based on comprehensive AI analysis and user data
 🎯 **Real Intelligence**: Use actual insight text, not just scores - quote specific findings
 📅 **Plan Management**: You can modify daily plans, morning routines, and weekly challenges to adapt to user needs
+
+## TOOL SELECTION GUIDELINES (CRITICAL)
+
+**For Day/Date Queries:**
+- User asks "What's my plan for Monday?" → Use `find_day_by_name_or_date(day_identifier="Monday")`
+- User asks "What's my plan for Friday?" → Use `find_day_by_name_or_date(day_identifier="Friday")`
+- User asks "What's my plan for tomorrow?" → Use `find_day_by_name_or_date(day_identifier="tomorrow")`
+- User asks "What's my plan for today?" → Use `find_day_by_name_or_date(day_identifier="today")`
+- User asks "What's my plan for 2024-08-05?" → Use `find_day_by_name_or_date(day_identifier="2024-08-05")`
+
+**For Day Updates:**
+- User wants to change "Monday's plan" → Use `update_day_by_name(day_name="Monday", updates={...})`
+- User wants to change "day 1" → Use `update_specific_day_plan(day_number=1, updates={...})`
+- User wants to change "all days" → Use `update_multiple_days_plan(day_numbers=[1,2,3,4,5,6,7], updates={...})`
+
+**For General Plan Access:**
+- User asks about overall plan structure → Use `access_user_goals_and_plans()`
+- User wants to see all plans → Use `access_user_goals_and_plans()`
+
+**RESPONSE FORMAT RULES:**
+- When describing plans, ALWAYS mention the actual date (e.g., "Friday, Aug 1") not "Day 1"
+- When a user asks about "Monday", respond with the actual date that Monday falls on
+- Never use "Day 1", "Day 2" terminology in responses - use real dates
+- When `find_day_by_name_or_date` returns a result, format your response like: "Here's your plan for [Day Name], [Date]: [plan details]"
+- Example: "Here's your plan for Friday, Aug 1: Main Focus: Increase push-ups to 45..."
 
 ## YOUR THERAPEUTIC CAPABILITIES
 
@@ -152,10 +191,7 @@ leo_agent = Agent[LeoDeps, LeoResponse](
 4. **Action Planning** → Use `access_user_goals_and_plans` for general structure, `get_specific_day_plan` for day-specific plans
 5. **Progress Monitoring** → Reference assessment history for growth patterns
 
-**Daily Plan Access:**
-- When user asks about "Monday plan", "today's plan", or specific day → Use `get_specific_day_plan(day_number=1)` for Monday
-- When user asks about general planning or weekly structure → Use `access_user_goals_and_plans` 
-- ALWAYS show the actual plan content, not generic advice
+
 
 **Plan Management Operations:**
 - When user wants to change their morning routine → Use `update_morning_routine(new_routine: List[str])`
@@ -956,13 +992,15 @@ async def get_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int) -> Di
         if not day_plan:
             return {"error": f"Day {day_number} not found in plan"}
         
-        # Get day names for better context
-        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        day_name = day_names[day_number - 1] if 1 <= day_number <= 7 else f"Day {day_number}"
+        # Get calendar date information if available
+        calendar_date = day_plan.get("calendar_date", {})
+        day_name = calendar_date.get("day_of_week", f"Day {day_number}") if calendar_date else f"Day {day_number}"
+        actual_date = calendar_date.get("date", "") if calendar_date else ""
         
         return {
             "day_number": day_number,
             "day_name": day_name,
+            "calendar_date": actual_date,
             "main_focus": day_plan.get("mainFocus", ""),
             "system_building": day_plan.get("systemBuilding", {}),
             "deep_focus": day_plan.get("deepFocus", ""),
@@ -975,6 +1013,148 @@ async def get_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int) -> Di
     except Exception as e:
         print(f"[Leo Tool] ❌ Error getting day {day_number} plan: {str(e)}")
         raise ModelRetry(f"Error getting day {day_number} plan: {str(e)}")
+
+@leo_agent.tool
+async def find_day_by_name_or_date(ctx: RunContext[LeoDeps], day_identifier: str) -> Dict[str, Any]:
+    """Find a specific day by name (Monday, Tuesday, etc.), date (YYYY-MM-DD), or relative reference (today, tomorrow, yesterday). Use when user mentions a specific day."""
+    try:
+        print(f"[Leo Tool] 🔍 Finding day by identifier: {day_identifier}")
+        
+        # Load daily plan
+        db_plan = ctx.deps.db.query(DBDailyPlan).filter(
+            DBDailyPlan.user_id == ctx.deps.internal_user_id
+        ).order_by(DBDailyPlan.created_at.desc()).first()
+        
+        if not db_plan:
+            return {"error": "No daily plan found for user"}
+        
+        plan_data = db_plan.plan_json or {}
+        days_list = plan_data.get("days", [])
+        
+        if not days_list:
+            return {"error": "No days data found in plan"}
+        
+        # Debug: Print available days for troubleshooting
+        print(f"[Leo Tool] 📅 Available days in plan:")
+        for day in days_list:
+            calendar_date = day.get("calendar_date", {})
+            day_of_week = calendar_date.get("day_of_week", "Unknown") if calendar_date else "Unknown"
+            date_str = calendar_date.get("date", "No date") if calendar_date else "No date"
+            main_focus = day.get("mainFocus", "No focus")
+            print(f"[Leo Tool]   Day {day.get('day')}: {day_of_week} - {date_str} - Focus: {main_focus}")
+        
+        # Handle relative date references
+        day_identifier_lower = day_identifier.lower().strip()
+        
+        # Relative date mapping
+        relative_date_mapping = {
+            'today': 0,
+            'tomorrow': 1,
+            'yesterday': -1,
+            'next week': 7,
+            'last week': -7
+        }
+        
+        # Check for relative dates first
+        if day_identifier_lower in relative_date_mapping:
+            days_offset = relative_date_mapping[day_identifier_lower]
+            
+            # Get current date
+            from datetime import datetime, timedelta
+            current_date = datetime.now().date()
+            target_date = current_date + timedelta(days=days_offset)
+            target_date_str = target_date.strftime('%Y-%m-%d')
+            
+            print(f"[Leo Tool] 📅 Relative date '{day_identifier}' maps to {target_date_str}")
+            
+            # Find the day in the plan
+            for i, day in enumerate(days_list):
+                calendar_date = day.get('calendar_date', {})
+                if calendar_date.get('date') == target_date_str:
+                    return {
+                        "found": True,
+                        "day_number": day.get("day"),
+                        "day_name": calendar_date.get("day_of_week"),
+                        "day_data": day,
+                        "calendar_date": calendar_date,
+                        "relative_reference": day_identifier,
+                        "actual_date": target_date_str,
+                        "main_focus": day.get("mainFocus", ""),
+                        "system_building": day.get("systemBuilding", {}),
+                        "deep_focus": day.get("deepFocus", ""),
+                        "evening_reflection": day.get("eveningReflection", ""),
+                        "motivational_tip": day.get("motivationalTip", "")
+                    }
+            
+            # If not found in plan, provide helpful information
+            return {
+                "found": False,
+                "error": f"'{day_identifier}' ({target_date_str}) is not in the current week plan",
+                "relative_reference": day_identifier,
+                "actual_date": target_date_str,
+                "note": "The current plan covers the next 7 days starting from tomorrow"
+            }
+        
+        # Try to find by day name first
+        day_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+        
+        # Check if it's a day name
+        if day_identifier_lower in day_names:
+            print(f"[Leo Tool] 🔍 Looking for day name: {day_identifier_lower}")
+            # Find the day by matching the day_of_week in calendar_date
+            for day in days_list:
+                calendar_date = day.get("calendar_date", {})
+                day_of_week = calendar_date.get("day_of_week", "").lower() if calendar_date else ""
+                print(f"[Leo Tool] 🔍 Comparing: '{day_identifier_lower}' with '{day_of_week}' (Day {day.get('day')})")
+                
+                if calendar_date and day_of_week == day_identifier_lower:
+                    print(f"[Leo Tool] ✅ Found matching day: {day_identifier.capitalize()} (Day {day.get('day')})")
+                    return {
+                        "found": True,
+                        "day_number": day.get("day"),
+                        "day_name": day_identifier.capitalize(),
+                        "calendar_date": calendar_date.get("date", ""),
+                        "main_focus": day.get("mainFocus", ""),
+                        "system_building": day.get("systemBuilding", {}),
+                        "deep_focus": day.get("deepFocus", ""),
+                        "evening_reflection": day.get("eveningReflection", ""),
+                        "motivational_tip": day.get("motivationalTip", "")
+                    }
+        
+        # Try to find by calendar date
+        for day in days_list:
+            calendar_date = day.get("calendar_date", {})
+            if calendar_date and calendar_date.get("date") == day_identifier:
+                return {
+                    "found": True,
+                    "day_number": day.get("day"),
+                    "day_name": calendar_date.get("day_of_week", f"Day {day.get('day')}"),
+                    "calendar_date": day_identifier,
+                    "main_focus": day.get("mainFocus", ""),
+                    "system_building": day.get("systemBuilding", {}),
+                    "deep_focus": day.get("deepFocus", ""),
+                    "evening_reflection": day.get("eveningReflection", ""),
+                    "motivational_tip": day.get("motivationalTip", "")
+                }
+        
+        return {
+            "found": False,
+            "error": f"Day '{day_identifier}' not found in plan",
+            "available_days": [
+                {
+                    "day_number": day.get("day"),
+                    "day_name": day.get("calendar_date", {}).get("day_of_week", f"Day {day.get('day')}"),
+                    "calendar_date": day.get("calendar_date", {}).get("date", ""),
+                    "main_focus": day.get("mainFocus", "")
+                }
+                for day in days_list
+            ],
+            "note": "Available days in your current plan are listed above. The plan covers the next 7 days starting from tomorrow."
+        }
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error finding day by identifier '{day_identifier}': {str(e)}")
+        raise ModelRetry(f"Error finding day by identifier '{day_identifier}': {str(e)}")
 
 @leo_agent.tool
 async def fix_corrupted_morning_routine(ctx: RunContext[LeoDeps]) -> Dict[str, Any]:
@@ -1306,6 +1486,31 @@ async def update_specific_day_plan(ctx: RunContext[LeoDeps], day_number: int, up
         except:
             pass
         raise ModelRetry(f"Error updating day {day_number} plan: {str(e)}")
+
+@leo_agent.tool
+async def update_day_by_name(ctx: RunContext[LeoDeps], day_name: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a specific day's plan by day name (Monday, Tuesday, etc.). Use when user wants to modify a particular day's activities."""
+    try:
+        print(f"[Leo Tool] 📅 Updating plan for day: {day_name}")
+        
+        # First find the day by name
+        day_finder = await find_day_by_name_or_date(ctx, day_name)
+        
+        if not day_finder.get("found"):
+            return {
+                "error": f"Day '{day_name}' not found in plan",
+                "available_days": day_finder.get("available_days", [])
+            }
+        
+        day_number = day_finder["day_number"]
+        print(f"[Leo Tool] 🔍 Found day '{day_name}' as day number {day_number}")
+        
+        # Now update using the existing update_specific_day_plan logic
+        return await update_specific_day_plan(ctx, day_number, updates)
+        
+    except Exception as e:
+        print(f"[Leo Tool] ❌ Error updating day '{day_name}': {str(e)}")
+        raise ModelRetry(f"Error updating day '{day_name}': {str(e)}")
 
 @leo_agent.tool
 async def update_multiple_days_plan(ctx: RunContext[LeoDeps], day_numbers: List[int], updates: Dict[str, Any]) -> Dict[str, Any]:

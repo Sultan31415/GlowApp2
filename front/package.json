@@ -17,6 +17,7 @@
     "@react-three/fiber": "^8.15.19",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.19.2",
     "html-to-image": "^1.11.13",
     "i18next": "^25.3.2",

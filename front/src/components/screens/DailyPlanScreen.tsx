@@ -4,8 +4,10 @@ import { useApi } from '../../utils/useApi';
 import { DayCard } from './DayCard';
 import { useTranslation } from 'react-i18next';
 import { LeoChatWidget, PlanVersionHistory } from '../features';
+import { format, parseISO, addDays, startOfDay } from 'date-fns';
 
-const dayNames = [
+// Fallback day names in case calendar dates are not available
+const fallbackDayNames = [
   'daily.days.monday',
   'daily.days.tuesday',
   'daily.days.wednesday',
@@ -14,6 +16,71 @@ const dayNames = [
   'daily.days.saturday',
   'daily.days.sunday',
 ];
+
+// Function to generate calendar dates if not provided by backend
+const generateFallbackDates = () => {
+  const tomorrow = addDays(startOfDay(new Date()), 1);
+  const dates = [];
+  
+  for (let i = 0; i < 7; i++) {
+    const date = addDays(tomorrow, i);
+    dates.push({
+      date: format(date, 'yyyy-MM-dd'),
+      day_of_week: format(date, 'EEEE'),
+      day_number: date.getDate(),
+      month: format(date, 'MMMM'),
+      year: date.getFullYear(),
+      is_today: false,
+      is_weekend: date.getDay() === 0 || date.getDay() === 6
+    });
+  }
+  
+  return dates;
+};
+
+// Function to format date for display
+const formatDateForDisplay = (calendarDate: any, t: any) => {
+  if (!calendarDate) return '';
+  
+  try {
+    const date = parseISO(calendarDate.date);
+    const dayName = t(`daily.days.${calendarDate.day_of_week.toLowerCase()}`);
+    const formattedDate = format(date, 'MMM d');
+    
+    return `${dayName}, ${formattedDate}`;
+  } catch (error) {
+    // Fallback to just the day name if date parsing fails
+    return t(`daily.days.${calendarDate.day_of_week.toLowerCase()}`);
+  }
+};
+
+// Function to ensure plan has calendar dates
+const ensurePlanHasCalendarDates = (plan: any) => {
+  if (!plan || !Array.isArray(plan.days)) {
+    return plan;
+  }
+  
+  const fallbackDates = generateFallbackDates();
+  
+  // Add calendar dates to each day if they don't exist
+  plan.days.forEach((day: any, index: number) => {
+    if (!day.calendar_date && fallbackDates[index]) {
+      day.calendar_date = fallbackDates[index];
+    }
+  });
+  
+  // Add week metadata if it doesn't exist
+  if (!plan.week_metadata && fallbackDates.length > 0) {
+    plan.week_metadata = {
+      start_date: fallbackDates[0].date,
+      end_date: fallbackDates[fallbackDates.length - 1].date,
+      generated_at: new Date().toISOString(),
+      total_days: fallbackDates.length
+    };
+  }
+  
+  return plan;
+};
 
 interface DailyPlanScreenProps {
   onBack: () => void;
@@ -42,9 +109,11 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       setLoading(true); // Show loading state while refetching
       
       const data = await makeRequest('daily-plan');
-      setPlan(data);
+      // Ensure plan has calendar dates
+      const planWithDates = ensurePlanHasCalendarDates(data);
+      setPlan(planWithDates);
       setError(null); // Clear any previous errors
-      console.log('Plan refetched successfully:', data);
+      console.log('Plan refetched successfully:', planWithDates);
       
       // Show a brief success message (optional)
       // You could add a toast notification here if you have a toast system
@@ -58,9 +127,10 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
         try {
           console.log('Retrying plan refetch...');
           const retryData = await makeRequest('daily-plan');
-          setPlan(retryData);
+          const retryPlanWithDates = ensurePlanHasCalendarDates(retryData);
+          setPlan(retryPlanWithDates);
           setError(null);
-          console.log('Plan refetched successfully on retry:', retryData);
+          console.log('Plan refetched successfully on retry:', retryPlanWithDates);
         } catch (retryErr: any) {
           console.error('Retry failed:', retryErr);
           setError('Unable to refresh plan. Please refresh the page manually.');
@@ -156,8 +226,9 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             triedGeneration = true;
             await makeRequest('generate-daily-plan', { method: 'POST' });
             const newData = await makeRequest('daily-plan');
-            setPlan(newData);
-            console.log('Fetched plan after generation (missing/empty days):', newData);
+            const newPlanWithDates = ensurePlanHasCalendarDates(newData);
+            setPlan(newPlanWithDates);
+            console.log('Fetched plan after generation (missing/empty days):', newPlanWithDates);
             return;
           } else {
             setError('No daily plan found. Please try to generate your plan again.');
@@ -165,8 +236,10 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             return;
           }
         }
-        setPlan(data);
-        console.log('Fetched plan:', data); // Debug: log the plan structure
+        // Ensure plan has calendar dates
+        const planWithDates = ensurePlanHasCalendarDates(data);
+        setPlan(planWithDates);
+        console.log('Fetched plan with dates:', planWithDates); // Debug: log the plan structure
       } catch (err: any) {
         // If 404, try to generate the plan
         if ((err?.status === 404 || err?.response?.status === 404) && !triedGeneration) {
@@ -175,8 +248,9 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             await makeRequest('generate-daily-plan', { method: 'POST' });
             // Try fetching again
             const data = await makeRequest('daily-plan');
-            setPlan(data);
-            console.log('Fetched plan after generation:', data); // Debug: log after generation
+            const planWithDates = ensurePlanHasCalendarDates(data);
+            setPlan(planWithDates);
+            console.log('Fetched plan after generation:', planWithDates); // Debug: log after generation
           } catch (genErr: any) {
             setError('Failed to generate your daily plan. Please try again.');
             setPlan(null);
@@ -297,6 +371,19 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               <div>
                 <h1 className="text-lg sm:text-2xl font-bold text-slate-700">{t('daily.header')}</h1>
                 <p className="text-slate-500 text-xs sm:text-base">{t('daily.subheader')}</p>
+                {plan?.week_metadata && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Calendar className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs text-blue-600 font-medium">
+                      {format(parseISO(plan.week_metadata.start_date), 'MMM d')} - {format(parseISO(plan.week_metadata.end_date), 'MMM d, yyyy')}
+                    </span>
+                    {plan.week_metadata.generated_at && (
+                      <span className="text-xs text-gray-500">
+                        • Generated {format(parseISO(plan.week_metadata.generated_at), 'MMM d, h:mm a')}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {leoUpdating && (
                   <div className="flex items-center gap-2 mt-1">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-600"></div>
@@ -443,7 +530,7 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
             <DayCard 
               key={idx} 
               day={day} 
-              dayName={t(dayNames[idx] || 'daily.day', { day: idx + 1 })} 
+              dayName={formatDateForDisplay(day.calendar_date, t) || t(fallbackDayNames[idx] || 'daily.day', { day: idx + 1 })} 
               dayIndex={idx}
               isEditing={isEditing}
               onUpdateField={updateDayField}

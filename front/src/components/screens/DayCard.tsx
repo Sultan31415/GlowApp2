@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Sparkles, Moon, Target, Settings, Info } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
 
 export interface DayCardProps {
   day: any;
@@ -82,11 +83,53 @@ export const DayCard: React.FC<DayCardProps> = ({
     );
   };
 
+  // Format calendar date for display
+  const formatCalendarDate = () => {
+    if (day.calendar_date) {
+      try {
+        const date = parseISO(day.calendar_date.date);
+        const dayNumber = day.calendar_date.day_number;
+        const month = format(date, 'MMM');
+        const isWeekend = day.calendar_date.is_weekend;
+        const today = new Date();
+        const isToday = format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+        
+        return {
+          dayNumber,
+          month,
+          isWeekend,
+          isToday,
+          fullDate: format(date, 'MMM d')
+        };
+      } catch (error) {
+        console.error('Error parsing calendar date:', error);
+      }
+    }
+    return null;
+  };
+
+  const calendarInfo = formatCalendarDate();
+
   return (
-    <div className="bg-white/90 rounded-lg shadow-lg border border-gray-100 p-6 flex flex-col h-full min-h-[320px] self-stretch">
-      <div className="flex items-center mb-3">
-        <Calendar className="w-5 h-5 text-blue-500 mr-2" />
-        <h3 className="text-lg font-bold text-gray-800">{dayName}</h3>
+    <div className={`bg-white/90 rounded-lg shadow-lg border p-6 flex flex-col h-full min-h-[320px] self-stretch ${
+      calendarInfo?.isToday 
+        ? 'border-green-300 shadow-green-100' 
+        : 'border-gray-100'
+    }`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center">
+          <Calendar className="w-5 h-5 text-blue-500 mr-2" />
+          <h3 className="text-lg font-bold text-gray-800">{dayName}</h3>
+        </div>
+        {calendarInfo && (
+          <div className={`text-right ${calendarInfo.isToday ? 'text-green-600' : calendarInfo.isWeekend ? 'text-purple-600' : 'text-gray-500'}`}>
+            <div className="text-xs font-medium">{calendarInfo.month}</div>
+            <div className="text-lg font-bold">{calendarInfo.dayNumber}</div>
+            {calendarInfo.isToday && (
+              <div className="text-xs font-medium text-green-600">Today</div>
+            )}
+          </div>
+        )}
       </div>
       
       <div className="mb-3">
