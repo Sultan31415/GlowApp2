@@ -291,9 +291,9 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     const config = HABIT_CONFIGS[habitType];
     if (config) {
       const IconComponent = config.icon;
-      return <IconComponent className="w-4 h-4" />;
+      return <IconComponent className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
-    return <CheckCircle className="w-4 h-4" />;
+    return <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />;
   };
 
   const getHabitTypeColor = (habitType: string) => {
@@ -330,30 +330,30 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     return (
       <div 
         key={habitKey} 
-        className={`flex items-center justify-between p-3 ${config.bgColor} rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'hover:scale-[1.02]' : 'hover:scale-[1.02]'}`}
+        className={`flex items-center justify-between p-2.5 sm:p-3 ${config.bgColor} rounded-xl border transition-all duration-200 hover:shadow-md cursor-pointer ${isCompleted ? 'hover:scale-[1.02]' : 'hover:scale-[1.02]'} touch-manipulation`}
         onClick={() => !isLoading && handleTrackHabit(habitKey, config.label)}
       >
-                  <div className="flex items-center space-x-2">
-            <div className={`p-2 ${config.color.replace('text-', 'bg-').replace('-600', '-100')} rounded-lg`}>
-              <IconComponent className={`w-4 h-4 ${config.color}`} />
-            </div>
-            <div>
-              <p className={`font-semibold text-gray-900 text-sm ${isCompleted ? 'line-through' : ''}`}>{config.label}</p>
-              <p className={`text-xs ${isCompleted ? 'text-emerald-600' : 'text-gray-500'}`}>
-                {isCompleted ? 'Tap to undo' : 'Tap to mark as done'}
-              </p>
-            </div>
+        <div className="flex items-center space-x-2 flex-1 min-w-0">
+          <div className={`p-1.5 sm:p-2 ${config.color.replace('text-', 'bg-').replace('-600', '-100')} rounded-lg flex-shrink-0`}>
+            <IconComponent className={`w-3 h-3 sm:w-4 sm:h-4 ${config.color}`} />
           </div>
-        <div className="flex items-center justify-center">
+          <div className="flex-1 min-w-0">
+            <p className={`font-semibold text-gray-900 text-xs sm:text-sm ${isCompleted ? 'line-through' : ''} truncate`}>{config.label}</p>
+            <p className={`text-xs ${isCompleted ? 'text-emerald-600' : 'text-gray-500'}`}>
+              {isCompleted ? 'Tap to undo' : 'Tap to mark as done'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-center flex-shrink-0">
           {isCompleted ? (
-            <div className="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center hover:bg-red-100 hover:scale-110 transition-all duration-200">
-              <CheckCircle className="w-4 h-4 text-emerald-600" />
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-100 rounded-full flex items-center justify-center hover:bg-red-100 hover:scale-110 transition-all duration-200">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600" />
             </div>
           ) : isLoading ? (
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
           ) : (
-            <div className="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors">
-              <div className="w-3 h-3 rounded-full bg-transparent"></div>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-gray-300 rounded-full flex items-center justify-center hover:border-emerald-400 hover:bg-emerald-50 transition-colors">
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-transparent"></div>
             </div>
           )}
         </div>
@@ -361,15 +361,13 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
     );
   };
 
-
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Loading Progress Data</h3>
-          <p className="text-gray-600">Analyzing your wellness journey...</p>
+        <div className="text-center px-4">
+          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4 sm:mb-6"></div>
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-2">Loading Progress Data</h3>
+          <p className="text-sm sm:text-base text-gray-600">Analyzing your wellness journey...</p>
         </div>
       </div>
     );
@@ -378,15 +376,15 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 mb-4">
-            <BarChart3 className="w-16 h-16 mx-auto" />
+        <div className="text-center max-w-sm sm:max-w-md mx-auto p-4 sm:p-6">
+          <div className="text-red-500 mb-3 sm:mb-4">
+            <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Progress</h3>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-2">Error Loading Progress</h3>
+          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{error}</p>
           <button
             onClick={fetchProgressData}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+            className="bg-indigo-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium hover:bg-indigo-700 transition-colors text-sm sm:text-base"
           >
             Try Again
           </button>
@@ -402,41 +400,41 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
       
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={onBack || (() => navigate(-1))}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+                <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Progress Tracking</h1>
-                <p className="text-sm text-gray-600">Your wellness journey visualized</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">Progress Tracking</h1>
+                <p className="text-xs sm:text-sm text-gray-600 truncate">Your wellness journey visualized</p>
                 {leoUpdating && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-600"></div>
+                  <div className="flex items-center gap-1 sm:gap-2 mt-0.5 sm:mt-1">
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-blue-200 border-t-blue-600"></div>
                     <span className="text-xs text-blue-600 font-medium">Leo is updating your progress...</span>
                   </div>
                 )}
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={handleLeoProgressUpdateWithFallback}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
                 title="Refresh progress data"
               >
-                <TrendingUp className="w-5 h-5 text-gray-600" />
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
               <button
                 onClick={fetchProgressData}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors touch-manipulation"
                 title="Refresh data"
               >
-                <TrendingUp className="w-5 h-5 text-gray-600" />
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
               </button>
             </div>
           </div>
@@ -444,20 +442,20 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
       </div>
 
       {/* Quick Tracking Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-gray-100/50 mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">Today's Tracking</h3>
-          <div className="grid grid-cols-2 gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-100/50 mb-6 sm:mb-8">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Today's Tracking</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {Object.keys(HABIT_CONFIGS).map(habitKey => renderHabitCard(habitKey as keyof TodayTracking))}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-6 sm:py-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* GitHub-Style Contribution Graph */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-gray-100/50">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-100/50">
             <ContributionGraph
               data={contributionData}
               onDayClick={handleDayClick}
@@ -468,47 +466,47 @@ export const ProgressTrackingScreen: React.FC<ProgressTrackingScreenProps> = ({ 
 
           {/* Selected Day Details Modal */}
           {selectedDayDetails && (
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <div className="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl border border-gray-100/50 max-w-md w-full mx-auto animate-in fade-in duration-200">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50">
+              <div className="bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-2xl border border-gray-100/50 max-w-sm sm:max-w-md w-full mx-auto animate-in fade-in duration-200">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 truncate">
                       {formatDate(selectedDayDetails.date)}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">Daily Summary</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">Daily Summary</p>
                   </div>
                   <button
                     onClick={() => {
                       setSelectedDate(null);
                       setSelectedDayDetails(null);
                     }}
-                    className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                    className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 transition-colors duration-200 flex-shrink-0 touch-manipulation"
                   >
-                    <X className="w-5 h-5 text-gray-400" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                   </button>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Stats Summary */}
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl border border-green-100">
-                    <span className="text-sm font-medium text-gray-600">Habits Completed</span>
-                    <span className="text-2xl font-bold text-green-600">{selectedDayDetails.count}</span>
+                  <div className="flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl sm:rounded-2xl border border-green-100">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600">Habits Completed</span>
+                    <span className="text-xl sm:text-2xl font-bold text-green-600">{selectedDayDetails.count}</span>
                   </div>
                   
                   {/* Completed Habits List */}
                   {selectedDayDetails.habits.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Completed Habits:</h4>
+                    <div className="space-y-2 sm:space-y-3">
+                      <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Completed Habits:</h4>
                       {selectedDayDetails.habits.map((habit, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div key={index} className="flex items-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200">
                           <div className="flex-shrink-0">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center">
-                              <span className={`text-sm px-3 py-1.5 rounded-full font-medium ${getHabitTypeColor(habit.habit_type)}`}>
+                              <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full font-medium ${getHabitTypeColor(habit.habit_type)} truncate`}>
                                 {getHabitTypeLabel(habit.habit_type)}
                               </span>
                             </div>

@@ -21,10 +21,10 @@ export const DayCard: React.FC<DayCardProps> = ({
 }) => {
   const getHabitTypeIcon = (habitType: string) => {
     switch (habitType) {
-      case 'system_building': return <Settings className="w-4 h-4" />;
-      case 'deep_focus': return <Target className="w-4 h-4" />;
-      case 'evening_reflection': return <Moon className="w-4 h-4" />;
-      default: return <Info className="w-4 h-4" />;
+      case 'system_building': return <Settings className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'deep_focus': return <Target className="w-3 h-3 sm:w-4 sm:h-4" />;
+      case 'evening_reflection': return <Moon className="w-3 h-3 sm:w-4 sm:h-4" />;
+      default: return <Info className="w-3 h-3 sm:w-4 sm:h-4" />;
     }
   };
 
@@ -44,12 +44,12 @@ export const DayCard: React.FC<DayCardProps> = ({
           type="text"
           value={value || ''}
           onChange={(e) => onUpdateField?.(dayIndex, field, e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder={placeholder}
         />
       );
     }
-    return <div className="text-base font-medium text-gray-700">{value}</div>;
+    return <div className="text-sm sm:text-base font-medium text-gray-700 break-words">{value}</div>;
   };
 
   const renderEditableTextarea = (value: string, field: string, placeholder: string) => {
@@ -58,23 +58,23 @@ export const DayCard: React.FC<DayCardProps> = ({
         <textarea
           value={value || ''}
           onChange={(e) => onUpdateField?.(dayIndex, field, e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           placeholder={placeholder}
           rows={2}
         />
       );
     }
-    return <div className="text-gray-700 text-sm">{value}</div>;
+    return <div className="text-gray-700 text-xs sm:text-sm break-words">{value}</div>;
   };
 
   const renderHabit = (habitType: string, habitContent: string, title: string, icon: React.ReactNode, field: string) => {
     return (
-      <div className="mb-3">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+      <div className="mb-2 sm:mb-3">
+        <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2 flex items-center">
           {icon}
           <span className="ml-1">{title}</span>
         </h4>
-        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <div className="bg-gray-50 rounded-lg p-2 sm:p-3 border border-gray-200">
           <div className="flex-1">
             {renderEditableTextarea(habitContent, field, `Enter ${title.toLowerCase()} content`)}
           </div>
@@ -111,20 +111,20 @@ export const DayCard: React.FC<DayCardProps> = ({
   const calendarInfo = formatCalendarDate();
 
   return (
-    <div className={`bg-white/90 rounded-lg shadow-lg border p-6 flex flex-col h-full min-h-[320px] self-stretch ${
+    <div className={`bg-white/90 rounded-lg shadow-lg border p-3 sm:p-4 lg:p-6 flex flex-col h-full min-h-[280px] sm:min-h-[320px] self-stretch ${
       calendarInfo?.isToday 
         ? 'border-green-300 shadow-green-100' 
         : 'border-gray-100'
     }`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center">
-          <Calendar className="w-5 h-5 text-blue-500 mr-2" />
-          <h3 className="text-lg font-bold text-gray-800">{dayName}</h3>
+      <div className="flex items-center justify-between mb-2 sm:mb-3">
+        <div className="flex items-center flex-1 min-w-0">
+          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-1.5 sm:mr-2 flex-shrink-0" />
+          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-800 truncate">{dayName}</h3>
         </div>
         {calendarInfo && (
-          <div className={`text-right ${calendarInfo.isToday ? 'text-green-600' : calendarInfo.isWeekend ? 'text-purple-600' : 'text-gray-500'}`}>
+          <div className={`text-right flex-shrink-0 ${calendarInfo.isToday ? 'text-green-600' : calendarInfo.isWeekend ? 'text-purple-600' : 'text-gray-500'}`}>
             <div className="text-xs font-medium">{calendarInfo.month}</div>
-            <div className="text-lg font-bold">{calendarInfo.dayNumber}</div>
+            <div className="text-sm sm:text-base lg:text-lg font-bold">{calendarInfo.dayNumber}</div>
             {calendarInfo.isToday && (
               <div className="text-xs font-medium text-green-600">Today</div>
             )}
@@ -132,20 +132,20 @@ export const DayCard: React.FC<DayCardProps> = ({
         )}
       </div>
       
-      <div className="mb-3">
+      <div className="mb-2 sm:mb-3">
         <span className="text-xs font-semibold text-slate-500">Main Focus:</span>
         {renderEditableField(day.mainFocus, 'mainFocus', 'Enter main focus')}
       </div>
 
       {/* System Building */}
       {(Array.isArray(day.systemBuilding) ? day.systemBuilding : day.systemBuilding ? [day.systemBuilding] : []).map((habit: any, hIdx: number) => (
-        <div key={hIdx} className="mb-3">
-          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-            <Settings className="w-4 h-4 mr-1 text-purple-400" />
+        <div key={hIdx} className="mb-2 sm:mb-3">
+          <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1.5 sm:mb-2 flex items-center">
+            <Settings className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-purple-400" />
             System Building
           </h4>
-          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-            <div className="flex-1 space-y-2">
+          <div className="bg-gray-50 rounded-lg p-2 sm:p-3 border border-gray-200">
+            <div className="flex-1 space-y-1.5 sm:space-y-2">
               {isEditing ? (
                 <>
                   <div>
@@ -154,7 +154,7 @@ export const DayCard: React.FC<DayCardProps> = ({
                       type="text"
                       value={habit.action || ''}
                       onChange={(e) => onUpdateSystemBuilding?.(dayIndex, hIdx, 'action', e.target.value)}
-                      className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter action"
                     />
                   </div>
@@ -165,7 +165,7 @@ export const DayCard: React.FC<DayCardProps> = ({
                         type="text"
                         value={habit.trigger || ''}
                         onChange={(e) => onUpdateSystemBuilding?.(dayIndex, hIdx, 'trigger', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter trigger"
                       />
                     </div>
@@ -177,14 +177,14 @@ export const DayCard: React.FC<DayCardProps> = ({
                         type="text"
                         value={habit.reward || ''}
                         onChange={(e) => onUpdateSystemBuilding?.(dayIndex, hIdx, 'reward', e.target.value)}
-                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter reward"
                       />
                     </div>
                   )}
                 </>
               ) : (
-                <p className="text-gray-700 text-sm">
+                <p className="text-gray-700 text-xs sm:text-sm break-words">
                   <b>Action:</b> {habit.action}
                   {habit.trigger && <> <b> | Trigger:</b> {habit.trigger}</>}
                   {habit.reward && <> <b> | Reward:</b> {habit.reward}</>}
@@ -200,7 +200,7 @@ export const DayCard: React.FC<DayCardProps> = ({
         'deep_focus',
         day.deepFocus,
         'Deep Focus',
-        <Target className="w-4 h-4 mr-1 text-blue-400" />,
+        <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-blue-400" />,
         'deepFocus'
       )}
 
@@ -209,13 +209,13 @@ export const DayCard: React.FC<DayCardProps> = ({
         'evening_reflection',
         day.eveningReflection,
         'Evening Reflection',
-        <Moon className="w-4 h-4 mr-1 text-gray-500" />,
+        <Moon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-gray-500" />,
         'eveningReflection'
       )}
 
-      <div className="mb-2">
-        <h4 className="text-sm font-semibold text-gray-700 mb-1 flex items-center">
-          <Sparkles className="w-4 h-4 mr-1 text-pink-400" />
+      <div className="mb-2 mt-auto">
+        <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-1 flex items-center">
+          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1 text-pink-400" />
           Motivational Tip
         </h4>
         {renderEditableTextarea(day.motivationalTip, 'motivationalTip', 'Enter motivational tip')}

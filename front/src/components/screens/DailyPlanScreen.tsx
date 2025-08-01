@@ -272,13 +272,13 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   if (loading) {
     return (
       <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
-        <div className="text-center">
+        <div className="text-center px-4">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
-            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
+            <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4 sm:mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
-          <p className="text-gray-600 px-4">{t('daily.preparing')}</p>
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
+          <p className="text-sm sm:text-base text-gray-600 px-2 sm:px-4">{t('daily.preparing')}</p>
         </div>
       </div>
     );
@@ -287,16 +287,16 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
   if (error) {
     return (
       <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
-        <div className="text-center max-w-md mx-auto px-4 sm:px-6">
-          <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <RotateCcw className="w-8 h-8 text-red-600" />
+        <div className="text-center max-w-sm sm:max-w-md mx-auto px-4 sm:px-6">
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 border border-gray-100">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+              <RotateCcw className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.error')}</h3>
-            <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
+            <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">{t('daily.error')}</h3>
+            <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-4 sm:mb-6">{error}</p>
             <button
               onClick={onBack}
-              className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+              className="w-full bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation text-sm sm:text-base"
             >
               {t('daily.goBack')}
             </button>
@@ -311,22 +311,22 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
     if (error) {
       return (
         <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
-          <div className="text-center max-w-md mx-auto px-4 sm:px-6">
-            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <RotateCcw className="w-8 h-8 text-red-600" />
+          <div className="text-center max-w-sm sm:max-w-md mx-auto px-4 sm:px-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 lg:p-8 border border-gray-100">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <RotateCcw className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">{t('daily.noPlan')}</h3>
-              <p className="text-gray-600 mb-6 text-sm sm:text-base">{error}</p>
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">{t('daily.noPlan')}</h3>
+              <p className="text-xs sm:text-sm lg:text-base text-gray-600 mb-4 sm:mb-6">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+                className="w-full bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation text-sm sm:text-base mb-2 sm:mb-3"
               >
                 {t('daily.tryAgain')}
               </button>
               <button
                 onClick={onBack}
-                className="w-full mt-3 bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+                className="w-full bg-gray-200 text-gray-700 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold hover:bg-gray-300 transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation text-sm sm:text-base"
               >
                 {t('daily.goBack')}
               </button>
@@ -338,102 +338,103 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
     // If no error, show loading spinner (should be rare)
     return (
       <div className="absolute inset-0 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center transition-all duration-300 overflow-x-hidden">
-        <div className="text-center">
+        <div className="text-center px-4">
           <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-6"></div>
-            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
+            <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-indigo-200 border-t-indigo-600 mx-auto mb-4 sm:mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-purple-200 border-t-purple-600 mx-auto animate-spin animate-reverse"></div>
           </div>
-          <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
-          <p className="text-gray-600 px-4">{t('daily.preparing')}</p>
+          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-800 mb-2">{t('daily.loading')}</h3>
+          <p className="text-sm sm:text-base text-gray-600 px-2 sm:px-4">{t('daily.preparing')}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-x-hidden transition-all duration-300 pb-24">
+    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col overflow-x-hidden transition-all duration-300 pb-16 sm:pb-24">
       {/* Leo Chat Widget */}
       <LeoChatWidget onPlanUpdated={refetchPlan} />
       
       {/* Beta Version Label - centered above header */}
-      <div className="flex justify-center items-center pt-4 pb-1">
-        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-3 py-1 rounded-full">{t('daily.beta')}</span>
+      <div className="flex justify-center items-center pt-2 sm:pt-4 pb-1">
+        <span className="bg-yellow-200 text-yellow-800 text-xs font-bold px-2 sm:px-3 py-1 rounded-full">{t('daily.beta')}</span>
       </div>
+      
       {/* Header */}
-      <div className="relative overflow-hidden mt-4 w-full">
+      <div className="relative overflow-hidden mt-2 sm:mt-4 w-full">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-100 via-blue-50 to-teal-50"></div>
-        <div className="relative w-full px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-4 border border-gray-200/50">
-                <Sun className="w-6 h-6 text-yellow-500" />
+        <div className="relative w-full px-3 sm:px-4 lg:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div className="flex items-start sm:items-center">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/60 backdrop-blur-sm rounded-lg flex items-center justify-center mr-3 sm:mr-4 border border-gray-200/50 flex-shrink-0">
+                <Sun className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-500" />
               </div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold text-slate-700">{t('daily.header')}</h1>
-                <p className="text-slate-500 text-xs sm:text-base">{t('daily.subheader')}</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-slate-700 leading-tight">{t('daily.header')}</h1>
+                <p className="text-xs sm:text-sm lg:text-base text-slate-500 mt-0.5 sm:mt-1">{t('daily.subheader')}</p>
                 {plan?.week_metadata && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <Calendar className="w-4 h-4 text-blue-500" />
+                  <div className="flex items-center gap-1 sm:gap-2 mt-1 flex-wrap">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" />
                     <span className="text-xs text-blue-600 font-medium">
                       {format(parseISO(plan.week_metadata.start_date), 'MMM d')} - {format(parseISO(plan.week_metadata.end_date), 'MMM d, yyyy')}
                     </span>
                     {plan.week_metadata.generated_at && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 hidden sm:inline">
                         • Generated {format(parseISO(plan.week_metadata.generated_at), 'MMM d, h:mm a')}
                       </span>
                     )}
                   </div>
                 )}
                 {leoUpdating && (
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-600"></div>
+                  <div className="flex items-center gap-1 sm:gap-2 mt-1">
+                    <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-blue-200 border-t-blue-600"></div>
                     <span className="text-xs text-blue-600 font-medium">Leo is updating your plan...</span>
                   </div>
                 )}
               </div>
             </div>
             {isEditing ? (
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <button
                   onClick={handleSaveEdit}
                   disabled={saving}
-                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                  className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-1 sm:gap-2 disabled:opacity-50 text-sm"
                   title="Save Changes"
                 >
-                  <Save className="w-4 h-4" />
-                  <span className="text-sm">{saving ? 'Saving...' : 'Save'}</span>
+                  <Save className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>{saving ? 'Saving...' : 'Save'}</span>
                 </button>
                 <button
                   onClick={handleCancelEdit}
                   disabled={saving}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50"
+                  className="flex-1 sm:flex-none bg-gray-600 hover:bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-1 sm:gap-2 disabled:opacity-50 text-sm"
                   title="Cancel Changes"
                 >
-                  <X className="w-4 h-4" />
-                  <span className="text-sm">Cancel</span>
+                  <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Cancel</span>
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-2">
-                <button
-                  onClick={handleEditClick}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
-                  title={t('daily.customize', 'Customize Your Plan')}
-                >
-                  <Edit className="w-4 h-4" />
-                  <span className="text-sm">{t('daily.customize', 'Customize')}</span>
-                </button>
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={handleEditClick}
+                    className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-1 sm:gap-2 text-sm"
+                    title={t('daily.customize', 'Customize Your Plan')}
+                  >
+                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>{t('daily.customize', 'Customize')}</span>
+                  </button>
                   <button
                     onClick={() => setShowVersionHistory(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
+                    className="flex-1 sm:flex-none bg-purple-600 hover:bg-purple-700 text-white px-3 sm:px-4 py-2 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-1 sm:gap-2 text-sm"
                     title="View Plan History"
                   >
-                    <History className="w-4 h-4" />
-                    <span className="text-sm">History</span>
+                    <History className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>History</span>
                   </button>
                 </div>
-                <div className="text-xs text-gray-500 text-center">
+                <div className="text-xs text-gray-500 text-center hidden sm:block">
                   💡 Tip: You can also ask Leo to modify your plans!
                 </div>
               </div>
@@ -442,21 +443,19 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
         </div>
       </div>
 
-
-
       {/* Morning Routine & Challenges Section */}
-      <div className="w-full flex justify-center px-2 sm:px-4 mt-8">
-        <div className="flex flex-col sm:flex-row gap-6 sm:gap-12 w-full max-w-4xl mb-8 sm:mb-12">
+      <div className="w-full flex justify-center px-3 sm:px-4 mt-4 sm:mt-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-12 w-full max-w-4xl mb-6 sm:mb-8 lg:mb-12">
           {/* Morning Routine Card */}
-          <div className="flex-1 bg-transparent backdrop-blur-md shadow-xl rounded-2xl border-l-4 border-purple-300 p-4 sm:p-6 flex items-start min-w-0 mb-4 sm:mb-0">
-            <div className="mr-3 sm:mr-4 mt-1">
-              <Sun className="h-7 w-7 sm:h-8 sm:w-8 text-yellow-400" />
+          <div className="flex-1 bg-transparent backdrop-blur-md shadow-xl rounded-2xl border-l-4 border-purple-300 p-3 sm:p-4 lg:p-6 flex items-start min-w-0 mb-4 lg:mb-0">
+            <div className="mr-2 sm:mr-3 lg:mr-4 mt-1 flex-shrink-0">
+              <Sun className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 text-yellow-400" />
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-yellow-700 mb-2 flex items-center">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-base sm:text-lg lg:text-xl font-extrabold text-yellow-700 mb-2 flex items-center">
                 {t('daily.morningRoutine')}
               </h2>
-              <ul className="list-none space-y-2 text-gray-700">
+              <ul className="list-none space-y-1.5 sm:space-y-2 text-gray-700">
                 {(typeof (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad) === 'string' 
                   ? (isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad).split(/,\s*|\.\s*|\n+/).filter(Boolean)
                   : Array.isArray(isEditing ? editingPlan?.morningLaunchpad : plan.morningLaunchpad)
@@ -468,19 +467,19 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
                     const stepText = stepString.trim().replace(/^[-•\d.\s]+/, '');
                     
                     return (
-                      <li key={idx} className="flex items-start justify-between py-1">
-                        <div className="flex items-start gap-2 flex-1">
-                          <span className="inline-block mt-0.5 text-green-500 text-base">✔️</span>
+                      <li key={idx} className="flex items-start justify-between py-0.5 sm:py-1">
+                        <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0">
+                          <span className="inline-block mt-0.5 text-green-500 text-sm sm:text-base flex-shrink-0">✔️</span>
                           {isEditing ? (
                             <input
                               type="text"
                               value={stepString}
                               onChange={(e) => updateMorningRoutine(idx, e.target.value)}
-                              className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="flex-1 bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
                               placeholder="Enter morning routine step"
                             />
                           ) : (
-                            <span className="leading-snug font-medium text-gray-800">{stepText}</span>
+                            <span className="leading-snug font-medium text-gray-800 text-sm sm:text-base break-words">{stepText}</span>
                           )}
                         </div>
                       </li>
@@ -489,28 +488,29 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
               </ul>
             </div>
           </div>
+          
           {/* Weekly Challenges Card */}
           {Array.isArray(plan.challenges) && plan.challenges.length > 0 && (
             <div className="flex-1">
-              <h2 className="text-base sm:text-lg font-semibold text-purple-900 mb-2 sm:mb-3 flex items-center">
-                <span className="mr-2">🏆</span>
+              <h2 className="text-sm sm:text-base lg:text-lg font-semibold text-purple-900 mb-2 sm:mb-3 flex items-center">
+                <span className="mr-1.5 sm:mr-2">🏆</span>
                 {t('daily.weeklyChallenges')}
               </h2>
-              <ul className="space-y-2 sm:space-y-3">
+              <ul className="space-y-1.5 sm:space-y-2 lg:space-y-3">
                 {plan.challenges.map((challenge: any, idx: number) => {
                   const challengeText = `${challenge.title}: ${challenge.description}`;
                   
                   return (
-                    <li key={idx} className="border-l-2 border-purple-300 pl-3 py-2 bg-purple-50/30 rounded shadow-none">
+                    <li key={idx} className="border-l-2 border-purple-300 pl-2 sm:pl-3 py-1.5 sm:py-2 bg-purple-50/30 rounded shadow-none">
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">{t('daily.category', { category: challenge.category })}</span>
-                            <span className="text-xs sm:text-sm font-semibold text-purple-900">{t('daily.title', { title: challenge.title })}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1 sm:gap-2 mb-0.5 flex-wrap">
+                            <span className="text-xs font-medium text-purple-700 bg-purple-100 px-1.5 sm:px-2 py-0.5 rounded-full">{t('daily.category', { category: challenge.category })}</span>
+                            <span className="text-xs sm:text-sm font-semibold text-purple-900 break-words">{t('daily.title', { title: challenge.title })}</span>
                           </div>
-                          <div className="text-gray-800 text-xs sm:text-sm mb-0.5">{t('daily.description', { description: challenge.description })}</div>
-                          <div className="flex items-center gap-2 text-xs text-gray-600 mb-0.5">
-                            <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">⏱ {t('daily.estimatedTime', { time: challenge.estimatedTime })}</span>
+                          <div className="text-gray-800 text-xs sm:text-sm mb-0.5 break-words">{t('daily.description', { description: challenge.description })}</div>
+                          <div className="flex items-center gap-1 sm:gap-2 text-xs text-gray-600 mb-0.5">
+                            <span className="bg-yellow-100 text-yellow-700 px-1.5 sm:px-2 py-0.5 rounded">⏱ {t('daily.estimatedTime', { time: challenge.estimatedTime })}</span>
                           </div>
                         </div>
                       </div>
@@ -524,8 +524,8 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Daily Plan Grid */}
-      <div className="w-full mx-auto px-2 sm:px-8 lg:px-24">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 items-stretch">
+      <div className="w-full mx-auto px-3 sm:px-4 lg:px-8 xl:px-24">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-8 items-stretch">
           {(isEditing ? editingPlan?.days : plan.days).map((day: any, idx: number) => (
             <DayCard 
               key={idx} 
@@ -543,9 +543,9 @@ export const DailyPlanScreen: React.FC<DailyPlanScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Back Button */}
-      <div className="text-center mt-8 sm:mt-12 px-2">
-        <button onClick={onBack} className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-6 sm:px-8 rounded-full inline-flex items-center transition-colors duration-300 w-full sm:w-auto max-w-xs sm:max-w-none">
-          <RotateCcw className="w-5 h-5 mr-2" />
+      <div className="text-center mt-6 sm:mt-8 lg:mt-12 px-3 sm:px-4">
+        <button onClick={onBack} className="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 lg:px-8 rounded-full inline-flex items-center justify-center transition-colors duration-300 w-full sm:w-auto max-w-xs sm:max-w-none text-sm sm:text-base">
+          <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
           <span>{t('daily.goBack')}</span>
         </button>
       </div>
