@@ -665,24 +665,24 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
   const bodyTextClass = "text-base leading-relaxed";
 
   return (
-    <div className="relative sm:ml-[var(--sidebar-width)] min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col lg:flex-row transition-all duration-300 overflow-hidden">
+    <div className={`relative sm:ml-[var(--sidebar-width)] min-h-screen aurora-bg flex flex-col lg:flex-row transition-all duration-300 overflow-hidden${isMobile ? ' fixed inset-0 h-screen w-screen overflow-hidden' : ''}`}>
       {/* Header - Mobile Only */}
       {isMobile && (
-        <header className="fixed top-0 left-0 right-0 flex items-center justify-between p-3 bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 h-14 sm:h-16 shadow-sm">
+        <header className="fixed top-0 left-0 right-0 flex items-center justify-center p-3 bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 h-16 shadow-sm">
           <button
             onClick={handleBack}
-            className="flex items-center gap-1 sm:gap-2 text-gray-700 hover:text-gray-900 transition-colors p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 touch-manipulation"
+            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors absolute left-3 top-1/2 -translate-y-1/2"
             aria-label={t('aiChat.yourChat')}
           >
-            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="text-center flex-1 px-2">
-            <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">{t('aiChat.header', { name: AI_CHARACTER_NAME })}</h1>
-            <p className="text-xs text-gray-600 truncate">{t('aiChat.subheader')}</p>
+          <div className="text-center flex-1">
+            <h1 className="text-lg font-bold text-gray-900">{t('aiChat.header', { name: AI_CHARACTER_NAME })}</h1>
+            <p className="text-xs text-gray-600">{t('aiChat.subheader')}</p>
           </div>
           <button
             onClick={startNewConversation}
-            className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl touch-manipulation"
+            className="px-3 py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-all duration-200 shadow-lg hover:shadow-xl absolute right-3 top-1/2 -translate-y-1/2"
             title={t('aiChat.newChat')}
           >
             {t('aiChat.newChat')}
@@ -691,32 +691,32 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
       )}
 
       {/* Avatar Section - Fixed Left Panel (35%) */}
-      <section className="hidden lg:block lg:w-[35%] lg:fixed lg:left-[var(--sidebar-width)] lg:top-0 lg:h-screen lg:flex lg:items-start lg:justify-center lg:pt-[5%] lg:p-6 xl:p-8 lg:z-20" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
+      <section className="hidden lg:block lg:w-[35%] lg:fixed lg:left-[var(--sidebar-width)] lg:top-0 lg:h-screen lg:flex lg:items-start lg:justify-center lg:pt-[5%] lg:p-8 lg:z-20" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
         {/* Main Avatar Container */}
         <div className="relative w-full max-w-[500px] h-[600px] flex flex-col items-center">
           {/* Simple Character Header */}
-          <div className="w-full text-center mb-4 lg:mb-6">
+          <div className="w-full text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <h2 className="text-2xl lg:text-3xl font-bold text-gray-900">{AI_CHARACTER_NAME}</h2>
+              <h2 className="text-3xl font-bold text-gray-900">{AI_CHARACTER_NAME}</h2>
               <div className="flex items-center gap-1">
                 <div 
                   className={`w-2 h-2 rounded-full ${
                     readyState === ReadyState.OPEN ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 />
-                <span className="text-xs lg:text-sm text-gray-500 font-medium">
+                <span className="text-sm text-gray-500 font-medium">
                   {readyState === ReadyState.OPEN ? t('aiChat.online') : t('aiChat.offline')}
                 </span>
               </div>
             </div>
-            <p className="text-sm lg:text-base text-gray-600">{t('aiChat.subheader')}</p>
+            <p className="text-base text-gray-600">{t('aiChat.subheader')}</p>
             {chatState.messages.length > 1 && (
               <div className="mt-2 text-xs text-gray-500">📝 {t('aiChat.continuingConversation')}</div>
             )}
           </div>
 
           {/* Avatar Display - Natural Shape */}
-          <div className="relative w-[350px] h-[450px] lg:w-[400px] lg:h-[500px] xl:w-[450px] xl:h-[550px]">
+          <div className="relative w-[400px] h-[500px] xl:w-[450px] xl:h-[550px]">
             {/* Subtle Background Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-pink-100/20 rounded-3xl blur-xl" />
             {/* Main Avatar Container - Natural Shape */}
@@ -729,13 +729,15 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const fallback = document.createElement('div');
-                  fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-xl lg:text-2xl rounded-3xl ' + getAvatarBackground();
+                  fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-2xl rounded-3xl ' + getAvatarBackground();
                   fallback.textContent = AI_CHARACTER_NAME;
                   target.parentNode?.appendChild(fallback);
                 }}
               />
             </div>
           </div>
+          
+
         </div>
 
         {/* Minimal Background Elements */}
@@ -747,8 +749,8 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
       {/* Mobile Avatar - Compact and elegant for mobile */}
       {isMobile && (
-        <section className="w-full flex flex-col items-center pt-16 sm:pt-14 pb-2 sm:pb-3 relative bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-sm z-10" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
-          <div className="w-[120px] h-[120px] sm:w-[160px] sm:h-[160px] relative mb-2">
+        <section className="w-full flex flex-col items-center pt-14 pb-3 relative bg-gradient-to-b from-white/95 to-white/80 backdrop-blur-sm z-10" aria-label={`${AI_CHARACTER_NAME} avatar section`}>
+          <div className="w-[160px] h-[160px] relative mb-2">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-100/40 to-pink-100/40 rounded-full blur-sm" />
             <div className="relative w-full h-full flex items-center justify-center">
               <img
@@ -759,7 +761,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const fallback = document.createElement('div');
-                  fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm rounded-full ' + getAvatarBackground();
+                  fallback.className = 'w-full h-full flex items-center justify-center text-white font-semibold text-sm rounded-full ' + getAvatarBackground();
                   fallback.textContent = AI_CHARACTER_NAME;
                   target.parentNode?.appendChild(fallback);
                 }}
@@ -777,11 +779,20 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
               {readyState === ReadyState.OPEN ? t('aiChat.online') : t('aiChat.offline')}
             </span>
           </div>
+          {/* Removed AI_CHARACTER_NAME below online indicator */}
         </section>
       )}
 
       {/* Chat Section - Right Panel (65% on desktop, full width on mobile) */}
-      <main className={`flex-1 ${isMobile ? 'w-full pt-1 pb-20' : 'lg:ml-[35%] lg:w-[65%]'} flex flex-col relative`} role="main" aria-label="Chat conversation">
+      <main className={`flex-1 ${isMobile ? 'w-full pt-1 pb-20' : 'lg:ml-[35%] lg:w-[65%]'} flex flex-col relative${isMobile ? ' overflow-hidden' : ''}`} role="main" aria-label="Chat conversation" style={
+        isMobile
+          ? {
+              height: 'calc(100vh - 8rem)', // 4rem header + 4rem input (adjust if needed)
+              marginTop: 0,
+              marginBottom: 0,
+            }
+          : {}
+      }>
         {/* Background Decorative Elements */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           <div className="absolute top-20 right-20 w-40 h-40 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-2xl" />
@@ -794,7 +805,11 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
         </div>
 
         {/* Messages Container - Positioned between fixed header and input */}
-        <div className={`flex-1 overflow-y-auto ${isMobile ? 'px-3 py-2' : 'p-4 lg:p-6'} space-y-3 relative z-10`} role="log" aria-live="polite">
+        <div className={`flex-1 overflow-y-auto ${isMobile ? 'px-3 py-2' : 'p-4 lg:p-6'} space-y-3 relative z-10`} role="log" aria-live="polite" style={{
+          marginTop: isMobile ? '4rem' : '120px',
+          marginBottom: isMobile ? '5rem' : '120px',
+          maxHeight: isMobile ? 'calc(100vh - 16rem)' : undefined
+        }}>
           {/* Wellness Insights Display */}
           
           {/* Messages - Transparent style */}
@@ -830,11 +845,11 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                       {filterRefusalText(msg.content)}
                     </ReactMarkdown>
                   ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    <p className={`${isMobile ? 'text-sm' : 'text-sm'} leading-relaxed whitespace-pre-wrap`}>{msg.content}</p>
                   )}
                 </div>
                 {/* Message time */}
-                <div className={`mt-1 text-xs text-gray-400 ${isMobile ? 'px-1' : 'pl-2'} ${msg.role === 'user' ? 'text-right pr-2' : 'text-left'}`}>
+                <div className={`mt-1 ${isMobile ? 'text-xs' : 'text-xs'} text-gray-400 ${isMobile ? 'px-1' : 'pl-2'} ${msg.role === 'user' ? 'text-right pr-2' : 'text-left'}`}>
                   {(() => {
                     const date = new Date(msg.timestamp);
                     return isNaN(date.getTime())
@@ -853,7 +868,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                 <div className={`bg-white/90 backdrop-blur-md border border-gray-200 ${isMobile ? 'rounded-xl px-3 py-2' : 'rounded-2xl px-4 py-3'} shadow-lg`}>
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin text-purple-500" aria-hidden="true" />
-                    <span className="text-xs sm:text-sm text-gray-600">{t('aiChat.leoThinking', { name: AI_CHARACTER_NAME })}</span>
+                    <span className="text-sm text-gray-600">{t('aiChat.leoThinking', { name: AI_CHARACTER_NAME })}</span>
                   </div>
                 </div>
               </div>
@@ -865,9 +880,9 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
 
         {/* 🧠 Intelligent Prompt Buttons - Context-aware suggestions */}
         {chatState.messages.length === 1 && !chatState.loading && readyState === ReadyState.OPEN && (
-          <div className={`relative z-10 ${isMobile ? 'px-3 pb-3' : 'px-4 lg:px-6 pb-4'}`}>
+          <div className={`relative z-10 ${isMobile ? 'px-3 pb-3' : 'px-4 lg:px-6 pb-4'}`} style={{ marginBottom: isMobile ? '5rem' : '120px' }}>
             <div className="mb-2">
-              <p className="text-xs text-gray-500 font-medium">
+              <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500 font-medium`}>
                 {t('aiChat.quickStarters')}
               </p>
             </div>
@@ -881,7 +896,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
                 <button
                   key={index}
                   onClick={() => handleSuggestedPrompt(prompt)}
-                  className={`${isMobile ? 'px-3 py-2 text-xs min-w-[140px] sm:min-w-[160px]' : 'px-4 py-2 text-sm w-full'} rounded-full bg-gray-50 border border-gray-200 text-gray-700 font-medium transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95 whitespace-pre-line shadow-none flex-shrink-0 touch-manipulation`}
+                  className={`${isMobile ? 'px-3 py-2 text-xs min-w-[160px]' : 'px-4 py-2 text-sm w-full'} rounded-full bg-gray-50 border border-gray-200 text-gray-700 font-medium transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-300 active:scale-95 whitespace-pre-line shadow-none flex-shrink-0`}
                   disabled={chatState.loading || readyState !== ReadyState.OPEN}
                   style={{
                     fontWeight: 500,
@@ -943,7 +958,7 @@ export const AIChatScreen: React.FC<AIChatScreenProps> = ({ onBack }) => {
             <button
               onClick={handleSend}
               disabled={chatState.loading || !chatState.input.trim() || readyState !== ReadyState.OPEN}
-              className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md touch-manipulation`}
+              className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400/50 text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed backdrop-blur-md`}
               aria-label="Send message"
             >
               <svg className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} fill="currentColor" viewBox="0 0 24 24">
