@@ -25,7 +25,8 @@ from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 from app.services.progress_tracking_service import ProgressTrackingService
 from app.services.user_preferences_service import UserPreferencesService
 from app.services.plan_version_service import PlanVersionService
-from app.services.telegram_bot_service import telegram_bot_service
+# Lazy import for telegram bot service to avoid startup failures when TELEGRAM_BOT_TOKEN is not set
+# telegram_bot_service = None  # Will be initialized when needed
 from datetime import datetime, date, timedelta
 from app.models.user import User
 import json
@@ -82,6 +83,15 @@ def cleanup_expired_codes():
 
 # Initialize telegram_login_codes from file
 telegram_login_codes = load_telegram_codes()
+
+def get_telegram_bot_service():
+    """Lazy load telegram bot service to avoid startup failures"""
+    try:
+        from app.services.telegram_bot_service import telegram_bot_service
+        return telegram_bot_service
+    except Exception as e:
+        logger.error(f"Failed to load telegram bot service: {e}")
+        return None
 
 @router.get("/quiz", response_model=List[Dict[str, Any]])
 async def get_quiz_data():
@@ -1468,13 +1478,17 @@ async def telegram_auth(
         
         # Store the session in the Telegram bot service
         session_id = f"telegram_session_{uuid.uuid4().hex}"
-        telegram_bot_service.telegram_user_sessions[telegram_chat_id] = {
+        telegram_service = get_telegram_bot_service()
+        if telegram_service:
+            telegram_service.telegram_user_sessions[telegram_chat_id] = {
             'clerk_user_id': clerk_user_id,
             'internal_user_id': db_user.id,
             'user_name': user_name,
             'session_id': session_id,
             'created_at': datetime.utcnow()
-        }
+                }
+        else:
+            logger.warning("Telegram bot service not available")
         
         return {
             "success": True,
@@ -1497,7 +1511,14 @@ async def telegram_auth(
 async def telegram_status(telegram_chat_id: int):
     """Check if a Telegram user is authenticated"""
     try:
-        session = telegram_bot_service.telegram_user_sessions.get(telegram_chat_id)
+        telegram_service = get_telegram_bot_service()
+        if not telegram_service:
+            return {
+                "authenticated": False,
+                "message": "Telegram bot service not available"
+            }
+        
+        session = telegram_service.telegram_user_sessions.get(telegram_chat_id)
         
         if session:
             return {
