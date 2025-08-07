@@ -34,12 +34,13 @@ services:
       dockerfile: Dockerfile.telegram
     container_name: glowapp-telegram-bot
     restart: unless-stopped
+    env_file:
+      - ./back/.env
     environment:
       - DATABASE_URL=postgresql://glowuser:glowpassword@postgres:5432/glowdb
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
       - DOCKER_ENV=true
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
     depends_on:
       backend:
         condition: service_healthy
