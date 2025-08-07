@@ -28,6 +28,26 @@ services:
       retries: 3
       start_period: 40s
 
+  telegram-bot:
+    build: 
+      context: ./back
+      dockerfile: Dockerfile.telegram
+    container_name: glowapp-telegram-bot
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://glowuser:glowpassword@postgres:5432/glowdb
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DOCKER_ENV=true
+    depends_on:
+      backend:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - glowapp-net
+    # No ports exposed - bot only needs internal network access
+
   frontend:
     build: 
       context: ./front
