@@ -22,6 +22,7 @@ const AdvancedMainScreen = lazy(() => import('./components/screens/AdvancedMainS
 const DailyPlanScreen = lazy(() => import('./components/screens/DailyPlanScreen').then(m => ({ default: m.DailyPlanScreen })));
 const AIChatScreen = lazy(() => import('./components/screens/AIChatScreen').then(m => ({ default: m.AIChatScreen })));
 const ProgressTrackingScreen = lazy(() => import('./components/screens/ProgressTrackingScreen').then(m => ({ default: m.ProgressTrackingScreen })));
+const TelegramLoginScreen = lazy(() => import('./components/screens/TelegramLoginScreen').then(m => ({ default: m.default })));
 
 // Home Screen Component
 const HomeScreen: React.FC<{ onStartTest: () => void; results: any; isQuizLoading: boolean; quizError: string | null }> = ({ 
@@ -262,6 +263,11 @@ function App() {
           />
 
           <Route path="/error" element={<ErrorScreen onRetry={handleRetry} error={assessment.error} />} />
+
+          <Route
+            path="/telegram-login"
+            element={<TelegramLoginScreen />}
+          />
 
           <Route
             path="/test"

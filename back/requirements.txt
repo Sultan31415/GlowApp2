@@ -38,3 +38,6 @@ pillow==10.1.0
 
 # External services
 svix
+
+# Telegram Bot
+python-telegram-bot==21.7

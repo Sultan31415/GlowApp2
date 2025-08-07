@@ -47,6 +47,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [telegramStatus, setTelegramStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const { t } = useTranslation();
 
@@ -60,6 +61,15 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
         // Try to get user info first - this is less likely to fail
         const userInfo = await makeRequest('me');
         setUserData(userInfo);
+        
+        // Check Telegram connection status
+        try {
+          const telegramInfo = await makeRequest('telegram/status');
+          setTelegramStatus(telegramInfo.connected ? 'connected' : 'disconnected');
+        } catch (telegramErr) {
+          // If Telegram status check fails, assume disconnected
+          setTelegramStatus('disconnected');
+        }
         
         // Then try to get results
         try {
@@ -653,6 +663,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                         </div>
                       </div>
                     </div>
+
                   </div>
                 </div>
               ) : (
@@ -712,6 +723,8 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                       </div>
                     )}
                   </div>
+
+
                 </div>
               </div>
               )}
@@ -1022,6 +1035,92 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
           </div>
         </div>
 
+        {/* Telegram Integration CTA Section - Only show if not connected */}
+        {telegramStatus === 'disconnected' && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-blue-50 via-cyan-50 to-indigo-50 border-2 border-blue-200/60 rounded-2xl shadow-lg p-4 sm:p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-cyan-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-2xl sm:text-2xl font-bold text-gray-900 mb-2 text-center sm:text-left flex items-center">
+                      <Bot className="w-6 h-6 mr-2 text-blue-600" />
+                      Take Leo With You Everywhere
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 text-center sm:text-left">
+                      Connect your account to chat with Leo directly on Telegram. Get instant guidance, track your progress, and stay motivated on the go.
+                    </p>
+                    {/* Benefits */}
+                    <div className="flex flex-col gap-2 mb-3 sm:gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start items-center">
+                      <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        📱 Chat on Your Phone
+                      </span>
+                      <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        🔒 Secure & Private
+                      </span>
+                      <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        ⚡ Instant Responses
+                      </span>
+                    </div>
+                  </div>
+                  {/* Mobile: full width button below, Desktop: right-aligned */}
+                  <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto flex justify-center sm:block">
+                    <button
+                      onClick={() => navigate('/telegram-login')}
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-base"
+                    >
+                      Connect to Telegram →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Telegram Connected Success Section - Only show if connected */}
+        {telegramStatus === 'connected' && (
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-2 border-green-200/60 rounded-2xl shadow-lg p-4 sm:p-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-2xl sm:text-2xl font-bold text-gray-900 mb-2 text-center sm:text-left flex items-center">
+                      <Bot className="w-6 h-6 mr-2 text-green-600" />
+                      🎉 You're Connected to Leo on Telegram!
+                    </h3>
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base mb-3 text-center sm:text-left">
+                      You can now chat with Leo directly on your phone. Your progress syncs automatically between the app and Telegram.
+                    </p>
+                    {/* Connected benefits */}
+                    <div className="flex flex-col gap-2 mb-3 sm:gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start items-center">
+                      <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        ✅ Connected & Synced
+                      </span>
+                      <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        📱 Available on Phone
+                      </span>
+                      <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-medium w-full sm:w-fit text-center">
+                        🔄 Real-time Updates
+                      </span>
+                    </div>
+                  </div>
+                  {/* Mobile: full width button below, Desktop: right-aligned */}
+                  <div className="mt-4 sm:mt-0 sm:ml-4 w-full sm:w-auto flex justify-center sm:block">
+                    <button
+                      onClick={() => navigate('/telegram-login')}
+                      className="w-full sm:w-auto bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center text-base"
+                    >
+                      Manage Connection →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions Section */}
         <div className="mb-6" id="quick-actions-section">
           <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-100/50 p-6 sm:p-8">
@@ -1068,6 +1167,18 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = () => {
                   </div>
                   <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.aiMentor')}</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.aiMentorDesc')}</p>
+                </div>
+
+                {/* Telegram Integration */}
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200/50 rounded-3xl p-4 sm:p-6 hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 cursor-pointer relative" onClick={() => navigate('/telegram-login')}>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="p-3 bg-white/80 rounded-xl shadow-sm">
+                      <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                    </div>
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-100 px-2 py-1 rounded-full">{t('dashboard.available')}</span>
+                  </div>
+                  <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2">{t('dashboard.telegramIntegration')}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">{t('dashboard.telegramIntegrationDesc')}</p>
                 </div>
             </div>
           </div>

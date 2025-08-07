@@ -65,6 +65,9 @@ class Settings(BaseSettings):
     # Authentication Configuration
     CLERK_SECRET_KEY: str = os.getenv("CLERK_SECRET_KEY", "")
     JWT_KEY: str = os.getenv("JWT_KEY", "")
+    
+    # Telegram Bot Configuration
+    TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
     # Photo Analysis Configuration
     PHOTO_ANALYSIS_MODE: str = Field(

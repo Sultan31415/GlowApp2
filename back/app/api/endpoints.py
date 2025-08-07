@@ -1,4 +1,6 @@
 import traceback
+import uuid
+import time
 from typing import List, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.encoders import jsonable_encoder
@@ -23,8 +25,11 @@ from app.services.knowledge_based_plan_service import KnowledgeBasedPlanService
 from app.services.progress_tracking_service import ProgressTrackingService
 from app.services.user_preferences_service import UserPreferencesService
 from app.services.plan_version_service import PlanVersionService
+from app.services.telegram_bot_service import telegram_bot_service
 from datetime import datetime, date, timedelta
 from app.models.user import User
+import json
+import os
 
 # Initialize router
 router = APIRouter()
@@ -33,6 +38,50 @@ router = APIRouter()
 ai_service = AIService()
 
 logger = logging.getLogger(__name__)
+
+# Persistent storage for telegram login codes
+TELEGRAM_CODES_FILE = "telegram_login_codes.json"
+
+def load_telegram_codes() -> Dict[str, Dict[str, Any]]:
+    """Load telegram login codes from file"""
+    try:
+        if os.path.exists(TELEGRAM_CODES_FILE):
+            with open(TELEGRAM_CODES_FILE, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading telegram codes: {e}")
+    return {}
+
+def save_telegram_codes(codes: Dict[str, Dict[str, Any]]):
+    """Save telegram login codes to file"""
+    try:
+        with open(TELEGRAM_CODES_FILE, 'w') as f:
+            json.dump(codes, f)
+    except Exception as e:
+        logger.error(f"Error saving telegram codes: {e}")
+
+def cleanup_expired_codes():
+    """Remove expired login codes from memory and file"""
+    try:
+        current_time = time.time()
+        expired_codes = []
+        
+        for code, data in telegram_login_codes.items():
+            if current_time > data.get('expires_at', 0):
+                expired_codes.append(code)
+        
+        for code in expired_codes:
+            del telegram_login_codes[code]
+        
+        if expired_codes:
+            save_telegram_codes(telegram_login_codes)
+            logger.info(f"Cleaned up {len(expired_codes)} expired login codes")
+            
+    except Exception as e:
+        logger.error(f"Error cleaning up expired codes: {e}")
+
+# Initialize telegram_login_codes from file
+telegram_login_codes = load_telegram_codes()
 
 @router.get("/quiz", response_model=List[Dict[str, Any]])
 async def get_quiz_data():
@@ -1323,4 +1372,146 @@ async def compare_plan_versions(
         return comparison
     except Exception as e:
         logger.error(f"Error comparing plan versions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Telegram Bot Integration Endpoints
+
+@router.post("/telegram/generate-login-code")
+async def generate_telegram_login_code(
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generate a temporary login code for Telegram authentication"""
+    try:
+        import secrets
+        
+        # Clean up expired codes first
+        cleanup_expired_codes()
+        
+        # Generate a 6-digit code
+        login_code = str(secrets.randbelow(900000) + 100000)  # 6 digits, 100000-999999
+        
+        # Store the code with expiration (5 minutes)
+        expires_at = time.time() + 300  # 5 minutes
+        telegram_login_codes[login_code] = {
+            'user_id': user['user_id'],
+            'expires_at': expires_at,
+            'user_name': f"{user.get('first_name', 'User')} {user.get('last_name', '')}".strip()
+        }
+        save_telegram_codes(telegram_login_codes) # Save after each code generation
+        
+        logger.info(f"Generated login code {login_code} for user {user['user_id']}")
+        
+        return {
+            "success": True,
+            "login_code": login_code,
+            "expires_in": 300,  # 5 minutes
+            "message": "Login code generated successfully"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating telegram login code: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate login code: {str(e)}")
+
+@router.post("/telegram/auth")
+async def telegram_auth(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db)
+):
+    """Authenticate a Telegram user with their oylan.me account"""
+    try:
+        telegram_chat_id = request.get("telegram_chat_id")
+        auth_method = request.get("auth_method", "user_id")  # "user_id" or "login_code"
+        
+        if auth_method == "login_code":
+            # New method: use login code
+            login_code = request.get("login_code")
+            if not login_code:
+                raise HTTPException(status_code=400, detail="login_code is required")
+            
+            # Check if code exists and is not expired
+            if login_code not in telegram_login_codes:
+                raise HTTPException(status_code=404, detail="Invalid or expired login code")
+            
+            code_data = telegram_login_codes[login_code]
+            if time.time() > code_data['expires_at']:
+                # Remove expired code
+                del telegram_login_codes[login_code]
+                save_telegram_codes(telegram_login_codes) # Save after removing expired code
+                raise HTTPException(status_code=410, detail="Login code has expired")
+            
+            clerk_user_id = code_data['user_id']
+            user_name = code_data['user_name']
+            
+            # Remove the used code
+            del telegram_login_codes[login_code]
+            save_telegram_codes(telegram_login_codes) # Save after removing used code
+            
+        else:
+            # Legacy method: use clerk_user_id directly
+            clerk_user_id = request.get("clerk_user_id")
+            if not clerk_user_id:
+                raise HTTPException(status_code=400, detail="clerk_user_id is required")
+            
+            # Find the user in the database
+            db_user = db.query(User).filter(User.user_id == clerk_user_id).first()
+            if not db_user:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            user_name = f"{db_user.first_name or 'User'} {db_user.last_name or ''}".strip()
+        
+        # Find the user in the database
+        db_user = db.query(User).filter(User.user_id == clerk_user_id).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Store the session in the Telegram bot service
+        session_id = f"telegram_session_{uuid.uuid4().hex}"
+        telegram_bot_service.telegram_user_sessions[telegram_chat_id] = {
+            'clerk_user_id': clerk_user_id,
+            'internal_user_id': db_user.id,
+            'user_name': user_name,
+            'session_id': session_id,
+            'created_at': datetime.utcnow()
+        }
+        
+        return {
+            "success": True,
+            "message": "Telegram authentication successful",
+            "user_name": user_name,
+            "session_id": session_id,
+            "clerk_user_id": clerk_user_id,
+            "internal_user_id": db_user.id
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404, 410) without modification
+        raise
+    except Exception as e:
+        logger.error(f"Error in telegram_auth: {str(e)}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Authentication failed: {str(e)}")
+
+@router.get("/telegram/status/{telegram_chat_id}")
+async def telegram_status(telegram_chat_id: int):
+    """Check if a Telegram user is authenticated"""
+    try:
+        session = telegram_bot_service.telegram_user_sessions.get(telegram_chat_id)
+        
+        if session:
+            return {
+                "authenticated": True,
+                "user_name": session.get('user_name', 'User'),
+                "session_id": session.get('session_id'),
+                "created_at": session.get('created_at')
+            }
+        else:
+            return {
+                "authenticated": False,
+                "message": "User not authenticated"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking telegram status: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) 

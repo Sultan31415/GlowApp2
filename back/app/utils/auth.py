@@ -54,6 +54,10 @@ def get_current_user(request: Request):
             }
             
         return user_info
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 401) without modification
+        raise
     except Exception as e:
-        print("[ERROR] Exception in get_current_user:", e)
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"[ERROR] Exception in get_current_user: {e}")
+        # For unexpected errors, return a more specific error
+        raise HTTPException(status_code=401, detail="Authentication failed")

@@ -11,7 +11,8 @@ import {
   Settings,
   Image,
   TrendingUp,
-  MessageCircle
+  MessageCircle,
+  Bot
 } from 'lucide-react';
 import { UserButton, SignedIn } from '@clerk/clerk-react';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -161,6 +162,16 @@ export const Navigation: React.FC<NavigationProps> = ({ onStartTest, hasResults,
       tooltip: t('sidebar.chatTooltip'),
       description: t('sidebar.chatDescription'),
       isActive: isRouteActive('/ai-chat')
+    },
+    {
+      id: 'telegram',
+      label: t('sidebar.telegram'),
+      icon: Bot,
+      onClick: () => navigate('/telegram-login'),
+      isAvailable: true,
+      tooltip: t('sidebar.telegramTooltip'),
+      description: t('sidebar.telegramDescription'),
+      isActive: location.pathname === '/telegram-login'
     },
     {
       id: 'progress',
