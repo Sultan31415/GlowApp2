@@ -6,12 +6,13 @@
 [![Azure OpenAI](https://img.shields.io/badge/Azure%20OpenAI-GPT--4o-0078D4?style=for-the-badge&logo=microsoft)](https://azure.microsoft.com/en-us/services/openai/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4.17-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
+[![Telegram Bot](https://img.shields.io/badge/Telegram%20Bot-API-0088CC?style=for-the-badge&logo=telegram)](https://core.telegram.org/bots/api/)
 
-> **Revolutionary AI-powered wellness assessment platform combining clinical-grade therapeutic support with cutting-edge technology**
+> **Revolutionary AI-powered wellness assessment platform combining clinical-grade therapeutic support with cutting-edge technology and multi-platform accessibility**
 
 ## 🚀 Overview
 
-**GlowApp** (also known as "Oylan") represents the pinnacle of digital wellness technology - a sophisticated full-stack application that bridges the gap between traditional wellness apps and professional therapeutic support. Built with modern architecture and powered by multiple AI models, it provides personalized, evidence-based wellness guidance available 24/7.
+**GlowApp** (also known as "Oylan") represents the pinnacle of digital wellness technology - a sophisticated full-stack application that bridges the gap between traditional wellness apps and professional therapeutic support. Built with modern architecture and powered by multiple AI models, it provides personalized, evidence-based wellness guidance available 24/7 across web and mobile platforms.
 
 ### 🎯 Core Mission
 Transform wellness assessment and support by combining:
@@ -19,6 +20,7 @@ Transform wellness assessment and support by combining:
 - **Advanced multi-modal health analysis**
 - **Personalized action planning with dynamic updates**
 - **Sophisticated progress tracking and gamification**
+- **Multi-platform accessibility (Web + Telegram)**
 - **Accessible mental health support for global users**
 
 ---
@@ -45,13 +47,14 @@ Transform wellness assessment and support by combining:
 # High-performance async API
 - FastAPI 0.104.1 (Modern async framework)
 - SQLAlchemy 2.0.23 (Advanced ORM)
-- PostgreSQL (Production database)
+- PostgreSQL (Production database with pgvector)
 - Alembic (Database migrations)
 - Pydantic AI 0.0.49 (Structured AI agents)
 - Azure OpenAI (GPT-4o, GPT-4o Mini)
 - Google Gemini AI (Additional processing)
 - LangGraph (AI orchestration)
 - WebSocket (Real-time features)
+- Telegram Bot API (Multi-platform support)
 ```
 
 ### **AI & Machine Learning**
@@ -88,6 +91,7 @@ Transform wellness assessment and support by combining:
 - Pattern recognition across wellness domains
 - Dynamic plan management with version control
 - Real-time therapeutic conversations
+- Multi-platform accessibility (Web + Telegram)
 ```
 
 ### **3. Sophisticated Progress Tracking**
@@ -97,6 +101,7 @@ Transform wellness assessment and support by combining:
 - **Progress snapshots** for milestone celebration
 - **Completion analytics** with pattern recognition
 - **Real-time progress updates** via WebSocket
+- **Advanced habit analytics** with completion rates and trends
 
 ### **4. Advanced Plan Management**
 - **7-day personalized plans** with morning routines and daily activities
@@ -105,6 +110,42 @@ Transform wellness assessment and support by combining:
 - **Multi-day modifications** with intelligent field mapping
 - **Real calendar integration** with actual dates
 - **Atomic changes** with rollback capabilities
+- **Change tracking** with detailed audit logs
+
+### **5. 🆕 Telegram Bot Integration**
+```python
+# Full-featured Telegram bot with Leo AI
+- Identical Leo experience across web and Telegram
+- Same intelligent conversation starters and prompts
+- Same personalized prompts based on assessment data
+- Same therapeutic interventions and insights
+- Session management and chat history
+- Seamless platform switching
+- Mobile-optimized wellness support
+```
+
+### **6. 🆕 Plan Version Control System**
+```python
+# Enterprise-grade version control for wellness plans
+- Automatic version backups before changes
+- Detailed change tracking with field-level granularity
+- Version comparison and diff analysis
+- Rollback capabilities to previous versions
+- Change history with timestamps and descriptions
+- Audit trail for compliance and debugging
+```
+
+### **7. 🆕 Advanced User Preferences & Custom Habits**
+```python
+# Personalized wellness experience
+- Custom morning and evening routines
+- Personalized habit creation with atomic habits framework
+- Work schedule and family obligation integration
+- Dietary and cultural preference support
+- Exercise intensity and timing preferences
+- Motivation style customization
+- Planning style preferences
+```
 
 ---
 
@@ -119,6 +160,7 @@ Transform wellness assessment and support by combining:
 - Optimized prompts using Context7 best practices
 - Background task processing for AI operations
 - Code splitting with lazy loading
+- Database connection pooling
 ```
 
 ### **AI Orchestration Architecture**
@@ -242,6 +284,21 @@ CREATE TABLE plan_version_history (
     previous_values JSONB,
     new_values JSONB
 );
+
+-- User preferences and custom habits
+CREATE TABLE user_preferences (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    custom_morning_routine JSONB,
+    custom_evening_routine JSONB,
+    custom_habits JSONB,
+    preferred_wake_time VARCHAR(10),
+    preferred_sleep_time VARCHAR(10),
+    work_schedule JSONB,
+    family_obligations JSONB,
+    dietary_preferences JSONB,
+    cultural_context JSONB
+);
 ```
 
 ---
@@ -255,6 +312,7 @@ CREATE TABLE plan_version_history (
 - Azure OpenAI account
 - Google Gemini API key
 - Clerk authentication account
+- Telegram Bot Token (for bot integration)
 
 ### **Backend Setup**
 ```bash
@@ -306,6 +364,9 @@ DATABASE_URL=postgresql://user:password@localhost:5432/glowdb
 # Authentication
 CLERK_SECRET_KEY=your_clerk_secret_key
 JWT_KEY=your_jwt_key
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
 
 # Frontend
 VITE_API_URL=http://localhost:8000
@@ -406,13 +467,15 @@ This platform represents a **paradigm shift in digital wellness** by combining:
 2. **Comprehensive wellness assessment** with scientific rigor
 3. **Personalized action planning** with dynamic updates
 4. **Progress tracking** with gamification elements
-5. **Accessible mental health support** available 24/7
+5. **Multi-platform accessibility** (Web + Telegram)
+6. **Accessible mental health support** available 24/7
 
 ### **Target Impact**
 - **Global Wellness Access**: Making professional-grade support available worldwide
 - **Preventive Health**: Early intervention through pattern recognition
 - **Personalized Care**: AI-driven customization for individual needs
 - **Therapeutic Innovation**: Bridging traditional and digital therapeutic approaches
+- **Platform Flexibility**: Supporting users wherever they are most comfortable
 
 ---
 
@@ -461,6 +524,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **FastAPI** for high-performance API development
 - **React** for modern frontend development
 - **Tailwind CSS** for utility-first styling
+- **Telegram** for multi-platform bot integration
 
 ---
 
@@ -477,6 +541,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **🌟 Built with ❤️ for global wellness transformation 🌟**
 
-*Empowering individuals worldwide with AI-powered therapeutic support*
+*Empowering individuals worldwide with AI-powered therapeutic support across all platforms*
 
 </div> 
