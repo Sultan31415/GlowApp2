@@ -512,8 +512,6 @@ npm test
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ---
 
 ## 🙏 Acknowledgments
@@ -530,10 +528,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: [docs.glowapp.com](https://docs.glowapp.com)
-- **Issues**: [GitHub Issues](https://github.com/your-org/glowapp/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/glowapp/discussions)
-- **Email**: support@glowapp.com
+- **Email**: sultanyermakhan@gmail.com  
+- **Telegram**: [@sultan_yermakhan](https://t.me/yermkhns)  
+- **LinkedIn**: [linkedin.com/in/sultan-yermakhan](https://www.linkedin.com/in/sultan-yermakhan-1a2245349/)  
 
 ---
 
